@@ -7,6 +7,16 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+# File: ./src/icgem/api.jl
+# ==========================================================================================
+
+@testset "API Support" verbose = true begin
+    @testset "Unnormalized Coefficients" begin
+        model = GravityModels.load(IcgemFile, "./icgem_test_files/unnormalized_coefficients.gfc")
+        @test GravityModels.coefficient_norm(model) == :unnormalized
+    end
+end
+
 # File: ./src/icgem/fetch.jl
 # ==========================================================================================
 
@@ -122,5 +132,47 @@ IcgemFile{Float64}:
 
     result = sprint(show, MIME("text/plain"), egm96)
 
+    @test result == expected
+end
+
+@testset "Showing IcgemGfcCoefficient" verbose = true begin
+    egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
+
+    expected = "SatelliteToolboxGravityModels.IcgemGfcCoefficient{Float64}(Clm = -0.000484165371736, Slm = 0.0)"
+    result = sprint(show, egm96.data[3, 1])
+    @test result == expected
+
+    expected = """
+SatelliteToolboxGravityModels.IcgemGfcCoefficient{Float64}:
+  Clm : -0.000484165371736
+  Slm : 0.0"""
+
+    result = sprint(show, MIME("text/plain"), egm96.data[3, 1])
+    @test result == expected
+end
+
+@testset "Showing IcgemGfctCoefficients" verbose = true begin
+    eigen6c_file = fetch_icgem_file(
+        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+    )
+
+    eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
+
+    expected = "SatelliteToolboxGravityModels.IcgemGfctCoefficient{Float64}(Clm₀ = -0.000484165299806, Slm₀ = 0.0)"
+    result = sprint(show, eigen6c.data[3, 1])
+    @test result == expected
+
+    expected = """
+SatelliteToolboxGravityModels.IcgemGfctCoefficient{Float64}:
+    Clm₀ : -0.000484165299806
+    Slm₀ : 0.0
+   Epoch : 2005-01-01T00:00:00
+   Trend : Clm = -1.26060242677e-11, Slm = 0.0
+    Sine : Period 1.0 y => Amp. Clm = 5.32328946063e-11, Amp. Slm = 0.0
+           Period 0.5 y => Amp. Clm = -2.44339926664e-11, Amp. Slm = 0.0
+  Cosine : Period 1.0 y => Amp. Clm = 4.10012162817e-11, Amp. Slm = 0.0
+           Period 0.5 y => Amp. Clm = 3.33917546745e-11, Amp. Slm = 0.0"""
+
+    result = sprint(show, MIME("text/plain"), eigen6c.data[3, 1])
     @test result == expected
 end

@@ -80,3 +80,22 @@ end
         end
     end
 end
+
+# File: ./src/GravityModels/gravitational_field_derivative.jl
+# ==========================================================================================
+
+# NOTE: We can skip the gravitational field derivative tests because it is indirectly tested
+# in the previous sections.
+
+@testset "Gravity Field Derivative [ERRORS]" verbose = true begin
+    egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
+    r_itrf = [7000.0e3, 0, 0]
+
+    P = zeros(10, 10)
+    @test_throws ArgumentError GravityModels.gravity_acceleration(egm96, r_itrf; P = P)
+
+    P  = zeros(361, 361)
+    dP = zeros(10, 10)
+    @test_throws ArgumentError GravityModels.gravity_acceleration(egm96, r_itrf; dP = dP)
+    @test_throws ArgumentError GravityModels.gravity_acceleration(egm96, r_itrf; P = P, dP = dP)
+end
