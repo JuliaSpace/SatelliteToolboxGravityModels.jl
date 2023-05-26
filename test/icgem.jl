@@ -87,12 +87,12 @@ end
 
     eigen6c = GravityModels.load(Val(:ICGEM), eigen6c_file)
 
-    Clm, Slm = GravityModels.coefficients(eigcen6c, 2, 2, DateTime("2023-06-19"))
+    Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, DateTime("2023-06-19"))
 
     @test Clm ≈ +2.4393378057597012e-6 atol = 1e-20
     @test Slm ≈ -1.400407403685511e-6  atol = 1e-20
 
-    Clm, Slm = GravityModels.coefficients(eigcen6c, 100, 1, DateTime("2023-06-19"))
+    Clm, Slm = GravityModels.coefficients(eigen6c, 100, 1, DateTime("2023-06-19"))
 
     @test Clm ≈ -1.09755466854e-09 atol = 1e-20
     @test Slm ≈ +6.91287419630e-10 atol = 1e-20
