@@ -21,7 +21,7 @@ end
 
 GravityModels.gravity_constant(model::IcgemFile) = model.gravity_constant
 
-function GravityModels.load(::Val{:ICGEM}, filename::AbstractString, T::DataType = Float64)
+function GravityModels.load(::Type{IcgemFile}, filename::AbstractString, T::DataType = Float64)
     return parse_icgem(filename, T)
 end
 

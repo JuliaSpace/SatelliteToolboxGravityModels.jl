@@ -22,7 +22,7 @@
     for t in tests
         @eval @testset $(string(t[1])) begin
             test_results = readdlm($t[2]; skipstart = 34)
-            model = GravityModels.load(Val(:ICGEM), fetch_icgem_file($t[1]))
+            model = GravityModels.load(IcgemFile, fetch_icgem_file($t[1]))
 
             # Compare the results.
             for k in 1:size(test_results, 1)
@@ -59,7 +59,7 @@ end
     for t in tests
         @eval @testset $(string(t[1])) begin
             test_results = readdlm($t[2]; skipstart = 34)
-            model = GravityModels.load(Val(:ICGEM), fetch_icgem_file($t[1]))
+            model = GravityModels.load(IcgemFile, fetch_icgem_file($t[1]))
 
             # Compare the results.
             for k in 1:size(test_results, 1)

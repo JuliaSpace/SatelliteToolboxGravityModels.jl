@@ -35,9 +35,9 @@ Return the gravity constant [m³ / s²] for the gravity model.
 function gravity_constant end
 
 """
-    load(::Val{:model}, args...; kwargs...) -> AbstractGravityModel
+    load(::Type{T}, args...; kwargs...) where T<:AbstractGravityModel -> T
 
-Load a gravity `model` using the arguments `args...` and keywords `kwargs...`.
+Load a gravity model of type `T` using the arguments `args...` and keywords `kwargs...`.
 """
 function load end
 

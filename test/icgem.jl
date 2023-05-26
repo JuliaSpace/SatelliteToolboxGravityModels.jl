@@ -85,7 +85,7 @@ end
         "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
     )
 
-    eigen6c = GravityModels.load(Val(:ICGEM), eigen6c_file)
+    eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, DateTime("2023-06-19"))
 
@@ -102,14 +102,14 @@ end
 # ==========================================================================================
 
 @testset "Showing IcgemFile objects" verbose = true begin
-    egm96 = GravityModels.load(Val(:ICGEM), fetch_icgem_file(:EGM96))
+    egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
 
     expected = "ICGEM EGM96 (Degree = 360) {Float64}"
     result = sprint(show, egm96)
     @test result == expected
 
     expected = """
-SatelliteToolboxGravityModels.IcgemFile{Float64}:
+IcgemFile{Float64}:
       Product type : gravity_field
        Model name  : EGM96
   Gravity constant : 3.986004415e14
