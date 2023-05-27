@@ -358,11 +358,6 @@ end
 # - `Int`: Degree.
 # - `Int`: Order.
 function _parse_degree_and_order(tokens, current_line)
-    if length(tokens) < 3
-        @warn "[Line $current_line] Invalid data line."
-        return nothing
-    end
-
     deg = tryparse(Int, tokens[2])
 
     if isnothing(deg)
