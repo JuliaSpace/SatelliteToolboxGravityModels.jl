@@ -134,27 +134,15 @@ end
 
     @test_logs(
         (:warn, "[Line 18] Invalid degree: 2a."),
-        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_degree.gfc")
+        (:warn, "[Line 19] Invalid order: 1a."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_degree_and_order.gfc")
     )
 
     @test_logs(
-        (:warn, "[Line 18] Invalid order: 0a."),
-        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_order.gfc")
-    )
-
-    @test_logs(
-        (:warn, "[Line 18] Invalid `gfc` data line."),
-        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_gfc_data_line.gfc")
-    )
-
-    @test_logs(
-        (:warn, "[Line 18] Could not parse `Clm` to Float64: -0.484a65371736e-03."),
-        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_clm.gfc")
-    )
-
-    @test_logs(
-        (:warn, "[Line 18] Could not parse `Slm` to Float64: 0.0a0000000000e+00."),
-        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_slm.gfc")
+        (:warn, "[Line 17] Invalid `gfc` data line."),
+        (:warn, "[Line 18] Could not parse `Clm` to Float64: -0.18a987635955e-09."),
+        (:warn, "[Line 19] Could not parse `Slm` to Float64: -0.1400a6683654e-05."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_gfc_data_lines.gfc")
     )
 end
 
