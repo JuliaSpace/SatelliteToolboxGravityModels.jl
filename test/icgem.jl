@@ -108,10 +108,60 @@ end
     @test Slm ≈ +6.91287419630e-10 atol = 1e-20
 end
 
+# File: ./src/icgem/parse.jl
+# ==========================================================================================
+
+@testset "Parsing IcgemFile [ERRORS]" verbose = true begin
+    @test_throws(
+        ErrorException("[Invalid ICGEM file] Two `begin_of_head` keywords were found!"),
+        GravityModels.load(IcgemFile, "./icgem_test_files/two_begin_of_head.gfc")
+    )
+
+    @test_throws(
+        ErrorException("[Invalid ICGEM file] The mandatory keyword `end_of_head` was not found!"),
+        GravityModels.load(IcgemFile, "./icgem_test_files/no_end_of_head.gfc")
+    )
+
+    @test_throws(
+        ErrorException("[Invalid ICGEM file] The following mandatory fields are missing: (:radius, :max_degree)."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/missing_mandatory_fields.gfc")
+    )
+
+    @test_logs(
+        (:warn, "[Line 24] Invalid `gfc` data line."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_data_line.gfc")
+    )
+
+    @test_logs(
+        (:warn, "[Line 18] Invalid degree: 2a."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_degree.gfc")
+    )
+
+    @test_logs(
+        (:warn, "[Line 18] Invalid order: 0a."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_order.gfc")
+    )
+
+    @test_logs(
+        (:warn, "[Line 18] Invalid `gfc` data line."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_gfc_data_line.gfc")
+    )
+
+    @test_logs(
+        (:warn, "[Line 18] Could not parse `Clm` to Float64: -0.484a65371736e-03."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_clm.gfc")
+    )
+
+    @test_logs(
+        (:warn, "[Line 18] Could not parse `Slm` to Float64: 0.0a0000000000e+00."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_slm.gfc")
+    )
+end
+
 # File: ./src/icgem/show.jl
 # ==========================================================================================
 
-@testset "Showing IcgemFile objects" verbose = true begin
+@testset "Showing IcgemFile" verbose = true begin
     egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
 
     expected = "ICGEM EGM96 (Degree = 360) {Float64}"
