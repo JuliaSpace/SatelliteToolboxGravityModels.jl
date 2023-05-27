@@ -128,7 +128,7 @@ end
     )
 
     @test_logs(
-        (:warn, "[Line 24] Invalid `gfc` data line."),
+        (:warn, "[Line 18] Invalid data line."),
         GravityModels.load(IcgemFile, "./icgem_test_files/invalid_data_line.gfc")
     )
 
@@ -154,6 +154,10 @@ end
         (:warn, "[Line 43] Could not parse `Clm` amplitude to Float64: 5.08c62560512e-12."),
         (:warn, "[Line 48] Invalid `asin` or `acos` data line."),
         (:warn, "[Line 49] Invalid `asin` or `acos` data line."),
+        (:warn, "[Line 53] Invalid `trnd` data line."),
+        (:warn, "[Line 59] Could not parse `trend_S` to Float64: 0.0b0000000000e+00."),
+        (:warn, "[Line 86] Could not parse `Slm` amplitude to Float64: -1.07328392828e-12."),
+        (:warn, "[Line 90] Could not parse period to Float64: -3.72637514028e-12."),
         GravityModels.load(IcgemFile, "./icgem_test_files/invalid_gfct_data_lines.gfc")
     )
 end

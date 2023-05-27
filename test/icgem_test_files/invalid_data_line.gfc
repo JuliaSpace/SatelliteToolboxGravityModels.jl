@@ -1,10 +1,4 @@
-Lemoine F.G., Kenyon S.C., Factor J.K., Trimmer R.G., Pavlis N.K.,
-Chinn D.S., Cox C.M., Klosko S.M., Luthcke S.B., Torrence M.H.,
-Wang Y.M., Williamson R.G., Pavlis E.C., Rapp R.H., Olson T.R.;
-The Development of the Joint NASA GSFC and the National
-Imagery and Mapping Agency (NIMA) Geopotential ModelEGM96;
-NASA Technical Paper NASA/TP1998206861,
-Goddard Space Flight Center, Greenbelt, USA, 1998
+Invalid ICGEM file: Invalid data line.
 
 product_type                gravity_field
 modelname                   Unormalized
@@ -21,6 +15,6 @@ norm                        unnormalized
 key    L    M         C                   S              sigma C         sigma S
 end_of_head =========================================================================
 gfc     0   0  1.000000000000e+00  0.000000000000e+00  0.00000000e+00  0.00000000e+00
-gfc     2   0
+gfc     2
 gfc     2   1 -0.186987635955e-09  0.119528012031e-08  0.10000000e-29  0.10000000e-29
 gfc     2   2  0.243914352398e-05 -0.140016683654e-05  0.53739154e-10  0.54353269e-10
