@@ -144,6 +144,18 @@ end
         (:warn, "[Line 19] Could not parse `Slm` to Float64: -0.1400a6683654e-05."),
         GravityModels.load(IcgemFile, "./icgem_test_files/invalid_gfc_data_lines.gfc")
     )
+
+    @test_logs(
+        (:warn, "[Line 22] Invalid `gfct` data line."),
+        (:warn, "[Line 28] Could not parse `Clm` to Float64: 9.57a11211877e-07."),
+        (:warn, "[Line 34] Could not parse `Slm` to Float64: 0.00b000000000e+00."),
+        (:warn, "[Line 41] Could not parse `trend_C` to Float64: -5.03a51696812e-12."),
+        (:warn, "[Line 42] Could not parse `Clm` amplitude to Float64: -1.05b85537206e-10."),
+        (:warn, "[Line 43] Could not parse `Clm` amplitude to Float64: 5.08c62560512e-12."),
+        (:warn, "[Line 48] Invalid `asin` or `acos` data line."),
+        (:warn, "[Line 49] Invalid `asin` or `acos` data line."),
+        GravityModels.load(IcgemFile, "./icgem_test_files/invalid_gfct_data_lines.gfc")
+    )
 end
 
 # File: ./src/icgem/show.jl
