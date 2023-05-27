@@ -258,7 +258,6 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
             if tokens[1] == "trnd"
                 ret = _parse_trnd_data_line(Tf, tokens, current_line)
                 if isnothing(ret)
-                    state = :new
                     read_new_line = true
                     continue
                 end
@@ -277,7 +276,6 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
             elseif tokens[1] == "asin"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
                 if isnothing(ret)
-                    state = :new
                     read_new_line = true
                     continue
                 end
@@ -296,7 +294,6 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
             elseif tokens[1] == "acos"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
                 if isnothing(ret)
-                    state = :new
                     read_new_line = true
                     continue
                 end
