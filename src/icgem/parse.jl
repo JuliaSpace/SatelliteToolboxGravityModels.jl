@@ -214,7 +214,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
         # Process the line according to the state.
         if state === :new
-            if length(tokens[1]) < 3
+            if length(tokens) < 3
                 @warn "[Line $current_line] Invalid data line."
                 continue
             end
@@ -451,7 +451,7 @@ end
 # - `T`: `Clm` trend coefficient.
 # - `T`: `Slm` trend coefficient.
 function _parse_trnd_data_line(Tf, tokens, current_line)
-    if length(tokens) < 4
+    if length(tokens) < 5
         @warn "[Line $current_line] Invalid `trnd` data line."
         return nothing
     end
