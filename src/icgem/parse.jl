@@ -18,25 +18,6 @@
 export parse_icgem
 
 ############################################################################################
-#                                          Macros
-############################################################################################
-
-"""
-    @_parse_icgem_float(T, input)
-
-Parse the `input` to float type `T` substituting all `D`s and `d`s  to `e`, so that we can
-convert numbers in FORTRAN format.
-"""
-macro _parse_icgem_float(T, input)
-    ex = quote
-        data_str = replace($input, r"[D,d]" => "e")
-        tryparse($T, data_str)
-    end
-
-    return esc(ex)
-end
-
-############################################################################################
 #                                        Functions
 ############################################################################################
 
@@ -148,8 +129,8 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     max_degree   = parse(Int, keywords[:max_degree])
     errors       = Symbol(keywords[:errors])
 
-    gravity_constant = @_parse_icgem_float(Tf, keywords[:earth_gravity_constant])
-    radius           = @_parse_icgem_float(Tf, keywords[:radius])
+    gravity_constant = _parse_icgem_float(Tf, keywords[:earth_gravity_constant])
+    radius           = _parse_icgem_float(Tf, keywords[:radius])
 
     isnothing(gravity_constant) && error("[Invalid ICGEM file] Could not parse the gravity constant to $Tf.")
     isnothing(radius) && error("[Invalid ICGEM file] Could not parse the radius to $Tf.")
@@ -345,6 +326,19 @@ end
 #                                    Private Functions
 ############################################################################################
 
+#   _parse_icgem_float(T, input) -> Uniont{Nothing, T}
+#
+# Parse the `input` to float type `T` substituting all `D`s and `d`s  to `e`, so that we can
+# convert numbers in FORTRAN format. If we cannot parse `input` to `T`, it returns
+# `nothing`.
+function _parse_icgem_float(T::DataType, input::AbstractString)
+    data_str = replace(input, r"[D, d]" => "e")
+    return tryparse(T, data_str)
+end
+
+#                              Functions to Parse Data Lines
+# ==========================================================================================
+
 #   _parse_degree_and_order(tokens, current_line) -> Int, Int
 #
 # Parse the degree in `tokens[2]` and order in `tokens[3]`. The `current_line` number is
@@ -393,14 +387,14 @@ function _parse_gfc_data_line(Tf, tokens, current_line)
     isnothing(ret) && return nothing
     deg, ord = ret
 
-    clm = @_parse_icgem_float(Tf, tokens[4])
+    clm = _parse_icgem_float(Tf, tokens[4])
 
     if isnothing(clm)
         @warn "[Line $current_line] Could not parse `Clm` to $Tf: $(tokens[4])."
         return nothing
     end
 
-    slm = @_parse_icgem_float(Tf, tokens[5])
+    slm = _parse_icgem_float(Tf, tokens[5])
 
     if isnothing(slm)
         @warn "[Line $current_line] Could not parse `Slm` to $Tf: $(tokens[5])."
@@ -462,14 +456,14 @@ function _parse_trnd_data_line(Tf, tokens, current_line)
     deg, ord = ret
 
     # Parse the other coefficients.
-    trend_clm = @_parse_icgem_float(Tf, tokens[4])
+    trend_clm = _parse_icgem_float(Tf, tokens[4])
 
     if isnothing(trend_clm)
         @warn "[Line $current_line] Could not parse `trend_C` to $Tf: $(tokens[4])."
         return nothing
     end
 
-    trend_slm = @_parse_icgem_float(Tf, tokens[5])
+    trend_slm = _parse_icgem_float(Tf, tokens[5])
 
     if isnothing(trend_slm)
         @warn "[Line $current_line] Could not parse `trend_S` to $Tf: $(tokens[5])."
@@ -503,21 +497,21 @@ function _parse_asin_acos_data_line(Tf, tokens, current_line)
     deg, ord = ret
 
     # Parse the other coefficients.
-    amplitude_clm = @_parse_icgem_float(Tf, tokens[4])
+    amplitude_clm = _parse_icgem_float(Tf, tokens[4])
 
     if isnothing(amplitude_clm)
         @warn "[Line $current_line] Could not parse `Clm` amplitude to $Tf: $(tokens[4])."
         return nothing
     end
 
-    amplitude_slm = @_parse_icgem_float(Tf, tokens[5])
+    amplitude_slm = _parse_icgem_float(Tf, tokens[5])
 
     if isnothing(amplitude_slm)
         @warn "[Line $current_line] Could not parse `Slm` amplitude to $Tf: $(tokens[4])."
         return nothing
     end
 
-    period = @_parse_icgem_float(Tf, tokens[end])
+    period = _parse_icgem_float(Tf, tokens[end])
 
     if isnothing(period)
         @warn "[Line $current_line] Could not parse period to $Tf: $(tokens[4])."
