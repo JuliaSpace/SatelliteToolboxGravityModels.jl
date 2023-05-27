@@ -66,7 +66,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     # We need to first check the position of the header due to the `begin_of_head` keyword
     # that can define where the header starts.
     while !eof(file)
-        current_line +=1
+        current_line += 1
         tokens = split(readline(file))
 
         length(tokens) < 1 && continue
@@ -122,6 +122,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
     # Read one mode line to take into account the "end_of_head" line.
     readline(file)
+    current_line += 1
 
     # Parse mandatory header fields
     # ======================================================================================
