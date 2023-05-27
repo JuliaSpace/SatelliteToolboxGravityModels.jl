@@ -19,12 +19,13 @@
 """
     gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
 
-Compute the gravitational field derivative with respect to the spherical coordinates
-(`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in ITRF,
-at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
+Compute the gravitational acceleration [m / s²] represented in ITRF using the `model` in the
+position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
+omitted, the J2000.0 epoch is used.
 
-!!! info
-    In this case, `ϕ` is the geocentric latitude and `λ` is the longitude.
+!!! note
+    Gravitational acceleration is the acceleration caused by the central body mass only,
+    i.e., without considering the centrifugal potential.
 
 # Keywords
 
@@ -108,6 +109,42 @@ function gravitational_acceleration(
     return a_itrf
 end
 
+"""
+    gravity_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
+
+Compute the gravity acceleration [m / s²] represented in ITRF using the `model` in the
+position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
+omitted, the J2000.0 epoch is used.
+
+!!! note
+    Gravity acceleration is the compound acceleration caused by the central body mass and
+    the centrifugal force due to the planet's rotation.
+
+# Keywords
+
+- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than the available number of
+    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
+    to the maximum degree available. (**Default** = -1)
+- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
+    If it is lower than 0, it will be set to the same value as `max_degree`.
+    (**Default** = -1)
+- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
+    when calling the function.
+- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
+    be created when calling the function.
+
+# Returns
+
+- `T`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
+- `T`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
+- `T`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
+"""
 function gravity_acceleration(
     model::AbstractGravityModel{T},
     r::AbstractVector,

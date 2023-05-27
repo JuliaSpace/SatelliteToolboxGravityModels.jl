@@ -10,7 +10,7 @@
 """
     gravitational_field_derivative(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
 
-Compute the gravitational field derivative with respect to the spherical coordinates
+Compute the gravitational field derivative [SI] with respect to the spherical coordinates
 (`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in ITRF,
 at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
 
