@@ -77,30 +77,45 @@ function gravitational_field_derivative(
     n_max = max_degree
     m_max = max_order
 
+    # Obtain the required sizes for the matrices P and dP.
+    #
+    # Notice that, to compute the derivative if `m_max < n_max`, we need that `P` has an
+    # order at least one time higher than `dP`. Otherwise, we will access regions with
+    # undefined numbers.
+    if n_max == m_max
+        n_max_P  = m_max_P  = n_max
+        n_max_dP = m_max_dP = n_max
+    else
+        n_max_P  = n_max
+        m_max_P  = m_max + 1
+        n_max_dP = n_max
+        m_max_dP = m_max
+    end
+
     # Check if the matrices related to Legendre must be computed.
     if isnothing(P)
-        P = Matrix{T}(undef, n_max + 1, n_max + 1)
+        P = Matrix{T}(undef, n_max_P + 1, m_max_P + 1)
 
     else
         # If the user passed a matrix, we must check if there are enough space to store the
         # coefficients.
         rows, cols = size(P)
 
-        if (rows < n_max + 1) || (cols < n_max + 1)
-            throw(ArgumentError("Matrix `P` must have at least $(n_max + 1) rows and columns."))
+        if (rows < n_max_P + 1) || (cols < m_max_P + 1)
+            throw(ArgumentError("Matrix `P` must have at least $(n_max_P + 1) rows and $(m_max_P + 1) columns."))
         end
     end
 
     if isnothing(dP)
-        dP = Matrix{T}(undef, n_max + 1, n_max + 1)
+        dP = Matrix{T}(undef, n_max_dP + 1, n_max_dP + 1)
 
     else
         # If the user passed a matrix, we must check if there are enough space to store the
         # coefficients.
         rows, cols = size(dP)
 
-        if (rows < n_max + 1) || (cols < n_max + 1)
-            throw(ArgumentError("Matrix `P` must have at least $(n_max + 1) rows and columns."))
+        if (rows < n_max_dP + 1) || (cols < m_max_dP + 1)
+            throw(ArgumentError("Matrix `dP` must have at least $(n_max_dP + 1) rows and $(m_max_dP + 1) columns."))
         end
     end
 
@@ -135,8 +150,8 @@ function gravitational_field_derivative(
     # normalization and its time derivative.
     #
     # Notice that cos(ϕ_gc - π / 2) = sin(ϕ_gc).
-    legendre!(Val(norm_type), P, ϕ_gc - T(π / 2), n_max, m_max; ph_term = false)
-    dlegendre!(Val(norm_type), dP, ϕ_gc - T(π / 2), P, n_max, m_max; ph_term = false)
+    legendre!(Val(norm_type), P, ϕ_gc - T(π / 2), n_max_P, m_max_P; ph_term = false)
+    dlegendre!(Val(norm_type), dP, ϕ_gc - T(π / 2), P, n_max_dP, m_max_dP; ph_term = false)
 
     # Auxiliary variables.
     ratio = R₀ / r_gc
