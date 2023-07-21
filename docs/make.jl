@@ -7,7 +7,7 @@ makedocs(
         prettyurls = !("local" in ARGS),
         canonical = "https://juliaspace.github.io/SatelliteToolboxGravityModels.jl/stable/",
     ),
-    sitename = "Satellite Toolbox Gravity Models",
+    sitename = "SatelliteToolboxGravityModels.jl",
     authors = "Ronan Arraes Jardim Chagas",
     pages = [
         "Home" => "index.md",
