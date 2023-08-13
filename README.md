@@ -30,7 +30,7 @@ the previous functions. We also provide in-built support for
 
 ```julia
 julia> using Pkg
-julia> Pkg.install("SatelliteToolboxGravityModels")
+julia> Pkg.add("SatelliteToolboxGravityModels")
 ```
 
 ## Documentation
