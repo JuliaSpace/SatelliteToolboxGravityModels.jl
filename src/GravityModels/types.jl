@@ -7,6 +7,8 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+export AbstractGravityModel
+
 """
     abstract type AbstractGravityModel{T<:Number}
 
