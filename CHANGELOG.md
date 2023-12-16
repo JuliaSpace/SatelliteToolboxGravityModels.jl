@@ -1,6 +1,13 @@
 SatelliteToolboxGravityModels.jl Changelog
 ==========================================
 
+Version 0.1.3
+-------------
+
+- ![Enhancement][badge-enhancement] We exported `AbstractGravityModel`.
+- ![Enhancement][badge-enhancement] The function `GravityModels.coefficients` can be called
+  without the parameter `time`. In this case, J2000.0 epoch will be used.
+
 Version 0.1.2
 -------------
 
