@@ -1,6 +1,11 @@
 SatelliteToolboxGravityModels.jl Changelog
 ==========================================
 
+Version 0.1.4
+-------------
+
+- ![Enhancement][badge-enhancement] We now **truly** export `AbstractGravityModel`.
+
 Version 0.1.3
 -------------
 
