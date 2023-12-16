@@ -12,11 +12,12 @@ is the type of the coefficients in the model.
 ## API Functions
 
 ```julia
-function coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::DataTime) where T<:Number -> T, T
+function coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::DataTime = DateTime("2000-01-01")) where T<:Number -> T, T
 ```
 
 This function must return the coefficients `Clm` and `Slm` of the gravity `model` for the
-specified `degree`, `order`, and `time`. Hence:
+specified `degree`, `order`, and `time`. If the latter argument is omitted, the J2000.0
+epoch is used. Hence:
 
 ```julia
 coefficients(model, 10, 8, DateTime("2023-06-19"))
@@ -27,7 +28,8 @@ must return a `Tuple{T, T}` with the `Clm` and `Slm`, respectively, for the degr
 
 > **Note**
 > If the model has constant coefficients, the function must still accept the positional
-> argument `time`, but it will be neglected.
+> argument `time`, but it will be neglected. The package already defines the function
+> without the `time` for the sake of usage simplification.
 
 ---
 
