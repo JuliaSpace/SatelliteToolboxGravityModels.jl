@@ -14,6 +14,7 @@ import Base: show
 include("./GravityModels/GravityModels.jl")
 using .GravityModels
 export GravityModels
+export AbstractGravityModel
 
 ############################################################################################
 #                                          Types
