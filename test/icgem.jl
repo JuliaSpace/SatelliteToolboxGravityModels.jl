@@ -106,6 +106,15 @@ end
 
     @test Clm ≈ -1.09755466854e-09 atol = 1e-20
     @test Slm ≈ +6.91287419630e-10 atol = 1e-20
+
+    # Testing the version without the time parameter, which defaults to J2000.0 epoch.
+    Clm_j2000, Slm_j2000 = GravityModels.coefficients(eigen6c, 2, 2, DateTime("2000-01-01"))
+    @test Clm_j2000 ≈ 2.4393631453628134e-6 atol = 1e-20
+    @test Slm_j2000 ≈ -1.40022130892891e-6  atol = 1e-20
+
+    Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2)
+    @test Clm == Clm_j2000
+    @test Slm == Slm_j2000
 end
 
 # File: ./src/icgem/parse.jl

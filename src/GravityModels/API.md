@@ -27,7 +27,8 @@ must return a `Tuple{T, T}` with the `Clm` and `Slm`, respectively, for the degr
 
 > **Note**
 > If the model has constant coefficients, the function must still accept the positional
-> argument `time`, but it will be neglected.
+> argument `time`, but it will be neglected. The package already defines the function
+> without the `time` for the sake of usage simplification.
 
 ---
 
