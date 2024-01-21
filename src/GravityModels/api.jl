@@ -1,11 +1,8 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# Define the API functions for the gravity models.
 #
-#   Define the API functions for the gravity models.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 """
     coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::DateTime = DateTime("2000-01-01")) where T<:Number -> T, T

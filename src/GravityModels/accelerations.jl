@@ -1,20 +1,14 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# Function to compute accelerations.
 #
-#   Function to compute accelerations.
+## References ##############################################################################
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# [1] Barthelmes, F (2013). Definition of Functions of the Geopotential and Their
+#     Calculation from Spherical Harmonic Models. Scientific Technical Report STR09/02.
+#     GeoForschungsZentrum (GFZ).
 #
-# References
-# ==========================================================================================
-#
-#   [1] Barthelmes, F (2013). Definition of Functions of the Geopotential and Their
-#       Calculation from Spherical Harmonic Models. Scientific Technical Report STR09/02.
-#       GeoForschungsZentrum (GFZ).
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 """
     gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
@@ -82,8 +76,7 @@ function gravitational_acceleration(
     ϕ_gc  = atan(r[3], ρ_gc)
     λ_gc  = atan(r[2], r[1])
 
-    # Acceleration represented in the ITRF
-    # ======================================================================================
+    # == Acceleration Represented in the ITRF ==============================================
 
     # Compute the partial derivatives in spherical coordinate systems [1, p. 22] (eq. 120):
     #
@@ -155,8 +148,7 @@ function gravity_acceleration(
     dP::Union{Nothing, AbstractMatrix} = nothing
 ) where T<:Number
 
-    # Gravitational acceleration
-    # ======================================================================================
+    # == Gravitational Acceleration ========================================================
 
     grav_itrf = gravitational_acceleration(
         model,
@@ -168,12 +160,11 @@ function gravity_acceleration(
         dP = dP
     )
 
-    # Centripetal acceleration
-    # ======================================================================================
+    # == Centripetal acceleration ==========================================================
     #
     # The centripetal acceleration has the following value:
     #
-    #   cp_accel = ω² ⋅ r ⋅ cos(ϕ_gc),
+    #   cp_accel = ω² r cos(ϕ_gc),
     #
     # where `ω` is the Earth's rotation rate, `r` is the distance from the Earth's center,
     # and `ϕ_gc` is the geocentric latitude. Notice that:
@@ -190,7 +181,7 @@ function gravity_acceleration(
     #
     # Finally:
     #
-    #   cp_accel = ω² ⋅ ρ_gc
+    #   cp_accel = ω² ρ_gc
 
     ρ²_gc    = r[1]^2 + r[2]^2
     r²_gc    = ρ²_gc  + r[3]^2
@@ -204,9 +195,11 @@ function gravity_acceleration(
     # Applying the centrifugal potential in eq. 124 [1, p. 23] into eq. 120 [1, p. 22] and
     # then converting from the UEN reference frame to ITRF, one gets:
     #
-    #                   | ω² . r . cos(ϕ_gc) . cos(λ_gc) |                    | cos(λ_gc) |
-    #   α_centrifugal = |              0                 | = ω².r.cos(ϕ_gc) . |    0      |,
-    #                   | ω² . r . cos(ϕ_gc) . sin(λ_gc) |                    | sin(λ_gc) |
+    #                   ┌                          ┐                  ┌           ┐
+    #                   │ ω² r cos(ϕ_gc) cos(λ_gc) │                  │ cos(λ_gc) │
+    #   α_centrifugal = │            0             │ = ω² r cos(ϕ_gc) │    0      │,
+    #                   │ ω² r cos(ϕ_gc) sin(λ_gc) │                  │ sin(λ_gc) │
+    #                   └                          ┘                  └           ┘
     #
     # where ω is the Earth rotation rate, cos(λ_gc) = r_x / √(r_x² + r_y²), and
     # sin(λ_gc) = r_y / √(r_x² + r_y²).

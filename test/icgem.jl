@@ -1,14 +1,10 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# Tests related to the ICGEM file support.
 #
-#   Tests related to the ICGEM file support.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
-# File: ./src/icgem/api.jl
-# ==========================================================================================
+# == File: ./src/icgem/api.jl ==============================================================
 
 @testset "API Support" verbose = true begin
     @testset "Unnormalized Coefficients" begin
@@ -17,8 +13,7 @@
     end
 end
 
-# File: ./src/icgem/fetch.jl
-# ==========================================================================================
+# == File: ./src/icgem/fetch.jl ============================================================
 
 @testset "Fetching ICGEM files" verbose = true begin
     egm96_file = (@test_logs (
@@ -33,11 +28,10 @@ end
     @test egm96_file_rerun == egm96_file
 end
 
-# Files: ./src/icgem/compute.jl
-# ==========================================================================================
+# == Files: ./src/icgem/compute.jl =========================================================
 
 ############################################################################################
-#                                       Test Result
+#                                       Test Result                                        #
 ############################################################################################
 #
 # The EIGEN-6C file has time dependent coefficients. According to the documentation, we must
@@ -117,8 +111,7 @@ end
     @test Slm == Slm_j2000
 end
 
-# File: ./src/icgem/parse.jl
-# ==========================================================================================
+# == File: ./src/icgem/parse.jl ============================================================
 
 @testset "Parsing IcgemFile [ERRORS]" verbose = true begin
     @test_throws(
@@ -171,8 +164,7 @@ end
     )
 end
 
-# File: ./src/icgem/show.jl
-# ==========================================================================================
+# == File: ./src/icgem/show.jl =============================================================
 
 @testset "Showing IcgemFile" verbose = true begin
     egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))

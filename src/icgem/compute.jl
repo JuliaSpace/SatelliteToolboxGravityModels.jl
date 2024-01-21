@@ -1,11 +1,8 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# Functions to compute the gravity model coefficients of a ICGEM file.
 #
-#   Functions to compute the gravity model coefficients of a ICGEM file.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 """
     icgem_coefficients(model::IcgemFile{T}, degree::Int, order::Int, t::DateTime) where T<:Number -> T, T
@@ -37,7 +34,7 @@ function icgem_coefficients(
 end
 
 ############################################################################################
-#                                    Private Functions
+#                                    Private Functions                                     #
 ############################################################################################
 
 # Compute the coefficients `Clm` and `Slm` for a coefficient of type `IcgemGfcCoefficient`.
@@ -56,16 +53,14 @@ function _compute_icgem_coefficient(
     # Elapsed time from coefficients epoch [year].
     Δt = T(Dates.value(t - coefficient.time) / 1000 / 86400 / 365)
 
-    # Trend
-    # ======================================================================================
+    # == Trend =============================================================================
 
     if coefficient.has_trend
         clm += coefficient.trend_clm * Δt
         slm += coefficient.trend_slm * Δt
     end
 
-    # asin
-    # ======================================================================================
+    # == asin ==============================================================================
 
     for c in coefficient.asin_coefficients
         A_clm, A_slm, p = c
@@ -75,8 +70,7 @@ function _compute_icgem_coefficient(
         slm += A_slm * aux
     end
 
-    # acos
-    # ======================================================================================
+    # == acos ==============================================================================
 
     for c in coefficient.acos_coefficients
         A_clm, A_slm, p = c

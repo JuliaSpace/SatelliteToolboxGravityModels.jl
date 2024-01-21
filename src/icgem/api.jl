@@ -1,11 +1,8 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# Functions related to the gravity model API.
 #
-#   Functions related to the gravity model API.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 function GravityModels.coefficients(model::IcgemFile, degree::Int, order::Int, time::DateTime)
     return icgem_coefficients(model, degree, order, time)

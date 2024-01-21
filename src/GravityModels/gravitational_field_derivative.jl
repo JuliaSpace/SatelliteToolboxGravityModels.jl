@@ -1,11 +1,8 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# Function to compute the gravitational field derivative.
 #
-#   Function to compute the gravitational field derivative.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 """
     gravitational_field_derivative(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
@@ -52,16 +49,14 @@ function gravitational_field_derivative(
     dP::Union{Nothing, AbstractMatrix} = nothing
 ) where T<:Number
 
-    # Unpack gravity model data
-    # ======================================================================================
+    # == Unpack Gravity Model Data =========================================================
 
     μ  = gravity_constant(model)
     R₀ = radius(model)
     norm_type = coefficient_norm(model)
     model_max_degree = maximum_degree(model)
 
-    # Process the inputs
-    # ======================================================================================
+    # == Process the Inputs ================================================================
 
     # Check maximum degree value.
     if (max_degree < 0) || (max_degree > model_max_degree)
@@ -119,8 +114,7 @@ function gravitational_field_derivative(
         end
     end
 
-    # Geocentric latitude and longitude
-    # ======================================================================================
+    # == Geocentric Latitude and Longitude =================================================
 
     ρ²_gc = r[1]^2 + r[2]^2
     r²_gc = ρ²_gc  + r[3]^2
@@ -129,8 +123,7 @@ function gravitational_field_derivative(
     ϕ_gc  = atan(r[3], ρ_gc)
     λ_gc  = atan(r[2], r[1])
 
-    # Auxiliary variables
-    # ======================================================================================
+    # == Auxiliary Variables ===============================================================
 
     # Sine and cosine of the geocentric longitude.
     #
@@ -139,8 +132,7 @@ function gravitational_field_derivative(
     sin_λ,  cos_λ  = sincos(λ_gc)
     sin_2λ, cos_2λ = sincos(2λ_gc)
 
-    # First derivative of the non-spherical portion of the gravitational field
-    # ======================================================================================
+    # == First Derivative of the Non-Spherical Portion of the Gravitational Field ==========
 
     ∂U_∂r = T(1)  # ........................................... Derivative w.r.t. the radius
     ∂U_∂ϕ = T(0)  # .............................. Derivative w.r.t. the geocentric latitude
@@ -163,8 +155,7 @@ function gravitational_field_derivative(
         aux_∂U_∂ϕ = T(0)
         aux_∂U_∂λ = T(0)
 
-        # Sine and cosine with m = 1
-        # ==================================================================================
+        # == Sine and Cosine with m = 1 ====================================================
         #
         # This values will be used to update recursively `sin(m * λ_gc)` and
         # `cos(m * λ_gc)`, reducing the computational burden.
@@ -180,31 +171,27 @@ function gravitational_field_derivative(
         cos_m_1λ = +cos_λ    # cos(-1 * λ_gc)
         cos_m_2λ = +cos_2λ   # cos(-2 * λ_gc)
 
-        # Compute the contributions when `m ∈ [1, min(n, m_max)]`
-        # ==================================================================================
+        # == Compute the Contributions When `m ∈ [1, min(n, m_max)]` =======================
 
         for m in 0:min(n, m_max)
             # Compute recursively `sin(m * λ_gc)` and `cos(m * λ_gc)`.
             sin_mλ = 2cos_λ * sin_m_1λ - sin_m_2λ
             cos_mλ = 2cos_λ * cos_m_1λ - cos_m_2λ
 
-            # Get the spherical harmonics coefficients
-            # ==============================================================================
+            # == Get the Spherical Harmonics Coefficients ==================================
 
             clm, slm = coefficients(model, n, m, time)
 
             CcSs_nm = clm * cos_mλ + slm * sin_mλ
             ScCs_nm = slm * cos_mλ - clm * sin_mλ
 
-            # Compute the contributions for `m`
-            # ==============================================================================
+            # == Compute the Contributions for `m` =========================================
 
             aux_∂U_∂r +=     P[n+1, m+1] * CcSs_nm
             aux_∂U_∂ϕ +=    dP[n+1, m+1] * CcSs_nm
             aux_∂U_∂λ += m * P[n+1, m+1] * ScCs_nm
 
-            # Update the values for the next step
-            # ==============================================================================
+            # == Update the Values for the Next Step =======================================
 
             sin_m_2λ = sin_m_1λ
             sin_m_1λ = sin_mλ

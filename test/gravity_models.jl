@@ -1,14 +1,10 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# Tests related to the GravityModel API.
 #
-#   Tests related to the GravityModel API.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
-# File: ./src/GravityModels/accelerations.jl
-# ==========================================================================================
+# == File: ./src/GravityModels/accelerations.jl ============================================
 
 # TODO: Add tests with a model that has time-varying coefficients.
 
@@ -81,8 +77,7 @@ end
     end
 end
 
-# File: ./src/GravityModels/gravitational_field_derivative.jl
-# ==========================================================================================
+# == File: ./src/GravityModels/gravitational_field_derivative.jl ===========================
 
 # NOTE: We can skip the gravitational field derivative tests because it is indirectly tested
 # in the previous sections.

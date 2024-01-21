@@ -1,11 +1,8 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# Functions to show types.
 #
-#   Functions to show types.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 function show(io::IO, c::IcgemGfcCoefficient{T}) where T
     print(io, typeof(c), "(Clm = ", c.clm, ", Slm = ", c.slm, ")")
@@ -81,7 +78,7 @@ function show(io::IO, mime::MIME"text/plain", m::IcgemFile{T}) where T
 end
 
 ############################################################################################
-#                                    Private Functions
+#                                    Private Functions                                     #
 ############################################################################################
 
 # Print the vectors with the coefficients related to the sine and cosine terms.

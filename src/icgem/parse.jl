@@ -1,22 +1,16 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+## Description #############################################################################
 #
-# Description
-# ==========================================================================================
+# Functions to parse ICGEM files.
 #
-#   Functions to parse ICGEM files.
+## References ##############################################################################
 #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# [1] Barthelmes, F., Förste, C (2011). The ICGEM-format. GFZ Postdam, Department 1
+#     "Geodesy and Remote Sensing".
 #
-# References
-# ==========================================================================================
-#
-#   [1] Barthelmes, F., Förste, C (2011). The ICGEM-format. GFZ Postdam, Department 1
-#       "Geodesy and Remote Sensing".
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############################################################################################
 
 ############################################################################################
-#                                        Functions
+#                                        Functions                                         #
 ############################################################################################
 
 """
@@ -33,8 +27,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     # Open the file and find the header.
     file = open(filename, "r")
 
-    #                                        Header
-    # ======================================================================================
+    # == Header ============================================================================
 
     header_start_line   = 1
     header_end_line     = 0
@@ -78,8 +71,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     seek(file, 0)
     current_line = 0
 
-    # Get keywords
-    # ======================================================================================
+    # == Get Keywords ======================================================================
 
     keywords = Dict{Symbol, String}()
 
@@ -103,8 +95,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     readline(file)
     current_line += 1
 
-    # Parse mandatory header fields
-    # ======================================================================================
+    # == Parse Mandatory Header Fields =====================================================
 
     mandatory_fields = (
         :product_type,
@@ -143,14 +134,12 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     errors ∉ (:no, :calibrated, :calibrated_and_formal, :formal) &&
         error("[Invalid ICGEM file] An invalid value was found for the keyword `errors`.")
 
-    # Parse optional keywords
-    # ======================================================================================
+    # == Parse Optional Keywords ===========================================================
 
     tide_system = haskey(keywords, :tide_system) ? Symbol(keywords[:tide_system]) : :unknown
     norm        = haskey(keywords, :norm) ? Symbol(keywords[:norm]) : :fully_normalized
 
-    #                                         Data
-    # ======================================================================================
+    # == Data ==============================================================================
 
     # Since we now have the maximum degree, we can pre-allocate and initialize the data
     # matrix.
@@ -198,8 +187,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 continue
             end
 
-            # `gfc` data line
-            # ==============================================================================
+            # == `gfc` Data Line ===========================================================
 
             if tokens[1] == "gfc"
                 ret = _parse_gfc_data_line(Tf, tokens, current_line)
@@ -210,8 +198,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
                 read_new_line = true
 
-            # `gfct` data line
-            # ==============================================================================
+            # == `gfct` Data Line ==========================================================
 
             elseif tokens[1] == "gfct"
                 ret = _parse_gfct_data_line(Tf, tokens, current_line)
@@ -231,8 +218,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
         elseif state === :gfct
 
-            # `trnd` data line of a `gfct` section
-            # ==============================================================================
+            # == `trnd` Data Line of a `gfct` Section ======================================
 
             if tokens[1] == "trnd"
                 ret = _parse_trnd_data_line(Tf, tokens, current_line)
@@ -249,8 +235,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 has_trend = true
                 read_new_line = true
 
-            # `asin` data line of a `gfct` section
-            # ==============================================================================
+            # == `asin` Data Line of a `gfct` Section ======================================
 
             elseif tokens[1] == "asin"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
@@ -267,8 +252,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 push!(asin_coefficients, (asin_amplitude_clm, asin_amplitude_slm, asin_period))
                 read_new_line = true
 
-            # `acos` data line of a `gfct` section
-            # ==============================================================================
+            # == `acos` Data Line of a `gfct` Section ======================================
 
             elseif tokens[1] == "acos"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
@@ -321,7 +305,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 end
 
 ############################################################################################
-#                                    Private Functions
+#                                    Private Functions                                     #
 ############################################################################################
 
 #   _parse_icgem_float(T, input) -> Uniont{Nothing, T}
@@ -334,8 +318,7 @@ function _parse_icgem_float(T::DataType, input::AbstractString)
     return tryparse(T, data_str)
 end
 
-#                              Functions to Parse Data Lines
-# ==========================================================================================
+# == Functions to Parse Data Lines =========================================================
 
 #   _parse_degree_and_order(tokens, current_line) -> Int, Int
 #
