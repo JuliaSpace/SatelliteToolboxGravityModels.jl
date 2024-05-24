@@ -1,5 +1,4 @@
-GravityModels API
-=================
+# GravityModels API
 
 This document describes the API required for a gravity model. The user can add new models by
 overloading the functions listed here.
