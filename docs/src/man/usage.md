@@ -1,11 +1,11 @@
-Usage
-=====
+# Usage
 
 ```@meta
 CurrentModule = SatelliteToolboxGravityModels
-DocTestSetup = quote
-    using SatelliteToolboxGravityModels
-end
+```
+
+```@repl usage
+using SatelliteToolboxGravityModels
 ```
 
 ## Initialization
@@ -13,14 +13,14 @@ end
 We can initialize a gravity model using the function:
 
 ```julia
-function load(::Type{T}, args...; kwargs...) where T<:AbstractGravityModel -> T
+load(::Type{T}, args...; kwargs...) where T<:AbstractGravityModel -> T
 ```
 
 where the arguments and keywords depend on the gravity model type `T`. For ICGEM files, we
 must use `T = IcgemFile` and the following signature:
 
 ```julia
-function GravityModels.load(::Type{IcgemFile}, filename::AbstractString, T::DataType = Float64)
+GravityModels.load(::Type{IcgemFile}, filename::AbstractString, T::DataType = Float64)
 ```
 
 where it loads the ICGEM file in the path `filename` converting the coefficients to the type
@@ -29,8 +29,8 @@ where it loads the ICGEM file in the path `filename` converting the coefficients
 We also provide a function to help downloading the ICGEM files:
 
 ```julia
-function fetch_icgem_file(url::AbstractString; kwargs...)
-function fetch_icgem_file(model::Symbol; kwargs...)
+fetch_icgem_file(url::AbstractString; kwargs...)
+fetch_icgem_file(model::Symbol; kwargs...)
 ```
 
 It fetches a ICGEM file from the `url` and return its file path to be parsed with the
@@ -50,18 +50,8 @@ supported values are:
 
 Finally, we can initialize, for example, the EGM96 model using:
 
-```julia-repl
-julia> egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
-IcgemFile{Float64}:
-      Product type : gravity_field
-       Model name  : EGM96
-  Gravity constant : 3.986004415e14
-            Radius : 6.3781363e6
-    Maximum degree : 360
-            Errors : formal
-       Tide system : tide_free
-              Norm : fully_normalized
-         Data type : Float64
+```@repl usage
+egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
 ```
 
 ## Gravitational Field Derivative
@@ -69,7 +59,7 @@ IcgemFile{Float64}:
 The following function:
 
 ```julia
-function gravitational_field_derivative(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number
+gravitational_field_derivative(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
 ```
 
 computes the gravitational field derivative [SI] with respect to the spherical coordinates:
@@ -82,6 +72,7 @@ using the `model` in the position `r` [m], represented in ITRF, at instant `time
 latter argument is omitted, the J2000.0 epoch is used.
 
 !!! info
+
     In this case, $$\phi$$ is the geocentric latitude and $$\lambda$$ is the longitude.
 
 The following keywords are available:
@@ -89,7 +80,8 @@ The following keywords are available:
 - `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
     gravitational field derivative. If it is higher than the available number of
     coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
-    to the maximum degree available. (**Default** = -1)
+    to the maximum degree available.
+    (**Default** = -1)
 - `max_order::Int`: Maximum order used in the spherical harmonics when computing the
     gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
     If it is lower than 0, it will be set to the same value as `max_degree`.
@@ -98,14 +90,15 @@ The following keywords are available:
     `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
     coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
     when calling the function.
+    (**Default** = `nothing`)
 - `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
     `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
     derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
     be created when calling the function.
+    (**Default** = `nothing`)
 
-```julia-repl
-julia> GravityModels.gravitational_field_derivative(egm96, [6378.137e3, 0, 0])
-(-9.814284376497435, 49.45906319417034, -115.71285105900459)
+```@repl usage
+GravityModels.gravitational_field_derivative(egm96, [6378.137e3, 0, 0])
 ```
 
 ## Gravitational Acceleration
@@ -114,7 +107,7 @@ The gravitational acceleration is the acceleration caused by the central body ma
 i.e., without considering the centrifugal potential. We can compute it using the function:
 
 ```julia
-function gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number
+gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
 ```
 
 where it returns the gravitational field acceleration [m / s²] represented in ITRF using the
@@ -126,7 +119,8 @@ The following keywords are available:
 - `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
     gravitational field derivative. If it is higher than the available number of
     coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
-    to the maximum degree available. (**Default** = -1)
+    to the maximum degree available.
+    (**Default** = -1)
 - `max_order::Int`: Maximum order used in the spherical harmonics when computing the
     gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
     If it is lower than 0, it will be set to the same value as `max_degree`.
@@ -135,17 +129,15 @@ The following keywords are available:
     `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
     coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
     when calling the function.
+    (**Default** = `nothing`)
 - `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
     `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
     derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
     be created when calling the function.
+    (**Default** = `nothing`)
 
-```julia-repl
-julia> GravityModels.gravitational_acceleration(egm96, [6378.137e3, 0, 0])
-3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
- -9.814284376497435
- -1.814210812013047e-5
-  7.754468615862334e-6
+```@repl usage
+GravityModels.gravitational_acceleration(egm96, [6378.137e3, 0, 0])
 ```
 
 ## Gravity Acceleration
@@ -154,7 +146,7 @@ The gravity acceleration is the compound acceleration caused by the central body
 the centrifugal force due to the planet's rotation. We can compute it using the function:
 
 ```julia
-function gravity_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number
+gravity_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
 ```
 
 where it computes the gravity acceleration [m / s²] represented in ITRF using the `model` in
@@ -166,7 +158,8 @@ The following keywords are available:
 - `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
     gravitational field derivative. If it is higher than the available number of
     coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
-    to the maximum degree available. (**Default** = -1)
+    to the maximum degree available.
+    (**Default** = -1)
 - `max_order::Int`: Maximum order used in the spherical harmonics when computing the
     gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
     If it is lower than 0, it will be set to the same value as `max_degree`.
@@ -175,29 +168,21 @@ The following keywords are available:
     `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
     coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
     when calling the function.
+    (**Default** = `nothing`)
 - `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
     `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
     derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
     be created when calling the function.
+    (**Default** = `nothing`)
 
 Thus, we can compute the gravity acceleration in Equator using the EGM96 model by:
 
-```julia-repl
-julia> egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96));
-
-julia> GravityModels.gravitational_acceleration(egm96, [6378.137e3, 0, 0])
-3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
- -9.814284376497435
- -1.814210812013047e-5
-  7.754468615862334e-6
+```@repl usage
+egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96));
 ```
 
 Whereas we can obtain the gravity acceleration at the poles by:
 
-```julia-repl
-julia> GravityModels.gravitational_acceleration(egm96, [0, 0, 6356.7523e3])
-3-element StaticArraysCore.SVector{3, Float64} with indices SOneTo(3):
- -6.12152785935481e-5
-  0.0
- -9.83208158872835
+```@repl usage
+GravityModels.gravitational_acceleration(egm96, [0, 0, 6356.7523e3])
 ```
