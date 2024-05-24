@@ -1,6 +1,12 @@
 SatelliteToolboxGravityModels.jl Changelog
 ==========================================
 
+Version 0.1.5
+-------------
+
+- ![Enhancement][badge-enhancement] Minor source-code updates.
+- ![Enhancement][badge-enhancement] Documentation updates.
+
 Version 0.1.4
 -------------
 
