@@ -1,5 +1,4 @@
-SatelliteToolboxGravityModels.jl
-================================
+# SatelliteToolboxGravityModels.jl
 
 This package implements the support of gravity models for the **SatelliteToolbox.jl**
 ecosystem. We can use it to obtain, for example, the gravitational acceleration to

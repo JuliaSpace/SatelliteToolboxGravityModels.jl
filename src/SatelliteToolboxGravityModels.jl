@@ -27,8 +27,8 @@ include("./types.jl")
 #                                        Constants                                         #
 ############################################################################################
 
-const _D = Crayon(reset = true)
-const _B = crayon"bold"
+const _D = string(Crayon(reset = true))
+const _B = string(crayon"bold")
 
 ############################################################################################
 #                                         Includes                                         #

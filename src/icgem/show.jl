@@ -17,8 +17,8 @@ end
 function show(io::IO, mime::MIME"text/plain", c::IcgemGfcCoefficient{T}) where T
     # Check for color support in the `io`.
     color = get(io, :color, false)
-    b = color ? string(_B) : ""
-    d = color ? string(_D) : ""
+    b = color ? _B : ""
+    d = color ? _D : ""
 
     println(io, typeof(c), ":")
     println(io, "$(b)  Clm :$(d) ", c.clm)
@@ -30,8 +30,8 @@ end
 function show(io::IO, mime::MIME"text/plain", c::IcgemGfctCoefficient{T}) where T
     # Check for color support in the `io`.
     color = get(io, :color, false)
-    b = color ? string(_B) : ""
-    d = color ? string(_D) : ""
+    b = color ? _B : ""
+    d = color ? _D : ""
 
     println(io, typeof(c), ":")
     println(io, "$(b)    Clm₀ :$(d) ", c.clm)
@@ -50,8 +50,8 @@ end
 function show(io::IO, m::IcgemFile{T}) where T
     # Check for color support in the `io`.
     color = get(io, :color, false)
-    b = color ? string(_B) : ""
-    d = color ? string(_D) : ""
+    b = color ? _B : ""
+    d = color ? _D : ""
 
     print(io, "$(b)ICGEM ", m.model_name, "$(d) (Degree = ", m.max_degree, ") {", string(T), "}")
     return nothing
@@ -60,8 +60,8 @@ end
 function show(io::IO, mime::MIME"text/plain", m::IcgemFile{T}) where T
     # Check for color support in the `io`.
     color = get(io, :color, false)
-    b = color ? string(_B) : ""
-    d = color ? string(_D) : ""
+    b = color ? _B : ""
+    d = color ? _D : ""
 
     println(io, typeof(m), ":")
     println(io, "$(b)      Product type :$(d) ", m.product_type)

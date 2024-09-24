@@ -11,6 +11,7 @@ Compute the gravitational field derivative [SI] with respect to the spherical co
 at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
 
 !!! info
+
     In this case, `ϕ` is the geocentric latitude and `λ` is the longitude.
 
 # Keywords
@@ -27,10 +28,12 @@ at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
     `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
     coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
     when calling the function.
+    (**Default** = `nothing`)
 - `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
     `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
     derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
     be created when calling the function.
+    (**Default** = `nothing`)
 
 # Returns
 

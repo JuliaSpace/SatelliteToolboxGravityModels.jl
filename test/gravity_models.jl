@@ -21,13 +21,13 @@
             model = GravityModels.load(IcgemFile, fetch_icgem_file($t[1]))
 
             # Compare the results.
-            for k in 1:size(test_results, 1)
+            for k in axes(test_results, 1)
                 # Get latitude and longitude.
-                lat = test_results[k, 2] |> deg2rad
-                lon = test_results[k, 1] |> deg2rad
+                lat = test_results[k, 1 + begin] |> deg2rad
+                lon = test_results[k, 0 + begin] |> deg2rad
 
                 # Get the expected result in m / s² (the online result is in mGal).
-                expected_g_norm = test_results[k, 3] / 100000
+                expected_g_norm = test_results[k, 2 + begin] / 100000
 
                 # Use the model to compute the gravity using all the coefficients.
                 r_itrf = geodetic_to_ecef(lat, lon, 0)
@@ -58,13 +58,13 @@ end
             model = GravityModels.load(IcgemFile, fetch_icgem_file($t[1]))
 
             # Compare the results.
-            for k in 1:size(test_results, 1)
+            for k in axes(test_results, 1)
                 # Get latitude and longitude.
-                lat = test_results[k, 2] |> deg2rad
-                lon = test_results[k, 1] |> deg2rad
+                lat = test_results[k, 1 + begin] |> deg2rad
+                lon = test_results[k, 0 + begin] |> deg2rad
 
                 # Get the expected result in m / s² (the online result is in mGal).
-                expected_g_norm = test_results[k, 3] / 100000
+                expected_g_norm = test_results[k, 2 + begin] / 100000
 
                 # Use the model to compute the gravity using all the coefficients.
                 r_itrf = geodetic_to_ecef(lat, lon, 0)
