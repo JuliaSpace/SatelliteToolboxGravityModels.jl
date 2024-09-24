@@ -7,12 +7,14 @@ overloading the functions listed here.
 ## Structure
 
 All models require a structure with supertype `AbstractGravityModel{T<:Number}`, where `T`
-is the type of the coefficients in the model.
+is the type of the coefficients in the model. For the function that passes the seconds since
+JD_J2000, the return type `RT` is the promoted type of the set {`T`, `W`}.
 
 ## API Functions
 
 ```julia
 function coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::DataTime) where T<:Number -> T, T
+function coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::W) where {T<:Number, W<:Number}> -> RT, RT
 ```
 
 This function must return the coefficients `Clm` and `Slm` of the gravity `model` for the
@@ -20,6 +22,7 @@ specified `degree`, `order`, and `time`. Hence:
 
 ```julia
 coefficients(model, 10, 8, DateTime("2023-06-19"))
+coefficients(model, 10, 8, 7.404048e8)
 ```
 
 must return a `Tuple{T, T}` with the `Clm` and `Slm`, respectively, for the degree 10, order
