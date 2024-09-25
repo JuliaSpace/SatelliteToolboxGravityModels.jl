@@ -22,6 +22,11 @@ end
     include("./gravity_models.jl")
 end
 
-@testset "Differentiation Tests" verbose = true begin
-    include("differentiability.jl")
+#TODO: REMOVE VERSION CHECK WHEN 1.6 STOPS BEING SUPPORTED
+if VERSION != v"1.6.0"
+    @testset "Differentiation Tests" verbose = true begin
+        include("differentiability.jl")
+    end
 end
+
+
