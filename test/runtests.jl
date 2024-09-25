@@ -23,7 +23,7 @@ end
 end
 
 #TODO: REMOVE VERSION CHECK WHEN 1.6 STOPS BEING SUPPORTED
-if VERSION != v"1.6.0"
+if VERSION != v"1.6"
     @testset "Differentiation Tests" verbose = true begin
         include("differentiability.jl")
     end
