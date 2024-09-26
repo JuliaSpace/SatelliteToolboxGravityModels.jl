@@ -1,6 +1,19 @@
 SatelliteToolboxGravityModels.jl Changelog
 ==========================================
 
+Version 0.1.6
+-------------
+
+- ![Enhancement][badge-enhancement] The pacakge is now compatible with auto-differentiation
+  tools. (PR [#3][gh-pr-3])
+- ![Bugfix][badge-bugfix] In the previous version, we documented that calling functions
+  without the time information will use the J2000.0 epoch. However, we were using
+  `2000-01-01T00:00:00` instead of `2000-01-01T12:00:00`. This bug was fixed and now we use
+  the correct J2000.0 epoch.
+- ![Info][badge-info] Due to external packages, we cannot test
+  SatelliteToolboxGravityModels.jl against Julia 1.6 anymore. The support for this version
+  will be removed in a future release.
+
 Version 0.1.5
 -------------
 
@@ -44,4 +57,6 @@ Version 0.1.0
 [badge-enhancement]: https://img.shields.io/badge/Enhancement-blue.svg
 [badge-bugfix]: https://img.shields.io/badge/Bugfix-purple.svg
 [badge-info]: https://img.shields.io/badge/Info-gray.svg
+
+[gh-pr-3]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/3
 
