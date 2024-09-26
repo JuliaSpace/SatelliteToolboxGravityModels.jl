@@ -175,6 +175,18 @@ end
     @test ∂U_∂r == ∂U_∂r_expected
     @test ∂U_∂ϕ == ∂U_∂ϕ_expected
     @test ∂U_∂λ == ∂U_∂λ_expected
+
+    # Test when `max_degrees != max_order`.
+    ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ = GravityModels.gravitational_field_derivative(
+        eigen6c,
+        [6378.137e3, 0, 0];
+        max_degree = 1,
+        max_order = 0
+    )
+
+    @test ∂U_∂r ≈ -9.798285471812783
+    @test ∂U_∂ϕ ≈ 0.0
+    @test ∂U_∂λ ≈ 0.0
 end
 
 @testset "Gravity Field Derivative [ERRORS]" verbose = true begin
