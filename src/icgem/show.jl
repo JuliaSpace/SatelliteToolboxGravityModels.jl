@@ -36,7 +36,7 @@ function show(io::IO, mime::MIME"text/plain", c::IcgemGfctCoefficient{T}) where 
     println(io, typeof(c), ":")
     println(io, "$(b)    Clm₀ :$(d) ", c.clm)
     println(io, "$(b)    Slm₀ :$(d) ", c.slm)
-    println(io, "$(b)   Epoch :$(d) ", c.time)
+    println(io, "$(b)   Epoch :$(d) ", julian2datetime((c.time / 86400) + JD_J2000))
     println(io, "$(b)   Trend :$(d) Clm = ", c.trend_clm, ", Slm = ", c.trend_slm)
     print(  io, "$(b)    Sine :$(d) ")
     _print_asin_acos_vectors(io, c.asin_coefficients)

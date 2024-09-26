@@ -14,7 +14,7 @@ function icgem_coefficients(
     model::IcgemFile{T},
     degree::Int,
     order::Int,
-    t::DateTime
+    t::Number
 ) where T<:Number
     # First let's check if the degree and order is inside the expected range.
     order > degree && throw(ArgumentError("`order` must be lower than or equal to `degree`."))
@@ -33,25 +33,48 @@ function icgem_coefficients(
     return clm, slm
 end
 
+"""
+    icgem_coefficients(model::IcgemFile{T}, degree::Int, order::Int, t::DateTime) where T<:Number -> T, T
+
+Compute the ICGEM coefficients (`Clm` and `Slm`) of the `model` for the specified `degree`
+and `order` in the instant `t`.
+"""
+function icgem_coefficients(
+    model::IcgemFile{T},
+    degree::Int,
+    order::Int,
+    t::DateTime
+) where T<:Number
+
+    time_JD = (datetime2julian(t) - JD_J2000) * 86400
+    
+    return icgem_coefficients(
+        model,
+        degree,
+        order,
+        time_JD,
+    )
+end
+
 ############################################################################################
 #                                    Private Functions                                     #
 ############################################################################################
 
 # Compute the coefficients `Clm` and `Slm` for a coefficient of type `IcgemGfcCoefficient`.
-function _compute_icgem_coefficient(coefficient::IcgemGfcCoefficient, t::DateTime)
+function _compute_icgem_coefficient(coefficient::IcgemGfcCoefficient, t::Number)
     return coefficient.clm, coefficient.slm
 end
 
 # Compute the coefficients `Clm` and `Slm` for a coefficient of type `IcgemGfctCoefficient`.
 function _compute_icgem_coefficient(
     coefficient::IcgemGfctCoefficient{T},
-    t::DateTime
+    t::Number
 ) where T<:Number
     clm = coefficient.clm
     slm = coefficient.slm
 
     # Elapsed time from coefficients epoch [year].
-    Δt = T(Dates.value(t - coefficient.time) / 1000 / 86400 / 365)
+    Δt = (t - coefficient.time) / 86400 / 365
 
     # == Trend =============================================================================
 

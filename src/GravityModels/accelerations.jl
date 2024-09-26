@@ -11,7 +11,7 @@
 ############################################################################################
 
 """
-    gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
+    gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::W = -43200; kwargs...) where {T<:Number,V<:Number,W<:Number} -> NTuple{3, RT}
 
 Compute the gravitational acceleration [m / s²] represented in ITRF using the `model` in the
 position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
@@ -46,19 +46,19 @@ omitted, the J2000.0 epoch is used.
 
 # Returns
 
-- `T`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
-- `T`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
-- `T`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
+- `RT`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
+- `RT`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
+- `RT`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
 """
 function gravitational_acceleration(
     model::AbstractGravityModel{T},
-    r::AbstractVector,
-    time::DateTime = DateTime("2000-01-01");
-    max_degree::Number = -1,
-    max_order::Number = -1,
+    r::AbstractVector{V},
+    time::Number = -43200;
+    max_degree::Int = -1,
+    max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where T<:Number
+) where {T<:Number,V<:Number}
 
     # Compute the partial derivatives of the gravitational field w.r.t. the spherical
     # coordinates.
@@ -107,7 +107,67 @@ function gravitational_acceleration(
 end
 
 """
-    gravity_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
+    gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::DateTime = DateTime("2000-01-01"); kwargs...) where {T<:Number,V<:Number} -> NTuple{3, RT}
+
+Compute the gravitational acceleration [m / s²] represented in ITRF using the `model` in the
+position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
+omitted, the J2000.0 epoch is used.
+
+!!! note
+    Gravitational acceleration is the acceleration caused by the central body mass only,
+    i.e., without considering the centrifugal potential.
+
+# Keywords
+
+- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than the available number of
+    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
+    to the maximum degree available. (**Default** = -1)
+- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
+    If it is lower than 0, it will be set to the same value as `max_degree`.
+    (**Default** = -1)
+- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
+    when calling the function.
+- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
+    be created when calling the function.
+
+# Returns
+
+- `T`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
+- `T`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
+- `T`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
+"""
+function gravitational_acceleration(
+    model::AbstractGravityModel{T},
+    r::AbstractVector{V},
+    time::DateTime = DateTime("2000-01-01");
+    max_degree::Int = -1,
+    max_order::Int = -1,
+    P::Union{Nothing, AbstractMatrix} = nothing,
+    dP::Union{Nothing, AbstractMatrix} = nothing
+) where {T<:Number,V<:Number}
+
+    time_JD = (datetime2julian(time) - JD_J2000) * 86400
+
+    return gravitational_acceleration(
+        model,
+        r,
+        time_JD;
+        max_degree = max_degree,
+        max_order = max_order,
+        P = P,
+        dP = dP,
+    )
+
+end
+
+"""
+    gravity_acceleration(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::Number = -43200; kwargs...) where {T<:Number,V<:Number,W<:Number} -> NTuple{3, RT}
 
 Compute the gravity acceleration [m / s²] represented in ITRF using the `model` in the
 position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
@@ -147,13 +207,13 @@ omitted, the J2000.0 epoch is used.
 """
 function gravity_acceleration(
     model::AbstractGravityModel{T},
-    r::AbstractVector,
-    time::DateTime = DateTime("2000-01-01");
-    max_degree::Number = -1,
-    max_order::Number = -1,
+    r::AbstractVector{V},
+    time::Number = -43200;
+    max_degree::Int = -1,
+    max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where T<:Number
+) where {T<:Number,V<:Number}
 
     # == Gravitational Acceleration ========================================================
 
@@ -223,4 +283,64 @@ function gravity_acceleration(
     g_itrf = grav_itrf + centrifugal_accel_itrf
 
     return g_itrf
+end
+
+"""
+    gravity_acceleration(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::DateTime = DateTime("2000-01-01"); kwargs...) where {T<:Number,V<:Number} -> NTuple{3, RT}
+
+Compute the gravity acceleration [m / s²] represented in ITRF using the `model` in the
+position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
+omitted, the J2000.0 epoch is used.
+
+!!! note
+    Gravity acceleration is the compound acceleration caused by the central body mass and
+    the centrifugal force due to the planet's rotation.
+
+# Keywords
+
+- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than the available number of
+    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
+    to the maximum degree available. (**Default** = -1)
+- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
+    If it is lower than 0, it will be set to the same value as `max_degree`.
+    (**Default** = -1)
+- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
+    when calling the function.
+- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
+    be created when calling the function.
+
+# Returns
+
+- `T`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
+- `T`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
+- `T`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
+"""
+function gravity_acceleration(
+    model::AbstractGravityModel{T},
+    r::AbstractVector{V},
+    time::DateTime = DateTime("2000-01-01");
+    max_degree::Int = -1,
+    max_order::Int = -1,
+    P::Union{Nothing, AbstractMatrix} = nothing,
+    dP::Union{Nothing, AbstractMatrix} = nothing
+) where {T<:Number,V<:Number,W<:Number}
+
+    time_JD = datetime2julian(time) - JD_J2000
+
+    return gravity_acceleration(
+        model,
+        r,
+        time_JD;
+        max_degree = max_degree,
+        max_order = max_order,
+        P = P,
+        dP = dP,
+    )
+
 end
