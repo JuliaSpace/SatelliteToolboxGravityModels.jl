@@ -70,6 +70,24 @@ end
             end
         end
     end
+
+    # == Test the Signature with DateTime ==================================================
+
+    dt_J2000 = DateTime("2000-01-01T12:00:00.000")
+
+    # We will fetch the EIGEN-6C model that has time dependent coefficients.
+    eigen6c_file = fetch_icgem_file(
+        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+    )
+
+    eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
+    r_itrf = [7000.0e3, 0, 0]
+
+    time = Dates.value(DateTime("2023-06-19") - dt_J2000) / 1000
+    g_itrf_expected = GravityModels.gravitational_acceleration(eigen6c, r_itrf, time)
+    g_itrf = GravityModels.gravitational_acceleration(eigen6c, r_itrf, DateTime("2023-06-19"))
+
+    @test g_itrf == g_itrf_expected
 end
 
 @testset "Gravity Acceleration" verbose = true begin
@@ -102,6 +120,24 @@ end
             end
         end
     end
+
+    # == Test the Signature with DateTime ==================================================
+
+    dt_J2000 = DateTime("2000-01-01T12:00:00.000")
+
+    # We will fetch the EIGEN-6C model that has time dependent coefficients.
+    eigen6c_file = fetch_icgem_file(
+        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+    )
+
+    eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
+    r_itrf = [7000.0e3, 0, 0]
+
+    time = Dates.value(DateTime("2023-06-19") - dt_J2000) / 1000
+    g_itrf_expected = GravityModels.gravity_acceleration(eigen6c, r_itrf, time)
+    g_itrf = GravityModels.gravity_acceleration(eigen6c, r_itrf, DateTime("2023-06-19"))
+
+    @test g_itrf == g_itrf_expected
 end
 
 # == File: ./src/GravityModels/gravitational_field_derivative.jl ===========================
