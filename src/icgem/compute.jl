@@ -46,7 +46,7 @@ function icgem_coefficients(
     t::DateTime
 ) where T<:Number
 
-    time_JD = (datetime2julian(t) - JD_J2000) * 86400.0
+    time_JD = (datetime2julian(t) - JD_J2000) * 86400
     
     return icgem_coefficients(
         model,
@@ -74,7 +74,7 @@ function _compute_icgem_coefficient(
     slm = coefficient.slm
 
     # Elapsed time from coefficients epoch [year].
-    Δt = (t - coefficient.time) / 86400.0 / 365.0
+    Δt = (t - coefficient.time) / 86400 / 365
 
     # == Trend =============================================================================
 

@@ -11,7 +11,7 @@
 ############################################################################################
 
 """
-    gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::W = -43200.0; kwargs...) where {T<:Number,V<:Number,W<:Number} -> NTuple{3, RT}
+    gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::W = -43200; kwargs...) where {T<:Number,V<:Number,W<:Number} -> NTuple{3, RT}
 
 Compute the gravitational acceleration [m / s²] represented in ITRF using the `model` in the
 position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
@@ -53,12 +53,12 @@ omitted, the J2000.0 epoch is used.
 function gravitational_acceleration(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::W = -43200.0;
-    max_degree::Number = -1,
-    max_order::Number = -1,
+    time::Number = -43200;
+    max_degree::Int = -1,
+    max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number,V<:Number,W<:Number}
+) where {T<:Number,V<:Number}
 
     # Compute the partial derivatives of the gravitational field w.r.t. the spherical
     # coordinates.
@@ -146,13 +146,13 @@ function gravitational_acceleration(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::DateTime = DateTime("2000-01-01");
-    max_degree::Number = -1,
-    max_order::Number = -1,
+    max_degree::Int = -1,
+    max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
 ) where {T<:Number,V<:Number}
 
-    time_JD = (datetime2julian(time) - JD_J2000) * 86400.0
+    time_JD = (datetime2julian(time) - JD_J2000) * 86400
 
     return gravitational_acceleration(
         model,
@@ -167,7 +167,7 @@ function gravitational_acceleration(
 end
 
 """
-    gravity_acceleration(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::Number = -43200.0; kwargs...) where {T<:Number,V<:Number,W<:Number} -> NTuple{3, RT}
+    gravity_acceleration(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::Number = -43200; kwargs...) where {T<:Number,V<:Number,W<:Number} -> NTuple{3, RT}
 
 Compute the gravity acceleration [m / s²] represented in ITRF using the `model` in the
 position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
@@ -208,12 +208,12 @@ omitted, the J2000.0 epoch is used.
 function gravity_acceleration(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::W = -43200.0;
+    time::Number = -43200;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number,V<:Number,W<:Number}
+) where {T<:Number,V<:Number}
 
     # == Gravitational Acceleration ========================================================
 

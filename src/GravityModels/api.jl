@@ -5,14 +5,14 @@
 ############################################################################################
 
 """
-    coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::Number = -43200.0) where T<:Number -> T, T
+    coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::Number = -43200) where T<:Number -> T, T
 
 Return the `Clm` and `Slm` coefficients of the gravity `model` for the specified `degree`,
 `order`, and `time`. If the latter argument is omitted, the J2000.0 epoch is used.
 """
 function coefficients end
 
-function coefficients(model::AbstractGravityModel, degree::Int, order::Int, time::Number = -43200.0)
+function coefficients(model::AbstractGravityModel, degree::Int, order::Int, time::Number = -43200)
     return coefficients(model, degree, order, time)
 end
 

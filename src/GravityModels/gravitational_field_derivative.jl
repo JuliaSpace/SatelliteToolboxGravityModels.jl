@@ -4,7 +4,7 @@
 #
 ############################################################################################
 """
-    gravitational_field_derivative(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::W = -43200.0; kwargs...) where {T<:Number, V<:Number, W<:Number} -> NTuple{3, RT}
+    gravitational_field_derivative(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::W = -43200; kwargs...) where {T<:Number, V<:Number, W<:Number} -> NTuple{3, RT}
 
 Compute the gravitational field derivative [SI] with respect to the spherical coordinates
 (`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in ITRF,
@@ -44,7 +44,7 @@ at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
 function gravitational_field_derivative(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::W = -43200.0;
+    time::W = -43200;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
@@ -268,7 +268,7 @@ function gravitational_field_derivative(
     dP::Union{Nothing, AbstractMatrix} = nothing
 ) where {T<:Number, V<:Number}
 
-    time_JD = (datetime2julian(time) - JD_J2000) * 86400.0
+    time_JD = (datetime2julian(time) - JD_J2000) * 86400
 
     return gravitational_field_derivative(
         model,
