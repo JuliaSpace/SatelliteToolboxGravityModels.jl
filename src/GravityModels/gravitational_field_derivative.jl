@@ -53,7 +53,7 @@ function gravitational_field_derivative(
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
 ) where {T<:Number, V<:Number}
-    return gravitational_field_derivative(model, r, -43200; max_degree, max_order, P, dP)
+    return gravitational_field_derivative(model, r, 0; max_degree, max_order, P, dP)
 end
 
 function gravitational_field_derivative(

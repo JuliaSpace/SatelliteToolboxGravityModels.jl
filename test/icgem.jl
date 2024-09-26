@@ -84,6 +84,8 @@ end
 ############################################################################################
 
 @testset "Computing ICGEM coefficients" verbose = true begin
+    dt_J2000 = DateTime("2000-01-01T12:00:00.000")
+
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
         "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
@@ -102,31 +104,35 @@ end
     @test Slm ≈ +6.91287419630e-10 atol = 1e-20
 
     # Testing the version without the time parameter, which defaults to J2000.0 epoch.
-    Clm_j2000, Slm_j2000 = GravityModels.coefficients(eigen6c, 2, 2, DateTime("2000-01-01"))
-    @test Clm_j2000 ≈ 2.4393631453628134e-6 atol = 1e-20
-    @test Slm_j2000 ≈ -1.40022130892891e-6  atol = 1e-20
+    Clm_j2000, Slm_j2000 = GravityModels.coefficients(
+        eigen6c,
+        2,
+        2,
+        DateTime("2000-01-01T12:00:00")
+    )
+    @test Clm_j2000 ≈ 2.4393631474296326e-6 atol = 1e-20
+    @test Slm_j2000 ≈ -1.4002214986544143e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2)
     @test Clm == Clm_j2000
     @test Slm == Slm_j2000
 
-    time_JD = (datetime2julian(DateTime("2023-06-19")) - JD_J2000) * 86400
+    time = Dates.value(DateTime("2023-06-19") - dt_J2000) / 1000
 
-    Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, time_JD)
+    Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, time)
 
     @test Clm ≈ +2.4393378057597012e-6 atol = 1e-20
     @test Slm ≈ -1.400407403685511e-6  atol = 1e-20
 
-    Clm, Slm = GravityModels.coefficients(eigen6c, 100, 1, time_JD)
+    Clm, Slm = GravityModels.coefficients(eigen6c, 100, 1, time)
 
     @test Clm ≈ -1.09755466854e-09 atol = 1e-20
     @test Slm ≈ +6.91287419630e-10 atol = 1e-20
 
-    time_JD_J2000 = (datetime2julian(DateTime("2000-01-01")) - JD_J2000) * 86400
     # Testing the version without the time parameter, which defaults to J2000.0 epoch.
-    Clm_j2000, Slm_j2000 = GravityModels.coefficients(eigen6c, 2, 2, time_JD_J2000)
-    @test Clm_j2000 ≈ 2.4393631453628134e-6 atol = 1e-20
-    @test Slm_j2000 ≈ -1.40022130892891e-6  atol = 1e-20
+    Clm_j2000, Slm_j2000 = GravityModels.coefficients(eigen6c, 2, 2, 0)
+    @test Clm_j2000 ≈ 2.4393631474296326e-6 atol = 1e-20
+    @test Slm_j2000 ≈ -1.4002214986544143e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2)
     @test Clm == Clm_j2000

@@ -71,7 +71,7 @@ function _compute_icgem_coefficient(
     slm = coefficient.slm
 
     # Elapsed time from coefficients epoch [year].
-    @show Δt = (t - coefficient.time) / 86400 / 365
+    Δt = (t - coefficient.time) / 86400 / 365
 
     # == Trend =============================================================================
 

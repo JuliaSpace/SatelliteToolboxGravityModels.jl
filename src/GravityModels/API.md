@@ -7,7 +7,8 @@ overloading the functions listed here.
 
 All models require a structure with supertype `AbstractGravityModel{T<:Number}`, where `T`
 is the type of the coefficients in the model. For the function that passes the seconds since
-JD_J2000, the return type `RT` is the promoted type of the set {`T`, `W`}.
+J2000.0, the return type `RT` is the promoted type of the set {`T`, `W`}, where `W` is the
+type of the time variable.
 
 ## API Functions
 

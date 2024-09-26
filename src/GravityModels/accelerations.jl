@@ -61,7 +61,7 @@ function gravitational_acceleration(
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
 ) where {T<:Number, V<:Number}
-    return gravitational_acceleration(model, r, -43200; max_degree, max_order, P, dP)
+    return gravitational_acceleration(model, r, 0; max_degree, max_order, P, dP)
 end
 
 function gravitational_acceleration(
@@ -193,7 +193,7 @@ function gravity_acceleration(
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
 ) where {T<:Number,V<:Number}
-    return gravity_acceleration(model, r, -43200; max_degree, max_order, P, dP)
+    return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP)
 end
 
 function gravity_acceleration(

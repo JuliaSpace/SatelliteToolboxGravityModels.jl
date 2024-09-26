@@ -16,7 +16,7 @@ J2000.0 epoch.
 function coefficients end
 
 function coefficients(model::AbstractGravityModel, degree::Int, order::Int)
-    return coefficients(model, degree, order, -43200)
+    return coefficients(model, degree, order, 0)
 end
 
 function coefficients(model::AbstractGravityModel, degree::Int, order::Int, time::DateTime)
