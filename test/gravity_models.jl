@@ -166,6 +166,15 @@ end
     @test ∂U_∂r == ∂U_∂r_expected
     @test ∂U_∂ϕ == ∂U_∂ϕ_expected
     @test ∂U_∂λ == ∂U_∂λ_expected
+
+    ∂U_∂r_expected, ∂U_∂ϕ_expected, ∂U_∂λ_expected =
+        GravityModels.gravitational_field_derivative(eigen6c, r_itrf, 0)
+
+    ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ = GravityModels.gravitational_field_derivative(eigen6c, r_itrf)
+
+    @test ∂U_∂r == ∂U_∂r_expected
+    @test ∂U_∂ϕ == ∂U_∂ϕ_expected
+    @test ∂U_∂λ == ∂U_∂λ_expected
 end
 
 @testset "Gravity Field Derivative [ERRORS]" verbose = true begin
