@@ -52,8 +52,19 @@ omitted, the J2000.0 epoch is used.
 """
 function gravitational_acceleration(
     model::AbstractGravityModel{T},
+    r::AbstractVector{V};
+    max_degree::Int = -1,
+    max_order::Int = -1,
+    P::Union{Nothing, AbstractMatrix} = nothing,
+    dP::Union{Nothing, AbstractMatrix} = nothing
+) where {T<:Number, V<:Number}
+    return gravitational_acceleration(model, r, -43200; max_degree, max_order, P, dP)
+end
+
+function gravitational_acceleration(
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::Number = -43200;
+    time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
@@ -145,7 +156,7 @@ omitted, the J2000.0 epoch is used.
 function gravitational_acceleration(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::DateTime = DateTime("2000-01-01");
+    time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
@@ -207,8 +218,19 @@ omitted, the J2000.0 epoch is used.
 """
 function gravity_acceleration(
     model::AbstractGravityModel{T},
+    r::AbstractVector{V};
+    max_degree::Int = -1,
+    max_order::Int = -1,
+    P::Union{Nothing, AbstractMatrix} = nothing,
+    dP::Union{Nothing, AbstractMatrix} = nothing
+) where {T<:Number,V<:Number}
+    return gravity_acceleration(model, r, -43200; max_degree, max_order, P, dP)
+end
+
+function gravity_acceleration(
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::Number = -43200;
+    time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
@@ -324,12 +346,12 @@ omitted, the J2000.0 epoch is used.
 function gravity_acceleration(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::DateTime = DateTime("2000-01-01");
+    time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number,V<:Number,W<:Number}
+) where {T<:Number, V<:Number}
 
     time_JD = datetime2julian(time) - JD_J2000
 

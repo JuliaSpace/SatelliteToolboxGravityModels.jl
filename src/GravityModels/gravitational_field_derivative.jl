@@ -43,8 +43,19 @@ at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
 """
 function gravitational_field_derivative(
     model::AbstractGravityModel{T},
+    r::AbstractVector{V};
+    max_degree::Int = -1,
+    max_order::Int = -1,
+    P::Union{Nothing, AbstractMatrix} = nothing,
+    dP::Union{Nothing, AbstractMatrix} = nothing
+) where {T<:Number, V<:Number}
+    return gravitational_field_derivative(model, r, -43200; max_degree, max_order, P, dP)
+end
+
+function gravitational_field_derivative(
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::W = -43200;
+    time::W;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
@@ -261,7 +272,7 @@ at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
 function gravitational_field_derivative(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::DateTime = DateTime("2000-01-01");
+    time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
@@ -273,11 +284,10 @@ function gravitational_field_derivative(
     return gravitational_field_derivative(
         model,
         r,
-        time = time_JD;
+        time_JD;
         max_degree=max_degree,
         max_order=max_order,
         P = P,
         dP = dP,
     )
-    
 end
