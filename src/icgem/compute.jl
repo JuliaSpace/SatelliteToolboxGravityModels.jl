@@ -5,16 +5,19 @@
 ############################################################################################
 
 """
-    icgem_coefficients(model::IcgemFile{T}, degree::Int, order::Int, t::DateTime) where T<:Number -> T, T
+    icgem_coefficients(model::IcgemFile{T}, degree::Int, order::Int, time::Union{Number, DateTime}) where T<:Number -> T, T
 
 Compute the ICGEM coefficients (`Clm` and `Slm`) of the `model` for the specified `degree`
-and `order` in the instant `t`.
+and `order` in the instant `time`.
+
+`time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
+J2000.0 epoch (2000-01-01T12:00:00.000).
 """
 function icgem_coefficients(
     model::IcgemFile{T},
     degree::Int,
     order::Int,
-    t::Number
+    time::Number
 ) where T<:Number
     # First let's check if the degree and order is inside the expected range.
     order > degree && throw(ArgumentError("`order` must be lower than or equal to `degree`."))
@@ -28,31 +31,25 @@ function icgem_coefficients(
     isnothing(coefficient) && return T(0), T(0)
 
     # Compute the `Clm` and `Slm` coefficients.
-    clm, slm = _compute_icgem_coefficient(coefficient, t)
+    clm, slm = _compute_icgem_coefficient(coefficient, time)
 
     return clm, slm
 end
 
-"""
-    icgem_coefficients(model::IcgemFile{T}, degree::Int, order::Int, t::DateTime) where T<:Number -> T, T
-
-Compute the ICGEM coefficients (`Clm` and `Slm`) of the `model` for the specified `degree`
-and `order` in the instant `t`.
-"""
 function icgem_coefficients(
     model::IcgemFile{T},
     degree::Int,
     order::Int,
-    t::DateTime
+    time::DateTime
 ) where T<:Number
 
-    time_JD = (datetime2julian(t) - JD_J2000) * 86400
-    
+    t = Dates.value(t - _DT_J2000) / 1000
+
     return icgem_coefficients(
         model,
         degree,
         order,
-        time_JD,
+        t,
     )
 end
 
@@ -74,7 +71,7 @@ function _compute_icgem_coefficient(
     slm = coefficient.slm
 
     # Elapsed time from coefficients epoch [year].
-    Δt = (t - coefficient.time) / 86400 / 365
+    @show Δt = (t - coefficient.time) / 86400 / 365
 
     # == Trend =============================================================================
 

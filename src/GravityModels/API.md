@@ -12,30 +12,33 @@ JD_J2000, the return type `RT` is the promoted type of the set {`T`, `W`}.
 ## API Functions
 
 ```julia
-function coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::DataTime) where T<:Number -> T, T
-function coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::W) where {T<:Number, W<:Number}> -> RT, RT
+function coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::Number) where {T<:Number}> -> T, T
 ```
 
 This function must return the coefficients `Clm` and `Slm` of the gravity `model` for the
-specified `degree`, `order`, and `time`. Hence:
+specified `degree`, `order`, and `time`. The latter is described as the number of ellapsed
+seconds since J2000.0 epoch (2000-01-01T12:00:00.000). Hence:
 
 ```julia
-coefficients(model, 10, 8, DateTime("2023-06-19"))
 coefficients(model, 10, 8, 7.404048e8)
 ```
 
 must return a `Tuple{T, T}` with the `Clm` and `Slm`, respectively, for the degree 10, order
-8, and computed at day 2023-06-19.
+8, and computed at 2023-06-19T00:00:00.000.
 
 > **Note**
 > If the model has constant coefficients, the function must still accept the positional
 > argument `time`, but it will be neglected. The package already defines the function
 > without the `time` for the sake of usage simplification.
 
+> **Note**
+> The time can also be specified as a `DateTime` object. The package already defines the
+> function with this signature.
+
 ---
 
 ```julia
-function coefficient_norm(model::AbstractGravityModel) where T<:Number -> Symbol
+function coefficient_norm(model::AbstractGravityModel) -> Symbol
 ```
 
 This function must return the normalization we must use in the spherical harmonics when

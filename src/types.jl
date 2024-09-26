@@ -18,7 +18,7 @@ end
 struct IcgemGfctCoefficient{T<:Number}
     clm::T
     slm::T
-    time::T # Seconds since JD_J2000
+    time::T # .................................................. Seconds since J2000.0 epoch
 
     # == Trend =============================================================================
 

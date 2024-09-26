@@ -3,12 +3,16 @@
 # Function to compute the gravitational field derivative.
 #
 ############################################################################################
+
 """
-    gravitational_field_derivative(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::W = -43200; kwargs...) where {T<:Number, V<:Number, W<:Number} -> NTuple{3, RT}
+    gravitational_field_derivative(model::AbstractGravityModel{Number}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
 
 Compute the gravitational field derivative [SI] with respect to the spherical coordinates
 (`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in ITRF,
 at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
+
+`time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
+J2000.0 epoch.
 
 !!! info
 
@@ -37,9 +41,9 @@ at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
 
 # Returns
 
-- `T`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
-- `T`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
-- `T`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
+- `RT`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
+- `RT`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
+- `RT`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
 """
 function gravitational_field_derivative(
     model::AbstractGravityModel{T},
@@ -234,41 +238,6 @@ function gravitational_field_derivative(
     return ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ
 end
 
-"""
-    gravitational_field_derivative(model::AbstractGravityModel{T}, r::AbstractVector{V}, time::DateTime = DateTime("2000-01-01"); kwargs...) where {T<:Number, V<:Number} -> NTuple{3, RT}
-
-Compute the gravitational field derivative [SI] with respect to the spherical coordinates
-(`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in ITRF,
-at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
-
-!!! info
-    In this case, `ϕ` is the geocentric latitude and `λ` is the longitude.
-
-# Keywords
-
-- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than the available number of
-    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
-    to the maximum degree available. (**Default** = -1)
-- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
-    If it is lower than 0, it will be set to the same value as `max_degree`.
-    (**Default** = -1)
-- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
-    when calling the function.
-- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
-    be created when calling the function.
-
-# Returns
-
-- `RT`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
-- `RT`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
-- `RT`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
-"""
 function gravitational_field_derivative(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
@@ -279,14 +248,14 @@ function gravitational_field_derivative(
     dP::Union{Nothing, AbstractMatrix} = nothing
 ) where {T<:Number, V<:Number}
 
-    time_JD = (datetime2julian(time) - JD_J2000) * 86400
+    t = Dates.value(time - _DT_J2000) / 1000
 
     return gravitational_field_derivative(
         model,
         r,
-        time_JD;
-        max_degree=max_degree,
-        max_order=max_order,
+        t;
+        max_degree = max_degree,
+        max_order = max_order,
         P = P,
         dP = dP,
     )

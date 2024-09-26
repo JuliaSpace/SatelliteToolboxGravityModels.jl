@@ -19,6 +19,7 @@
 Parse the ICGEM file `filename` using the data type `T`.
 
 !!! note
+
     `T` is converted to float to obtain the output type.
 """
 function parse_icgem(filename::AbstractString, T::DataType = Float64)
@@ -158,7 +159,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     ord  = 0
     clm  = Tf(0)
     slm  = Tf(0)
-    time = (datetime2julian(DateTime(now())) - JD_J2000) * 86400
+    time = Dates.value(now() - _DT_J2000) / 1000
 
     has_trend = false
     trend_clm = Tf(0)
@@ -385,7 +386,7 @@ function _parse_gfc_data_line(Tf, tokens, current_line)
     return deg, ord, clm, slm
 end
 
-#   _parse_gfc_data_line(Tf, tokens, current_line) -> Int, Int, Tf, Tf, DateTime
+#   _parse_gfc_data_line(Tf, tokens, current_line) -> Int, Int, Tf, Tf, Number
 #
 # Parse the `gfct` data line in `tokens` using the data type `Tf` for the floating point
 # fields. The `current_line` number is used for debugging purposes.
@@ -396,7 +397,8 @@ end
 # - `Int`: Order.
 # - `T`: `Clm` coefficient.
 # - `T`: `Slm` coefficient.
-# - `DateTime`: Epoch (`t₀`) of the coefficients.
+# - `Number`: Epoch (`t₀`) of the coefficients, expressed as the number of elapsed seconds
+#   since J2000.0.
 function _parse_gfct_data_line(Tf, tokens, current_line)
     if length(tokens) < 6
         @warn "[Line $current_line] Invalid `gfct` data line."
@@ -409,7 +411,7 @@ function _parse_gfct_data_line(Tf, tokens, current_line)
     deg, ord, clm, slm = ret
 
     # Parse the time.
-    time = (datetime2julian(DateTime(tokens[end], dateformat"yyyymmdd")) - JD_J2000) * 86400
+    time = Dates.value(DateTime(tokens[end], dateformat"yyyymmdd") - _DT_J2000) / 1000
 
     return deg, ord, clm, slm, time
 end

@@ -3,11 +3,6 @@
 # Functions related to the gravity model API.
 #
 ############################################################################################
-function GravityModels.coefficients(model::IcgemFile, degree::Int, order::Int, time::DateTime)
-    time_JD = (datetime2julian(time) - JD_J2000) * 86400
-    return icgem_coefficients(model, degree, order, time_JD)
-end
-
 
 function GravityModels.coefficients(model::IcgemFile, degree::Int, order::Int, time::Number)
     return icgem_coefficients(model, degree, order, time)
