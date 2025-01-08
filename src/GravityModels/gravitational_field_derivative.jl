@@ -5,7 +5,7 @@
 ############################################################################################
 
 """
-    gravitational_field_derivative(model::AbstractGravityModel{Number}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
+    gravitational_field_derivative(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
 
 Compute the gravitational field derivative [SI] with respect to the spherical coordinates
 (`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in ITRF,
@@ -46,25 +46,25 @@ J2000.0 epoch.
 - `RT`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
 """
 function gravitational_field_derivative(
-    model::AbstractGravityModel{T},
+    model::AbstractGravityModel{T, NT},
     r::AbstractVector{V};
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number}
+) where {T<:Number, V<:Number, NT}
     return gravitational_field_derivative(model, r, 0; max_degree, max_order, P, dP)
 end
 
 function gravitational_field_derivative(
-    model::AbstractGravityModel{T},
+    model::AbstractGravityModel{T, NT},
     r::AbstractVector{V},
     time::W;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, W<:Number}
+) where {T<:Number, V<:Number, W<:Number, NT}
 
     RT = promote_type(T, V, W)
 
@@ -239,14 +239,14 @@ function gravitational_field_derivative(
 end
 
 function gravitational_field_derivative(
-    model::AbstractGravityModel{T},
+    model::AbstractGravityModel{T, NT},
     r::AbstractVector{V},
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number}
+) where {T<:Number, V<:Number, NT}
 
     t = Dates.value(time - _DT_J2000) / 1000
 

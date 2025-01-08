@@ -5,15 +5,15 @@ overloading the functions listed here.
 
 ## Structure
 
-All models require a structure with supertype `AbstractGravityModel{T<:Number}`, where `T`
-is the type of the coefficients in the model. For the function that passes the seconds since
-J2000.0, the return type `RT` is the promoted type of the set {`T`, `W`}, where `W` is the
-type of the time variable.
+All models require a structure with supertype `AbstractGravityModel{T<:Number, NT<:Symbol}`, where `T`
+is the type of the coefficients in the model and `NT` is the norm type. For the function that passes 
+the seconds since J2000.0, the return type `RT` is the promoted type of the set {`T`, `W`}, where 
+`W` is the type of the time variable.
 
 ## API Functions
 
 ```julia
-function coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::Number) where {T<:Number}> -> T, T
+function coefficients(model::AbstractGravityModel{T, NT}, degree::Int, order::Int, time::Number) where {T<:Number, NT} -> T, T
 ```
 
 This function must return the coefficients `Clm` and `Slm` of the gravity `model` for the
@@ -52,7 +52,7 @@ computing the Legendre associated functions. The accepted values are:
 ---
 
 ```julia
-function gravity_constant(model::AbstractGravityModel{T}) where T<:Number -> T
+function gravity_constant(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> T
 ```
 
 This function must return the gravity constant [m³ / s²] for the gravity model.
@@ -77,7 +77,7 @@ This function must return the maximum degree of the gravity `model`.
 ---
 
 ```julia
-function radius(model::AbstractGravityModel{T}) where T<:Number -> T
+function radius(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> T
 ```
 
 This function must return the radius [m] for the gravity model.

@@ -5,7 +5,7 @@
 ############################################################################################
 
 """
-    coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int[, time::Union{Number, DateTime}]) where T<:Number -> T, T
+    coefficients(model::AbstractGravityModel{T, NT}, degree::Int, order::Int[, time::Union{Number, DateTime}]) where {T<:Number, NT} -> T, T
 
 Return the `Clm` and `Slm` coefficients of the gravity `model` for the specified `degree`,
 `order`, and `time`. If the latter argument is omitted, the J2000.0 epoch is used.
@@ -25,7 +25,7 @@ function coefficients(model::AbstractGravityModel, degree::Int, order::Int, time
 end
 
 """
-    coefficient_norm(model::AbstractGravityModel) where T<:Number -> Symbol
+    coefficient_norm(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> Symbol
 
 Return the normalization we must use in the spherical harmonics when computing the Legendre
 associated functions. The accepted values are:
@@ -37,7 +37,7 @@ associated functions. The accepted values are:
 function coefficient_norm end
 
 """
-    gravity_constant(model::AbstractGravityModel{T}) where T<:Number -> T
+    gravity_constant(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> T
 
 Return the gravity constant [m³ / s²] for the gravity model.
 """
@@ -58,7 +58,7 @@ Return the maximum degree of the gravity `model`.
 function maximum_degree end
 
 """
-    radius(model::AbstractGravityModel{T}) where T<:Number -> T
+    radius(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> T
 
 Return the radius [m] for the gravity model.
 """

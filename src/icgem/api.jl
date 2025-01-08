@@ -8,8 +8,8 @@ function GravityModels.coefficients(model::IcgemFile, degree::Int, order::Int, t
     return icgem_coefficients(model, degree, order, time)
 end
 
-function GravityModels.coefficient_norm(model::IcgemFile)
-    if model.norm === :unnormalized
+function GravityModels.coefficient_norm(model::IcgemFile{T, NT}) where {T<:Number, NT}
+    if NT === :unnormalized
         return :unnormalized
     else
         return :full

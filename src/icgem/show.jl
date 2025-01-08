@@ -71,7 +71,7 @@ function show(io::IO, mime::MIME"text/plain", m::IcgemFile{T}) where T
     println(io, "$(b)    Maximum degree :$(d) ", m.max_degree)
     println(io, "$(b)            Errors :$(d) ", m.errors)
     println(io, "$(b)       Tide system :$(d) ", m.tide_system)
-    println(io, "$(b)              Norm :$(d) ", m.norm)
+    println(io, "$(b)              Norm :$(d) ", typeof(m.norm).parameters[1])
     print(  io, "$(b)         Data type :$(d) ", string(T))
 
     return nothing

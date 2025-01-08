@@ -5,13 +5,13 @@ overloading the functions listed here.
 
 ## Structure
 
-All models require a structure with supertype `AbstractGravityModel{T<:Number}`, where `T`
-is the type of the coefficients in the model.
+All models require a structure with supertype `AbstractGravityModel{T<:Number, NT}`, where `T`
+is the type of the coefficients in the model and `NT` is the norm type.
 
 ## API Functions
 
 ```julia
-function coefficients(model::AbstractGravityModel{T}, degree::Int, order::Int, time::DataTime = DateTime("2000-01-01")) where T<:Number -> T, T
+function coefficients(model::AbstractGravityModel{T, NT}, degree::Int, order::Int, time::DataTime = DateTime("2000-01-01")) where {T<:Number, NT} -> T, T
 ```
 
 This function must return the coefficients `Clm` and `Slm` of the gravity `model` for the
@@ -33,7 +33,7 @@ must return a `Tuple{T, T}` with the `Clm` and `Slm`, respectively, for the degr
 ---
 
 ```julia
-function coefficient_norm(model::AbstractGravityModel) where T<:Number -> Symbol
+function coefficient_norm(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> Symbol
 ```
 
 This function must return the normalization we must use in the spherical harmonics when
@@ -46,7 +46,7 @@ computing the Legendre associated functions. The accepted values are:
 ---
 
 ```julia
-function gravity_constant(model::AbstractGravityModel{T}) where T<:Number -> T
+function gravity_constant(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> T
 ```
 
 This function must return the gravity constant [m³ / s²] for the gravity model.
@@ -71,7 +71,7 @@ This function must return the maximum degree of the gravity `model`.
 ---
 
 ```julia
-function radius(model::AbstractGravityModel{T}) where T<:Number -> T
+function radius(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> T
 ```
 
 This function must return the radius [m] for the gravity model.

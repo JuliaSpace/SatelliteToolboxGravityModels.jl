@@ -9,7 +9,11 @@ using SatelliteToolboxTransformations
 using Scratch
 
 using DifferentiationInterface
-import FiniteDiff, ForwardDiff
+using FiniteDiff, ForwardDiff, Enzyme, Mooncake, PolyesterForwardDiff, Zygote
+
+using Aqua
+using JET
+using AllocCheck
 
 # We must clear the scratch space before the tests to avoid errors.
 clear_scratchspaces!(SatelliteToolboxGravityModels)
@@ -26,4 +30,6 @@ end
     include("differentiability.jl")
 end
 
-
+@testset "Performance and Memory Allocations" verbose = true begin
+    include("./allocations.jl")
+end
