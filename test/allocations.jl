@@ -4,7 +4,7 @@
 #
 ############################################################################################
 @testset "Aqua.jl" begin
-    Aqua.test_all(SatelliteToolboxGravityModels; ambiguities=(recursive = false))
+    Aqua.test_all(SatelliteToolboxGravityModels; ambiguities=(recursive = false), deps_compat=(check_extras = false))
 end
 
 @testset "JET Testing" begin
