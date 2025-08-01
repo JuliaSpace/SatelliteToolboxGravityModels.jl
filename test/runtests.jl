@@ -9,7 +9,25 @@ using SatelliteToolboxTransformations
 using Scratch
 
 using DifferentiationInterface
-using FiniteDiff, ForwardDiff, Enzyme, Mooncake, PolyesterForwardDiff, Zygote
+using FiniteDiff, ForwardDiff, PolyesterForwardDiff, Zygote
+
+if isempty(VERSION.prerelease)
+    using Mooncake, Enzyme
+    const _BACKENDS = (
+        ("ForwardDiff", AutoForwardDiff()),
+        ("Enzyme", AutoEnzyme()),
+        ("Mooncake", AutoMooncake(;config=nothing)),
+        ("PolyesterForwardDiff", AutoPolyesterForwardDiff()),
+        ("Zygote", AutoZygote()),
+    )
+else
+    @warn "Mooncake.jl and Enzyme.jl not guaranteed to work on julia-nightly, skipping tests"
+    const _BACKENDS = (
+        ("ForwardDiff", AutoForwardDiff()),
+        ("PolyesterForwardDiff", AutoPolyesterForwardDiff()),
+        ("Zygote", AutoZygote()),
+    )
+end
 
 using Aqua
 using JET
