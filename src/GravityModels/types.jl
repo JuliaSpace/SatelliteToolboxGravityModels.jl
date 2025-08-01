@@ -7,8 +7,8 @@
 export AbstractGravityModel
 
 """
-    abstract type AbstractGravityModel{T<:Number, NT}
+    abstract type AbstractGravityModel{T<:Number, NT<:Val}
 
 Abstract data type of all gravity models.
 """
-abstract type AbstractGravityModel{T<:Number, NT} end
+abstract type AbstractGravityModel{T<:Number, NT<:Val} end

@@ -52,7 +52,7 @@ function gravitational_field_derivative(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT}
+) where {T<:Number, V<:Number, NT<:Val}
     return gravitational_field_derivative(model, r, 0; max_degree, max_order, P, dP)
 end
 
@@ -64,7 +64,7 @@ function gravitational_field_derivative(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, W<:Number, NT}
+) where {T<:Number, V<:Number, W<:Number, NT<:Val}
 
     RT = promote_type(T, V, W)
 
@@ -246,7 +246,7 @@ function gravitational_field_derivative(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT}
+) where {T<:Number, V<:Number, NT<:Val}
 
     t = Dates.value(time - _DT_J2000) / 1000
 

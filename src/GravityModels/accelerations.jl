@@ -60,7 +60,7 @@ function gravitational_acceleration(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT}
+) where {T<:Number, V<:Number, NT<:Val}
     return gravitational_acceleration(model, r, 0; max_degree, max_order, P, dP)
 end
 
@@ -72,7 +72,7 @@ function gravitational_acceleration(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT}
+) where {T<:Number, V<:Number, NT<:Val}
 
     # Compute the partial derivatives of the gravitational field w.r.t. the spherical
     # coordinates.
@@ -128,7 +128,7 @@ function gravitational_acceleration(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT}
+) where {T<:Number, V<:Number, NT<:Val}
 
     t = Dates.value(time - _DT_J2000) / 1000
 
@@ -192,7 +192,7 @@ function gravity_acceleration(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number,V<:Number, NT}
+) where {T<:Number,V<:Number, NT<:Val}
     return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP)
 end
 
@@ -204,7 +204,7 @@ function gravity_acceleration(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT}
+) where {T<:Number, V<:Number, NT<:Val}
 
     # == Gravitational Acceleration ========================================================
 
@@ -284,7 +284,7 @@ function gravity_acceleration(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT}
+) where {T<:Number, V<:Number, NT<:Val}
 
     t = Dates.value(time - _DT_J2000) / 1000
 

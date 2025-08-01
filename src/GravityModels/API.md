@@ -13,7 +13,7 @@ the seconds since J2000.0, the return type `RT` is the promoted type of the set 
 ## API Functions
 
 ```julia
-function coefficients(model::AbstractGravityModel{T, NT}, degree::Int, order::Int, time::Number) where {T<:Number, NT} -> T, T
+function coefficients(model::AbstractGravityModel{T, NT}, degree::Int, order::Int, time::Number) where {T<:Number, NT<:Val} -> T, T
 ```
 
 This function must return the coefficients `Clm` and `Slm` of the gravity `model` for the
@@ -52,7 +52,7 @@ computing the Legendre associated functions. The accepted values are:
 ---
 
 ```julia
-function gravity_constant(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> T
+function gravity_constant(model::AbstractGravityModel{T, NT}) where {T<:Number, NT<:Val} -> T
 ```
 
 This function must return the gravity constant [m³ / s²] for the gravity model.
@@ -77,7 +77,7 @@ This function must return the maximum degree of the gravity `model`.
 ---
 
 ```julia
-function radius(model::AbstractGravityModel{T, NT}) where {T<:Number, NT} -> T
+function radius(model::AbstractGravityModel{T, NT}) where {T<:Number, NT<:Val} -> T
 ```
 
 This function must return the radius [m] for the gravity model.

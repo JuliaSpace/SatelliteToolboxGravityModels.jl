@@ -57,13 +57,13 @@ function show(io::IO, m::IcgemFile{T}) where T
     return nothing
 end
 
-function show(io::IO, mime::MIME"text/plain", m::IcgemFile{T}) where T
+function show(io::IO, mime::MIME"text/plain", m::IcgemFile{T, Val{NT}}) where {T, NT}
     # Check for color support in the `io`.
     color = get(io, :color, false)
     b = color ? _B : ""
     d = color ? _D : ""
 
-    println(io, typeof(m), ":")
+    println(io, "IcgemFile{", T, ", :", NT, "}:")
     println(io, "$(b)      Product type :$(d) ", m.product_type)
     println(io, "$(b)       Model name  :$(d) ", m.model_name)
     println(io, "$(b)  Gravity constant :$(d) ", m.gravity_constant)
@@ -71,7 +71,7 @@ function show(io::IO, mime::MIME"text/plain", m::IcgemFile{T}) where T
     println(io, "$(b)    Maximum degree :$(d) ", m.max_degree)
     println(io, "$(b)            Errors :$(d) ", m.errors)
     println(io, "$(b)       Tide system :$(d) ", m.tide_system)
-    println(io, "$(b)              Norm :$(d) ", typeof(m.norm).parameters[1])
+    println(io, "$(b)              Norm :$(d) ", NT)
     print(  io, "$(b)         Data type :$(d) ", string(T))
 
     return nothing
