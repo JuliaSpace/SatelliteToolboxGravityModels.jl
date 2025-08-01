@@ -17,6 +17,8 @@ if isempty(VERSION.prerelease)
     using Pkg
     Pkg.add("Mooncake")
     Pkg.add("Enzyme")
+    Pkg.add("JET")
+    Pkg.add("AllocCheck")
 
     # Test with Mooncake and Enzyme along with the other backends
     using Mooncake, Enzyme
@@ -27,6 +29,13 @@ if isempty(VERSION.prerelease)
         ("PolyesterForwardDiff", AutoPolyesterForwardDiff()),
         ("Zygote", AutoZygote()),
     )
+
+    using JET
+    using AllocCheck
+
+    @testset "Performance and Memory Allocations" verbose = true begin
+        include("./allocations.jl")
+    end
 else
     @warn "Mooncake.jl and Enzyme.jl not guaranteed to work on julia-nightly, skipping tests"
     const _BACKENDS = (
@@ -34,11 +43,11 @@ else
         ("PolyesterForwardDiff", AutoPolyesterForwardDiff()),
         ("Zygote", AutoZygote()),
     )
+
+    @warn "JET and AllocCheck not guaranteed to work on julia-nightly, skipping tests"
 end
 
 using Aqua
-using JET
-using AllocCheck
 
 # We must clear the scratch space before the tests to avoid errors.
 clear_scratchspaces!(SatelliteToolboxGravityModels)
@@ -55,6 +64,7 @@ end
     include("differentiability.jl")
 end
 
-@testset "Performance and Memory Allocations" verbose = true begin
-    include("./allocations.jl")
+@testset "Aqua.jl" begin
+    Aqua.test_all(SatelliteToolboxGravityModels; ambiguities=(recursive = false), deps_compat=(check_extras = false))
 end
+

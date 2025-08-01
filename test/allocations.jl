@@ -3,10 +3,6 @@
 # Tests related to performance and memory allocations.
 #
 ############################################################################################
-@testset "Aqua.jl" begin
-    Aqua.test_all(SatelliteToolboxGravityModels; ambiguities=(recursive = false), deps_compat=(check_extras = false))
-end
-
 @testset "JET Testing" begin
     rep = JET.test_package(SatelliteToolboxGravityModels; toplevel_logger=nothing, target_modules=(@__MODULE__,))
 end

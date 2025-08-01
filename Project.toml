@@ -52,4 +52,4 @@ SatelliteToolboxTransformations = "6b019ec1-7a1e-4f04-96c7-a9db1ca5514d"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "AllocCheck", "Aqua", "DelimitedFiles", "DifferentiationInterface", "FiniteDiff", "ForwardDiff", "JET", "LinearAlgebra", "Pkg", "PolyesterForwardDiff", "SatelliteToolboxTransformations", "Zygote"]
+test = ["Test", "Aqua", "DelimitedFiles", "DifferentiationInterface", "FiniteDiff", "ForwardDiff", "LinearAlgebra", "Pkg", "PolyesterForwardDiff", "SatelliteToolboxTransformations", "Zygote"]
