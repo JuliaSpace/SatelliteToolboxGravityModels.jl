@@ -12,6 +12,12 @@ using DifferentiationInterface
 using FiniteDiff, ForwardDiff, PolyesterForwardDiff, Zygote
 
 if isempty(VERSION.prerelease)
+    # Add Mooncake and Enzyme to the project if not the nightly version
+    # Adding them via the Project.toml isn't working because it tries to compile them before reaching the gating
+    using Pkg
+    Pkg.add("Mooncake", "Enzyme")
+
+    # Test with Mooncake and Enzyme along with the other backends
     using Mooncake, Enzyme
     const _BACKENDS = (
         ("ForwardDiff", AutoForwardDiff()),
