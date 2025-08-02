@@ -35,7 +35,7 @@ struct IcgemGfctCoefficient{T<:Number}
     acos_coefficients::Vector{NTuple{3, T}}
 end
 
-struct IcgemFile{T<:Number} <: GravityModels.AbstractGravityModel{T}
+struct IcgemFile{T<:Number, NT<:Val} <: GravityModels.AbstractGravityModel{T, NT}
     # Fields related to the header.
     product_type::Symbol
     model_name::String
@@ -44,7 +44,7 @@ struct IcgemFile{T<:Number} <: GravityModels.AbstractGravityModel{T}
     max_degree::Int
     errors::Symbol
     tide_system::Symbol
-    norm::Symbol
+    norm::NT
 
     # Fields related to the data section.
     data::Matrix{Union{Nothing, IcgemGfcCoefficient{T}, IcgemGfctCoefficient{T}}}

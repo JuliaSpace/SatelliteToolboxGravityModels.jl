@@ -11,7 +11,7 @@
 ############################################################################################
 
 """
-    gravitational_acceleration(model::AbstractGravityModel{Number}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
+    gravitational_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
 
 Compute the gravitational acceleration [m / s²] represented in ITRF using the `model` in the
 position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
@@ -54,25 +54,25 @@ J2000.0 epoch.
 - `RT`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
 """
 function gravitational_acceleration(
-    model::AbstractGravityModel{T},
+    model::AbstractGravityModel{T, NT},
     r::AbstractVector{V};
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number}
+) where {T<:Number, V<:Number, NT<:Val}
     return gravitational_acceleration(model, r, 0; max_degree, max_order, P, dP)
 end
 
 function gravitational_acceleration(
-    model::AbstractGravityModel{T},
+    model::AbstractGravityModel{T, NT},
     r::AbstractVector{V},
     time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number}
+) where {T<:Number, V<:Number, NT<:Val}
 
     # Compute the partial derivatives of the gravitational field w.r.t. the spherical
     # coordinates.
@@ -121,14 +121,14 @@ function gravitational_acceleration(
 end
 
 function gravitational_acceleration(
-    model::AbstractGravityModel{T},
+    model::AbstractGravityModel{T, NT},
     r::AbstractVector{V},
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number}
+) where {T<:Number, V<:Number, NT<:Val}
 
     t = Dates.value(time - _DT_J2000) / 1000
 
@@ -144,7 +144,7 @@ function gravitational_acceleration(
 end
 
 """
-    gravity_acceleration(model::AbstractGravityModel{Number}, r::AbstractVector{Number}[, time::Union{Number, DataTime}]; kwargs...) -> NTuple{3, RT}
+    gravity_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DataTime}]; kwargs...) -> NTuple{3, RT}
 
 Compute the gravity acceleration [m / s²] represented in ITRF using the `model` in the
 position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
@@ -186,25 +186,25 @@ J2000.0 epoch.
 - `RT`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
 """
 function gravity_acceleration(
-    model::AbstractGravityModel{T},
+    model::AbstractGravityModel{T, NT},
     r::AbstractVector{V};
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number,V<:Number}
+) where {T<:Number,V<:Number, NT<:Val}
     return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP)
 end
 
 function gravity_acceleration(
-    model::AbstractGravityModel{T},
+    model::AbstractGravityModel{T, NT},
     r::AbstractVector{V},
     time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number}
+) where {T<:Number, V<:Number, NT<:Val}
 
     # == Gravitational Acceleration ========================================================
 
@@ -277,14 +277,14 @@ function gravity_acceleration(
 end
 
 function gravity_acceleration(
-    model::AbstractGravityModel{T},
+    model::AbstractGravityModel{T, NT},
     r::AbstractVector{V},
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number}
+) where {T<:Number, V<:Number, NT<:Val}
 
     t = Dates.value(time - _DT_J2000) / 1000
 

@@ -298,7 +298,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
         max_degree,
         errors,
         tide_system,
-        norm,
+        Val(norm),
         data
     )
 

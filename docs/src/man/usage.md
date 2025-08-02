@@ -59,7 +59,7 @@ egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
 The following function:
 
 ```julia
-gravitational_field_derivative(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
+gravitational_field_derivative(model::AbstractGravityModel{T, NT}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where {T<:Number, NT} -> NTuple{3, T}
 ```
 
 computes the gravitational field derivative [SI] with respect to the spherical coordinates:
@@ -107,7 +107,7 @@ The gravitational acceleration is the acceleration caused by the central body ma
 i.e., without considering the centrifugal potential. We can compute it using the function:
 
 ```julia
-gravitational_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
+gravitational_acceleration(model::AbstractGravityModel{T, NT}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) {T<:Number, NT} -> NTuple{3, T}
 ```
 
 where it returns the gravitational field acceleration [m / s²] represented in ITRF using the
@@ -146,7 +146,7 @@ The gravity acceleration is the compound acceleration caused by the central body
 the centrifugal force due to the planet's rotation. We can compute it using the function:
 
 ```julia
-gravity_acceleration(model::AbstractGravityModel{T}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) where T<:Number -> NTuple{3, T}
+gravity_acceleration(model::AbstractGravityModel{T, NT}, r::AbstractVector, time::DateTime = DateTime("2000-01-01"); kwargs...) {T<:Number, NT} -> NTuple{3, T}
 ```
 
 where it computes the gravity acceleration [m / s²] represented in ITRF using the `model` in

@@ -202,7 +202,7 @@ end
     @test result == expected
 
     expected = """
-IcgemFile{Float64}:
+IcgemFile{Float64, :fully_normalized}:
       Product type : gravity_field
        Model name  : EGM96
   Gravity constant : 3.986004415e14
