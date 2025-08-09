@@ -3,7 +3,7 @@ uuid = "bd9e9728-6f7b-4d28-9e50-c765cb1b7c8c"
 license = "MIT"
 desc = "Gravity models."
 authors = ["Ronan Arraes Jardim Chagas <ronisbr@gmail.com>"]
-version = "1.0.0"
+version = "1.1.0"
 
 [deps]
 Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
