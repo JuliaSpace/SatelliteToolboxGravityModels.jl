@@ -1,6 +1,13 @@
 SatelliteToolboxGravityModels.jl Changelog
 ==========================================
 
+Version 1.1.0
+-------------
+
+- ![Feature][badge-feature] The package now supports automatic differentiation using
+  different backends. (PR [#4][gh-pr-4])
+- ![Enhancement][badge-enhancement] Some allocations were removed. (PR [#4][gh-pr-4])
+
 Version 1.0.0
 -------------
 
@@ -67,4 +74,5 @@ Version 0.1.0
 [badge-info]: https://img.shields.io/badge/Info-gray.svg
 
 [gh-pr-3]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/3
+[gh-pr-4]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/4
 
