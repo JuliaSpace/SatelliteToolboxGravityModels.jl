@@ -96,7 +96,7 @@ end
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, DateTime("2023-06-19"))
 
     @test Clm ≈ +2.4393378057597012e-6 atol = 1e-20
-    @test Slm ≈ -1.400407403685511e-6  atol = 1e-20
+    @test Slm ≈ -1.400407403685511e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 100, 1, DateTime("2023-06-19"))
 
@@ -122,7 +122,7 @@ end
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, time)
 
     @test Clm ≈ +2.4393378057597012e-6 atol = 1e-20
-    @test Slm ≈ -1.400407403685511e-6  atol = 1e-20
+    @test Slm ≈ -1.400407403685511e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 100, 1, time)
 
@@ -222,7 +222,7 @@ end
     egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
 
     expected = "SatelliteToolboxGravityModels.IcgemGfcCoefficient{Float64}(Clm = -0.000484165371736, Slm = 0.0)"
-    result = sprint(show, egm96.data[3, 1])
+    result = sprint(show, egm96.data_static[3, 1])
     @test result == expected
 
     expected = """
@@ -230,7 +230,7 @@ SatelliteToolboxGravityModels.IcgemGfcCoefficient{Float64}:
   Clm : -0.000484165371736
   Slm : 0.0"""
 
-    result = sprint(show, MIME("text/plain"), egm96.data[3, 1])
+    result = sprint(show, MIME("text/plain"), egm96.data_static[3, 1])
     @test result == expected
 end
 
@@ -242,7 +242,7 @@ end
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
 
     expected = "SatelliteToolboxGravityModels.IcgemGfctCoefficient{Float64}(Clm₀ = -0.000484165299806, Slm₀ = 0.0)"
-    result = sprint(show, eigen6c.data[3, 1])
+    result = sprint(show, eigen6c.data_dynamic[3, 1])
     @test result == expected
 
     expected = """
@@ -256,6 +256,6 @@ SatelliteToolboxGravityModels.IcgemGfctCoefficient{Float64}:
   Cosine : Period 1.0 y => Amp. Clm = 4.10012162817e-11, Amp. Slm = 0.0
            Period 0.5 y => Amp. Clm = 3.33917546745e-11, Amp. Slm = 0.0"""
 
-    result = sprint(show, MIME("text/plain"), eigen6c.data[3, 1])
+    result = sprint(show, MIME("text/plain"), eigen6c.data_dynamic[3, 1])
     @test result == expected
 end

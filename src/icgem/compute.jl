@@ -25,13 +25,22 @@ function icgem_coefficients(
         throw(ArgumentError("The maximum degree available in the model is $(model.max_degree)."))
 
     # Get the data element related to the degree and order.
-    coefficient = @inbounds model.data[degree + 1, order + 1]
-
-    # If `coefficient` is `nothing`, we should return 0 because it was not defined.
-    isnothing(coefficient) && return T(0), T(0)
+    coefficient = @inbounds model.data_static[degree+1, order+1]
 
     # Compute the `Clm` and `Slm` coefficients.
-    clm, slm = _compute_icgem_coefficient(coefficient, time)
+
+    clm, slm = if !iszero(coefficient.clm) || !iszero(coefficient.slm)
+        _compute_icgem_coefficient(coefficient, time)
+    else
+        T(0), T(0)
+    end
+
+    if Base.CartesianIndex(degree + 1, order + 1) ∈ Base.CartesianIndices(model.data_dynamic)
+        coefficient_d = @inbounds model.data_dynamic[degree+1, order+1]
+        clm_d, slm_d = _compute_icgem_coefficient(coefficient_d, time)
+        clm += clm_d
+        slm += slm_d
+    end
 
     return clm, slm
 end
@@ -85,7 +94,7 @@ function _compute_icgem_coefficient(
     for c in coefficient.asin_coefficients
         A_clm, A_slm, p = c
 
-        aux  = sin(T(2π) / p * Δt)
+        aux = sin(T(2π) / p * Δt)
         clm += A_clm * aux
         slm += A_slm * aux
     end
@@ -95,7 +104,7 @@ function _compute_icgem_coefficient(
     for c in coefficient.acos_coefficients
         A_clm, A_slm, p = c
 
-        aux  = cos(T(2π) / p * Δt)
+        aux = cos(T(2π) / p * Δt)
         clm += A_clm * aux
         slm += A_slm * aux
     end

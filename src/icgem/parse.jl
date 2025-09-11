@@ -22,7 +22,7 @@ Parse the ICGEM file `filename` using the data type `T`.
 
     `T` is converted to float to obtain the output type.
 """
-function parse_icgem(filename::AbstractString, T::DataType = Float64)
+function parse_icgem(filename::AbstractString, T::DataType=Float64)
     Tf = float(T)
 
     # Open the file and find the header.
@@ -30,11 +30,11 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
     # == Header ============================================================================
 
-    header_start_line   = 1
-    header_end_line     = 0
-    current_line        = 0
+    header_start_line = 1
+    header_end_line = 0
+    current_line = 0
     begin_of_head_found = false
-    end_of_head_found   = false
+    end_of_head_found = false
 
     # We need to first check the position of the header due to the `begin_of_head` keyword
     # that can define where the header starts.
@@ -74,7 +74,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
     # == Get Keywords ======================================================================
 
-    keywords = Dict{Symbol, String}()
+    keywords = Dict{Symbol,String}()
 
     while current_line < header_end_line - 1
         line = readline(file)
@@ -115,12 +115,12 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     end
 
     product_type = Symbol(keywords[:product_type])
-    model_name   = keywords[:modelname]
-    max_degree   = parse(Int, keywords[:max_degree])
-    errors       = Symbol(keywords[:errors])
+    model_name = keywords[:modelname]
+    max_degree = parse(Int, keywords[:max_degree])
+    errors = Symbol(keywords[:errors])
 
     gravity_constant = _parse_icgem_float(Tf, keywords[:earth_gravity_constant])
-    radius           = _parse_icgem_float(Tf, keywords[:radius])
+    radius = _parse_icgem_float(Tf, keywords[:radius])
 
     isnothing(gravity_constant) && error("[Invalid ICGEM file] Could not parse the gravity constant to $Tf.")
     isnothing(radius) && error("[Invalid ICGEM file] Could not parse the radius to $Tf.")
@@ -138,38 +138,48 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     # == Parse Optional Keywords ===========================================================
 
     tide_system = haskey(keywords, :tide_system) ? Symbol(keywords[:tide_system]) : :unknown
-    norm        = haskey(keywords, :norm) ? Symbol(keywords[:norm]) : :fully_normalized
+    norm = haskey(keywords, :norm) ? Symbol(keywords[:norm]) : :fully_normalized
 
     # == Data ==============================================================================
 
     # Since we now have the maximum degree, we can pre-allocate and initialize the data
     # matrix.
-    data = Matrix{Union{Nothing, IcgemGfcCoefficient{Tf}, IcgemGfctCoefficient{Tf}}}(
+    T0 = zero(Tf)
+    data_static = Matrix{IcgemGfcCoefficient{Tf}}(
         undef,
         max_degree + 1,
         max_degree + 1
     )
-    data .= nothing
+    data_static .= IcgemGfcCoefficient(T0, T0)
+
+    has_dynamic = false
+    data_dynamic = Matrix{IcgemGfctCoefficient{Tf}}(
+        undef,
+        max_degree + 1,
+        max_degree + 1
+    )
+    data_dynamic .= IcgemGfctCoefficient(T0, T0, T0, false, T0, T0, NTuple{3,Tf}[], NTuple{3,Tf}[])
+
 
     # State of the parsing algorithm.
     state = :new
 
     # Auxiliary variables to build the coefficients.
-    deg  = 0
-    ord  = 0
-    clm  = Tf(0)
-    slm  = Tf(0)
+    deg = 0
+    ord = 0
+    clm = Tf(0)
+    slm = Tf(0)
     time = Dates.value(now() - _DT_J2000) / 1000
 
     has_trend = false
     trend_clm = Tf(0)
     trend_slm = Tf(0)
-    asin_coefficients = NTuple{3, Tf}[]
-    acos_coefficients = NTuple{3, Tf}[]
+    asin_coefficients = NTuple{3,Tf}[]
+    acos_coefficients = NTuple{3,Tf}[]
 
-    line          = nothing
+    line = nothing
     read_new_line = true
-    tokens        = nothing
+    tokens = nothing
 
     # Read the entire file and build the coefficients.
     while !eof(file)
@@ -194,12 +204,12 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 ret = _parse_gfc_data_line(Tf, tokens, current_line)
                 isnothing(ret) && continue
 
-                deg, ord, clm, slm  = ret
-                data[deg + 1, ord + 1] = IcgemGfcCoefficient(clm, slm)
+                deg, ord, clm, slm = ret
+                data_static[deg+1, ord+1] = IcgemGfcCoefficient(clm, slm)
 
                 read_new_line = true
 
-            # == `gfct` Data Line ==========================================================
+                # == `gfct` Data Line ==========================================================
 
             elseif tokens[1] == "gfct"
                 ret = _parse_gfct_data_line(Tf, tokens, current_line)
@@ -236,7 +246,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 has_trend = true
                 read_new_line = true
 
-            # == `asin` Data Line of a `gfct` Section ======================================
+                # == `asin` Data Line of a `gfct` Section ======================================
 
             elseif tokens[1] == "asin"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
@@ -253,7 +263,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 push!(asin_coefficients, (asin_amplitude_clm, asin_amplitude_slm, asin_period))
                 read_new_line = true
 
-            # == `acos` Data Line of a `gfct` Section ======================================
+                # == `acos` Data Line of a `gfct` Section ======================================
 
             elseif tokens[1] == "acos"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
@@ -272,17 +282,17 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
             else
                 # If we reach this part, the `gfct` section is over. Thus, we should create
                 # the element related to `gfct` and proceed with the new information.
-                data[deg + 1, ord + 1] = IcgemGfctCoefficient(
+                data_dynamic[deg+1, ord+1] = IcgemGfctCoefficient(
                     clm,
                     slm,
                     time,
-                    has_trend ,
-                    trend_clm ,
-                    trend_slm ,
+                    has_trend,
+                    trend_clm,
+                    trend_slm,
                     copy(asin_coefficients),
                     copy(acos_coefficients),
                 )
-
+                has_dynamic = true
                 state = :new
                 read_new_line = false
             end
@@ -299,7 +309,8 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
         errors,
         tide_system,
         Val(norm),
-        data
+        data_static,
+        has_dynamic ? data_dynamic : Matrix{IcgemGfctCoefficient{Tf}}(undef, 0, 0)
     )
 
     return icgem_file
