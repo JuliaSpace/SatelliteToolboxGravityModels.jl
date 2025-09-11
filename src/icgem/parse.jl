@@ -144,20 +144,13 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
 
     # Since we now have the maximum degree, we can pre-allocate and initialize the data
     # matrix.
-    T0 = zero(Tf)
-    data_static = Matrix{IcgemGfcCoefficient{Tf}}(
-        undef,
-        max_degree + 1,
+    data_static = LowerTriangularStorage{IcgemGfcCoefficient{Tf}}(max_degree + 1,
+        max_degree + 1)
+
+    use_dynamic = false
+    data_dynamic = LowerTriangularStorage{IcgemGfctCoefficient{Tf}}(max_degree + 1,
         max_degree + 1
     )
-    data_static .= IcgemGfcCoefficient(T0, T0)
-    has_dynamic = false
-    data_dynamic = Matrix{IcgemGfctCoefficient{Tf}}(
-        undef,
-        max_degree + 1,
-        max_degree + 1
-    )
-    data_dynamic .= IcgemGfctCoefficient(T0, T0, T0, false, T0, T0, NTuple{3,Tf}[], NTuple{3,Tf}[])
 
 
     # State of the parsing algorithm.
@@ -281,6 +274,13 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
             else
                 # If we reach this part, the `gfct` section is over. Thus, we should create
                 # the element related to `gfct` and proceed with the new information.
+                if !use_dynamic
+                    use_dynamic = true
+                    for i in 1:(max_degree+1), j in 1:(max_degree+1)
+                        data_dynamic[i, j] = IcgemGfctCoefficient(data_static[i, j])
+                    end
+                end
+
                 data_dynamic[deg+1, ord+1] = IcgemGfctCoefficient(
                     clm,
                     slm,
@@ -291,7 +291,7 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
                     copy(asin_coefficients),
                     copy(acos_coefficients),
                 )
-                has_dynamic = true
+
                 state = :new
                 read_new_line = false
             end
@@ -308,11 +308,8 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
         errors,
         tide_system,
         Val(norm),
-        data_static,
-        has_dynamic,
-        has_dynamic ? data_dynamic : Matrix{IcgemGfctCoefficient{Tf}}(undef, 0, 0)
+        use_dynamic ? data_dynamic : data_static
     )
-
     return icgem_file
 end
 

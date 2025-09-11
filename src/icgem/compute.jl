@@ -25,17 +25,8 @@ function icgem_coefficients(
         throw(ArgumentError("The maximum degree available in the model is $(model.max_degree)."))
 
     # Get the data element related to the degree and order.
-
-
-    # Compute the `Clm` and `Slm` coefficients.
-    if model.has_dynamic
-        coefficient_d = @inbounds model.data_dynamic[degree+1, order+1]
-        _compute_icgem_coefficient(coefficient_d, time)
-    else
-        # if !iszero(coefficient.clm) || !iszero(coefficient.slm)
-        coefficient = @inbounds model.data_static[degree+1, order+1]
-        _compute_icgem_coefficient(coefficient, time)
-    end
+    coefficient = @inbounds model.data[degree+1, order+1]
+    _compute_icgem_coefficient(coefficient, time)
 
 end
 

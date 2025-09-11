@@ -18,35 +18,13 @@ using JLD2
 
 stgm_object = SatelliteToolboxGravityModels.parse_icgem("/home/dani/.julia/scratchspaces/b3500434-02a6-41be-b4da-749efa17604c/icgem/EGM2008.gfc")
 
-N, M = 15, 15
-P = zeros((16, 16))
-dP = zeros((16, 16))
+N, M = 31, 31
+P = zeros((32, 32))
+dP = zeros((32, 32))
 r = [6378137.0 + 400000.0, 1234.0, -1234.0]
 
 SatelliteToolboxGravityModels.GravityModels.gravitational_acceleration(stgm_object, r; max_degree=N, max_order=M, P=P, dP=dP)
 @benchmark SatelliteToolboxGravityModels.GravityModels.gravitational_acceleration(stgm_object, r; max_degree=N, max_order=M, P=P, dP=dP)
-
-# BenchmarkTools.Trial: 10000 samples with 10 evaluations per sample.
-#  Range (min … max):  1.833 μs …  3.303 μs  ┊ GC (min … max): 0.00% … 0.00%
-#  Time  (median):     1.883 μs              ┊ GC (median):    0.00%
-#  Time  (mean ± σ):   1.897 μs ± 75.325 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
-
-#     ▂▄▅█▅▃                                                    
-#   ▂▆███████▆▄▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
-#   1.83 μs        Histogram: frequency by time        2.33 μs <
-
-#  Memory estimate: 128 bytes, allocs estimate: 3.
-
-# BenchmarkTools.Trial: 10000 samples with 9 evaluations per sample.
-#  Range (min … max):  2.222 μs …   6.660 μs  ┊ GC (min … max): 0.00% … 0.00%
-#  Time  (median):     2.260 μs               ┊ GC (median):    0.00%
-#  Time  (mean ± σ):   2.286 μs ± 137.221 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
-
-#   ▃▇█▇▇▄▃▂▁                                                   ▂
-#   ██████████▇▆▆▅▅▅▆▇▇▆▆▅▆▄▄▃▁▄▆▅▅▆▅▆▆▅▅▆▅▆███▇▇▇▅▆▃▄▁▁▁▃▅▁▁▃▄ █
-#   2.22 μs      Histogram: log(frequency) by time      2.98 μs <
-
-#  Memory estimate: 128 bytes, allocs estimate: 3.
 
 @benchmark jldsave("foo.jld2"; gm=stgm_object)
 # BenchmarkTools.Trial: 1 sample with 1 evaluation per sample.
