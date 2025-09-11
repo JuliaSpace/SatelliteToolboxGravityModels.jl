@@ -25,24 +25,18 @@ function icgem_coefficients(
         throw(ArgumentError("The maximum degree available in the model is $(model.max_degree)."))
 
     # Get the data element related to the degree and order.
-    coefficient = @inbounds model.data_static[degree+1, order+1]
+
 
     # Compute the `Clm` and `Slm` coefficients.
-
-    clm, slm = if !iszero(coefficient.clm) || !iszero(coefficient.slm)
-        _compute_icgem_coefficient(coefficient, time)
-    else
-        T(0), T(0)
-    end
-
-    if Base.CartesianIndex(degree + 1, order + 1) ∈ Base.CartesianIndices(model.data_dynamic)
+    if model.has_dynamic
         coefficient_d = @inbounds model.data_dynamic[degree+1, order+1]
-        clm_d, slm_d = _compute_icgem_coefficient(coefficient_d, time)
-        clm += clm_d
-        slm += slm_d
+        _compute_icgem_coefficient(coefficient_d, time)
+    else
+        # if !iszero(coefficient.clm) || !iszero(coefficient.slm)
+        coefficient = @inbounds model.data_static[degree+1, order+1]
+        _compute_icgem_coefficient(coefficient, time)
     end
 
-    return clm, slm
 end
 
 function icgem_coefficients(

@@ -151,7 +151,6 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
         max_degree + 1
     )
     data_static .= IcgemGfcCoefficient(T0, T0)
-
     has_dynamic = false
     data_dynamic = Matrix{IcgemGfctCoefficient{Tf}}(
         undef,
@@ -310,6 +309,7 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
         tide_system,
         Val(norm),
         data_static,
+        has_dynamic,
         has_dynamic ? data_dynamic : Matrix{IcgemGfctCoefficient{Tf}}(undef, 0, 0)
     )
 

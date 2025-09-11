@@ -23,7 +23,9 @@ P = zeros((16, 16))
 dP = zeros((16, 16))
 r = [6378137.0 + 400000.0, 1234.0, -1234.0]
 
+SatelliteToolboxGravityModels.GravityModels.gravitational_acceleration(stgm_object, r; max_degree=N, max_order=M, P=P, dP=dP)
 @benchmark SatelliteToolboxGravityModels.GravityModels.gravitational_acceleration(stgm_object, r; max_degree=N, max_order=M, P=P, dP=dP)
+
 # BenchmarkTools.Trial: 10000 samples with 10 evaluations per sample.
 #  Range (min … max):  1.833 μs …  3.303 μs  ┊ GC (min … max): 0.00% … 0.00%
 #  Time  (median):     1.883 μs              ┊ GC (median):    0.00%
@@ -63,7 +65,7 @@ r = [6378137.0 + 400000.0, 1234.0, -1234.0]
 #  Memory estimate: 56.19 KiB, allocs estimate: 1164.
 
 
-@benchmark gm = load("foo.jld2")
+@benchmark load("foo.jld2")["gm"]
 # BenchmarkTools.Trial: 1 sample with 1 evaluation per sample.
 #  Single result which took 9.320 s (10.00% GC) to evaluate,
 #  with a memory estimate of 3.04 GiB, over 76808926 allocations.

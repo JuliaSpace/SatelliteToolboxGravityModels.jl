@@ -55,5 +55,6 @@ struct IcgemFile{T<:Number,NT<:Val} <: GravityModels.AbstractGravityModel{T,NT}
 
     # Fields related to the data section.
     data_static::Matrix{IcgemGfcCoefficient{T}}
+    has_dynamic::Bool
     data_dynamic::Matrix{IcgemGfctCoefficient{T}}
 end
