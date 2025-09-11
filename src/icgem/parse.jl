@@ -197,7 +197,11 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
                 isnothing(ret) && continue
 
                 deg, ord, clm, slm = ret
-                data_static[deg+1, ord+1] = IcgemGfcCoefficient(clm, slm)
+                if use_dynamic
+                    data_dynamic[deg+1, ord+1] = IcgemGfctCoefficient(IcgemGfcCoefficient(clm, slm))
+                else
+                    data_static[deg+1, ord+1] = IcgemGfcCoefficient(clm, slm)
+                end
 
                 read_new_line = true
 

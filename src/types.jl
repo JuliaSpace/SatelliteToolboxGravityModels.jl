@@ -37,6 +37,18 @@ struct IcgemGfctCoefficient{T<:Number} <: AbstractIcgemCoefficient{T}
     acos_coefficients::Vector{NTuple{3,T}}
 end
 
+IcgemGfctCoefficient(c::IcgemGfcCoefficient{T}) where T = IcgemGfctCoefficient(
+    c.clm,
+    c.slm,
+    zero(T),
+    false,
+    zero(T),
+    zero(T),
+    NTuple{3,T}[],
+    NTuple{3,T}[],
+)
+
+
 Base.length(c::IcgemGfcCoefficient) = 1
 Base.length(c::IcgemGfctCoefficient) = 1
 Base.iterate(c::IcgemGfcCoefficient) = (c, nothing)
