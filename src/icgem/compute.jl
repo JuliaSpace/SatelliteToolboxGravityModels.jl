@@ -79,7 +79,7 @@ function _compute_icgem_coefficient(
     for c in coefficient.asin_coefficients
         A_clm, A_slm, p = c
 
-        aux = sin(T(2π) / p * Δt)
+        aux  = sin(T(2π) / p * Δt)
         clm += A_clm * aux
         slm += A_slm * aux
     end
@@ -89,7 +89,7 @@ function _compute_icgem_coefficient(
     for c in coefficient.acos_coefficients
         A_clm, A_slm, p = c
 
-        aux = cos(T(2π) / p * Δt)
+        aux  = cos(T(2π) / p * Δt)
         clm += A_clm * aux
         slm += A_slm * aux
     end

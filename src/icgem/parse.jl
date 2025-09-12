@@ -30,11 +30,11 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
 
     # == Header ============================================================================
 
-    header_start_line = 1
-    header_end_line = 0
-    current_line = 0
+    header_start_line   = 1
+    header_end_line     = 0
+    current_line        = 0
     begin_of_head_found = false
-    end_of_head_found = false
+    end_of_head_found   = false
 
     # We need to first check the position of the header due to the `begin_of_head` keyword
     # that can define where the header starts.
@@ -74,7 +74,7 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
 
     # == Get Keywords ======================================================================
 
-    keywords = Dict{Symbol,String}()
+    keywords = Dict{Symbol, String}()
 
     while current_line < header_end_line - 1
         line = readline(file)
@@ -115,9 +115,9 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
     end
 
     product_type = Symbol(keywords[:product_type])
-    model_name = keywords[:modelname]
-    max_degree = parse(Int, keywords[:max_degree])
-    errors = Symbol(keywords[:errors])
+    model_name   = keywords[:modelname]
+    max_degree   = parse(Int, keywords[:max_degree])
+    errors       = Symbol(keywords[:errors])
 
     gravity_constant = _parse_icgem_float(Tf, keywords[:earth_gravity_constant])
     radius = _parse_icgem_float(Tf, keywords[:radius])
@@ -138,7 +138,7 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
     # == Parse Optional Keywords ===========================================================
 
     tide_system = haskey(keywords, :tide_system) ? Symbol(keywords[:tide_system]) : :unknown
-    norm = haskey(keywords, :norm) ? Symbol(keywords[:norm]) : :fully_normalized
+    norm        = haskey(keywords, :norm) ? Symbol(keywords[:norm]) : :fully_normalized
 
     # == Data ==============================================================================
 
@@ -157,21 +157,21 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
     state = :new
 
     # Auxiliary variables to build the coefficients.
-    deg = 0
-    ord = 0
-    clm = Tf(0)
-    slm = Tf(0)
+    deg  = 0
+    ord  = 0
+    clm  = Tf(0)
+    slm  = Tf(0)
     time = Dates.value(now() - _DT_J2000) / 1000
 
     has_trend = false
     trend_clm = Tf(0)
     trend_slm = Tf(0)
-    asin_coefficients = NTuple{3,Tf}[]
-    acos_coefficients = NTuple{3,Tf}[]
+    asin_coefficients = NTuple{3, Tf}[]
+    acos_coefficients = NTuple{3, Tf}[]
 
-    line = nothing
+    line          = nothing
     read_new_line = true
-    tokens = nothing
+    tokens        = nothing
 
     # Read the entire file and build the coefficients.
     while !eof(file)
@@ -205,7 +205,7 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
 
                 read_new_line = true
 
-                # == `gfct` Data Line ==========================================================
+            # == `gfct` Data Line ==========================================================
 
             elseif tokens[1] == "gfct"
                 ret = _parse_gfct_data_line(Tf, tokens, current_line)
@@ -242,7 +242,7 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
                 has_trend = true
                 read_new_line = true
 
-                # == `asin` Data Line of a `gfct` Section ======================================
+            # == `asin` Data Line of a `gfct` Section ======================================
 
             elseif tokens[1] == "asin"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
@@ -259,7 +259,7 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
                 push!(asin_coefficients, (asin_amplitude_clm, asin_amplitude_slm, asin_period))
                 read_new_line = true
 
-                # == `acos` Data Line of a `gfct` Section ======================================
+            # == `acos` Data Line of a `gfct` Section ======================================
 
             elseif tokens[1] == "acos"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)

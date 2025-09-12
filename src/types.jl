@@ -49,12 +49,6 @@ IcgemGfctCoefficient(c::IcgemGfcCoefficient{T}) where T = IcgemGfctCoefficient(
 )
 
 
-Base.length(c::IcgemGfcCoefficient) = 1
-Base.length(c::IcgemGfctCoefficient) = 1
-Base.iterate(c::IcgemGfcCoefficient) = (c, nothing)
-Base.iterate(c::IcgemGfcCoefficient, state) = nothing
-Base.iterate(c::IcgemGfctCoefficient) = (c, nothing)
-Base.iterate(c::IcgemGfctCoefficient, state) = nothing
 Base.zero(::Type{IcgemGfcCoefficient{T}}) where T = IcgemGfcCoefficient(zero(T), zero(T))
 Base.zero(::Type{IcgemGfctCoefficient{T}}) where T = IcgemGfctCoefficient(zero(T), zero(T), zero(T), false, zero(T), zero(T), Vector{NTuple{3,T}}(), Vector{NTuple{3,T}}())
 
