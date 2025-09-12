@@ -30,11 +30,11 @@ struct IcgemGfctCoefficient{T<:Number} <: AbstractIcgemCoefficient{T}
 
     # == asin ==============================================================================
 
-    asin_coefficients::Vector{NTuple{3,T}}
+    asin_coefficients::Vector{NTuple{3, T}}
 
     # == acos ==============================================================================
 
-    acos_coefficients::Vector{NTuple{3,T}}
+    acos_coefficients::Vector{NTuple{3, T}}
 end
 
 IcgemGfctCoefficient(c::IcgemGfcCoefficient{T}) where T = IcgemGfctCoefficient(

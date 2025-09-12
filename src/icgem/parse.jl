@@ -22,7 +22,7 @@ Parse the ICGEM file `filename` using the data type `T`.
 
     `T` is converted to float to obtain the output type.
 """
-function parse_icgem(filename::AbstractString, T::DataType=Float64)
+function parse_icgem(filename::AbstractString, T::DataType = Float64)
     Tf = float(T)
 
     # Open the file and find the header.
@@ -120,7 +120,7 @@ function parse_icgem(filename::AbstractString, T::DataType=Float64)
     errors       = Symbol(keywords[:errors])
 
     gravity_constant = _parse_icgem_float(Tf, keywords[:earth_gravity_constant])
-    radius = _parse_icgem_float(Tf, keywords[:radius])
+    radius           = _parse_icgem_float(Tf, keywords[:radius])
 
     isnothing(gravity_constant) && error("[Invalid ICGEM file] Could not parse the gravity constant to $Tf.")
     isnothing(radius) && error("[Invalid ICGEM file] Could not parse the radius to $Tf.")
