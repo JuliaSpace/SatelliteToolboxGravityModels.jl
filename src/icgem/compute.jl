@@ -26,8 +26,7 @@ function icgem_coefficients(
 
     # Get the data element related to the degree and order.
     coefficient = @inbounds model.data[degree+1, order+1]
-    _compute_icgem_coefficient(coefficient, time)
-
+    return _compute_icgem_coefficient(coefficient, time)
 end
 
 function icgem_coefficients(
