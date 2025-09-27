@@ -6,11 +6,63 @@
 
 export IcgemFile
 
+abstract type AbstractIcgemCoefficient{T<:Number} end
+
+############################################################################################
+#                                 Lower Triangular Storage                                 #
+############################################################################################
+
+# We create a custom storage type for the coefficients that only stores the lower triangular
+# part of the matrix. This is because the spherical harmonic coefficients are defined only
+# for the lower triangular part (i.e., where degree >= order). This saves memory and
+# improves cache locality when accessing the coefficients.
+struct LowerTriangularStorage{T}
+    n::Int
+    data::Vector{T}
+
+    function LowerTriangularStorage{T}(num_rows::Int, num_columns::Int) where T
+        n   = max(num_rows, num_columns)
+        len = (n * (n + 1)) ÷ 2
+
+        return new{T}(n, zeros(T, len))
+    end
+end
+
+# Auxiliary function to convert (i, j) indices to the index in the 1D array.
+_ij_to_lt_index(i::Int, j::Int) = (i * (i - 1)) ÷ 2 + j
+
+# == Julia API =============================================================================
+
+function Base.getindex(
+    L::LowerTriangularStorage{T},
+    i::Int,
+    j::Int
+) where T<:AbstractIcgemCoefficient
+    (i > L.n || j > L.n || i < 1 || j < 1) && throw(BoundsError(L, [i, j]))
+
+    # For the upper triangular part, return zero.
+    j > i && return zero(T)
+
+    return L.data[_ij_to_lt_index(i, j)]
+end
+
+function Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int)
+    # Notice that we also throw an error if trying to set an upper triangular element.
+    (i > L.n || j > L.n || i < 1 || j < 1 || j > i) && throw(BoundsError(L, [i, j]))
+
+    L.data[_ij_to_lt_index(i, j)] = v
+
+    return v
+end
+
+function Base.summary(io::IO, L::LowerTriangularStorage{T}) where T<:AbstractIcgemCoefficient
+    print(io, "$(L.n)×$(L.n) $(typeof(L))")
+    return nothing
+end
+
 ############################################################################################
 #                                          ICGEM                                           #
 ############################################################################################
-
-abstract type AbstractIcgemCoefficient{T<:Number} end
 
 struct IcgemGfcCoefficient{T<:Number} <: AbstractIcgemCoefficient{T}
     clm::T
@@ -48,25 +100,21 @@ IcgemGfctCoefficient(c::IcgemGfcCoefficient{T}) where T = IcgemGfctCoefficient(
     NTuple{3,T}[],
 )
 
-
-Base.zero(::Type{IcgemGfcCoefficient{T}}) where T = IcgemGfcCoefficient(zero(T), zero(T))
-Base.zero(::Type{IcgemGfctCoefficient{T}}) where T = IcgemGfctCoefficient(zero(T), zero(T), zero(T), false, zero(T), zero(T), Vector{NTuple{3,T}}(), Vector{NTuple{3,T}}())
-
-# More compact storage for the coefficients to save on size and improve cache locality.
-struct LowerTriangularStorage{T}
-    data::Vector{T}
+function Base.zero(::Type{IcgemGfcCoefficient{T}}) where T
+    return IcgemGfcCoefficient(zero(T), zero(T))
 end
 
-function LowerTriangularStorage{T}(degree, order) where T
-    n = max(degree + 1, order + 1)
-    len = (n * (n + 1)) ÷ 2
-    return LowerTriangularStorage{T}(zeros(T, len))
+function Base.zero(::Type{IcgemGfctCoefficient{T}}) where T
+    return IcgemGfctCoefficient(
+        zero(T),
+        zero(T),
+        zero(T),
+        false,
+        zero(T), zero(T),
+        Vector{NTuple{3,T}}(),
+        Vector{NTuple{3,T}}()
+    )
 end
-
-_ij_to_lt_index(i::Int, j::Int) = (i * (i - 1)) ÷ 2 + j
-
-Base.getindex(L::LowerTriangularStorage, i::Int, j::Int) = L.data[_ij_to_lt_index(i, j)]
-Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int) = (L.data[_ij_to_lt_index(i, j)] = v)
 
 struct IcgemFile{T<:Number,NT<:Val,Coeff<:AbstractIcgemCoefficient{T}} <: GravityModels.AbstractGravityModel{T,NT}
     # Fields related to the header.
