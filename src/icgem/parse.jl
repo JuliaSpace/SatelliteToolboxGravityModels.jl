@@ -144,12 +144,14 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
     # Since we now have the maximum degree, we can pre-allocate and initialize the data
     # matrix.
-    data = Matrix{Union{Nothing, IcgemGfcCoefficient{Tf}, IcgemGfctCoefficient{Tf}}}(
-        undef,
-        max_degree + 1,
+    data_static = LowerTriangularStorage{IcgemGfcCoefficient{Tf}}(max_degree + 1,
+        max_degree + 1)
+
+    use_dynamic = false
+    data_dynamic = LowerTriangularStorage{IcgemGfctCoefficient{Tf}}(max_degree + 1,
         max_degree + 1
     )
-    data .= nothing
+
 
     # State of the parsing algorithm.
     state = :new
@@ -194,8 +196,12 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 ret = _parse_gfc_data_line(Tf, tokens, current_line)
                 isnothing(ret) && continue
 
-                deg, ord, clm, slm  = ret
-                data[deg + 1, ord + 1] = IcgemGfcCoefficient(clm, slm)
+                deg, ord, clm, slm = ret
+                if use_dynamic
+                    data_dynamic[deg+1, ord+1] = IcgemGfctCoefficient(IcgemGfcCoefficient(clm, slm))
+                else
+                    data_static[deg+1, ord+1] = IcgemGfcCoefficient(clm, slm)
+                end
 
                 read_new_line = true
 
@@ -272,13 +278,20 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
             else
                 # If we reach this part, the `gfct` section is over. Thus, we should create
                 # the element related to `gfct` and proceed with the new information.
-                data[deg + 1, ord + 1] = IcgemGfctCoefficient(
+                if !use_dynamic
+                    use_dynamic = true
+                    for i in 1:(max_degree+1), j in 1:(max_degree+1)
+                        data_dynamic[i, j] = IcgemGfctCoefficient(data_static[i, j])
+                    end
+                end
+
+                data_dynamic[deg+1, ord+1] = IcgemGfctCoefficient(
                     clm,
                     slm,
                     time,
-                    has_trend ,
-                    trend_clm ,
-                    trend_slm ,
+                    has_trend,
+                    trend_clm,
+                    trend_slm,
                     copy(asin_coefficients),
                     copy(acos_coefficients),
                 )
@@ -299,9 +312,8 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
         errors,
         tide_system,
         Val(norm),
-        data
+        use_dynamic ? data_dynamic : data_static
     )
-
     return icgem_file
 end
 

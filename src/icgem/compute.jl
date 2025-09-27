@@ -25,15 +25,9 @@ function icgem_coefficients(
         throw(ArgumentError("The maximum degree available in the model is $(model.max_degree)."))
 
     # Get the data element related to the degree and order.
-    coefficient = @inbounds model.data[degree + 1, order + 1]
+    coefficient = @inbounds model.data[degree+1, order+1]
+    _compute_icgem_coefficient(coefficient, time)
 
-    # If `coefficient` is `nothing`, we should return 0 because it was not defined.
-    isnothing(coefficient) && return T(0), T(0)
-
-    # Compute the `Clm` and `Slm` coefficients.
-    clm, slm = _compute_icgem_coefficient(coefficient, time)
-
-    return clm, slm
 end
 
 function icgem_coefficients(

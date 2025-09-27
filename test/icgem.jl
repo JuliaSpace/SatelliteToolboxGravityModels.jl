@@ -131,7 +131,7 @@ end
 
     # Testing the version without the time parameter, which defaults to J2000.0 epoch.
     Clm_j2000, Slm_j2000 = GravityModels.coefficients(eigen6c, 2, 2, 0)
-    @test Clm_j2000 ≈ 2.4393631474296326e-6 atol = 1e-20
+    @test Clm_j2000 ≈  2.4393631474296326e-6 atol = 1e-20
     @test Slm_j2000 ≈ -1.4002214986544143e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2)
