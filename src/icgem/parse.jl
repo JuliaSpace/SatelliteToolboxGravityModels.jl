@@ -280,7 +280,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 # the element related to `gfct` and proceed with the new information.
                 if !use_dynamic
                     use_dynamic = true
-                    for i in 1:(max_degree+1), j in 1:(max_degree+1)
+                    for i in 1:(max_degree + 1), j in 1:i
                         data_dynamic[i, j] = IcgemGfctCoefficient(data_static[i, j])
                     end
                 end
