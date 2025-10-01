@@ -285,10 +285,16 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                     end
                 end
 
+                is_time_varying =
+                    has_trend ||
+                    (length(asin_coefficients) > 0) ||
+                    (length(acos_coefficients) > 0)
+
                 data_dynamic[deg+1, ord+1] = IcgemGfctCoefficient(
                     clm,
                     slm,
                     time,
+                    is_time_varying,
                     has_trend,
                     trend_clm,
                     trend_slm,

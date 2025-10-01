@@ -25,7 +25,7 @@ function icgem_coefficients(
         throw(ArgumentError("The maximum degree available in the model is $(model.max_degree)."))
 
     # Get the data element related to the degree and order.
-    coefficient = @inbounds model.data[degree+1, order+1]
+    coefficient = @inbounds model.data[degree + 1, order + 1]
     return _compute_icgem_coefficient(coefficient, time)
 end
 
@@ -62,6 +62,8 @@ function _compute_icgem_coefficient(
 ) where T<:Number
     clm = coefficient.clm
     slm = coefficient.slm
+
+    coefficient.is_time_varying || return clm, slm
 
     # Elapsed time from coefficients epoch [year].
     Δt = (t - coefficient.time) / 86400 / 365

@@ -33,12 +33,18 @@ _ij_to_lt_index(i::Int, j::Int) = (i * (i - 1)) ÷ 2 + j
 
 # == Julia API =============================================================================
 
-@propagate_inbounds function Base.getindex(
+function Base.getindex(
     L::LowerTriangularStorage{T},
     i::Int,
     j::Int
 ) where T<:AbstractIcgemCoefficient
-    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1) && throw(BoundsError(L, [i, j]))
+    @inline
+
+    # We need to call `Base.throw_boundserror` instead of throwing an error directly to
+    # avoid a huge performance degradation. This probably is caused because this function
+    # does not inline and throws an exception.
+    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1) &&
+        Base.throw_boundserror(L, (i, j))
 
     # For the upper triangular part, return zero.
     j > i && return zero(T)
@@ -46,9 +52,17 @@ _ij_to_lt_index(i::Int, j::Int) = (i * (i - 1)) ÷ 2 + j
     return L.data[_ij_to_lt_index(i, j)]
 end
 
-@propagate_inbounds function Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int)
-    # Notice that we also throw an error if trying to set an upper triangular element.
-    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1 || j > i) && throw(BoundsError(L, [i, j]))
+function Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int)
+    @inline
+
+    # We need to call `Base.throw_boundserror` instead of throwing an error directly to
+    # avoid a huge performance degradation. This probably is caused because this function
+    # does not inline and throws an exception.
+    #
+    # NOTE: We also throw an error if the user tries to set a value in the upper triangular
+    # part of the matrix, as these values are not stored.
+    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1 || j > i) &&
+        Base.throw_boundserror(L, (i, j))
 
     L.data[_ij_to_lt_index(i, j)] = v
 
@@ -74,6 +88,11 @@ struct IcgemGfctCoefficient{T<:Number} <: AbstractIcgemCoefficient{T}
     slm::T
     time::T # .................................................. Seconds since J2000.0 epoch
 
+    # This variable indicates if the coefficient is time-varying. If false, the time
+    # variable is ignored and the coefficient is treated as a regular `IcgemGfcCoefficient`.
+    # This is useful to avoid unnecessary computations, leading to a huge performance boost.
+    is_time_varying::Bool
+
     # == Trend =============================================================================
 
     has_trend::Bool
@@ -89,10 +108,12 @@ struct IcgemGfctCoefficient{T<:Number} <: AbstractIcgemCoefficient{T}
     acos_coefficients::Vector{NTuple{3, T}}
 end
 
+# Constructor for `IcgemGfctCoefficient` from `IcgemGfcCoefficient`.
 IcgemGfctCoefficient(c::IcgemGfcCoefficient{T}) where T = IcgemGfctCoefficient(
     c.clm,
     c.slm,
     zero(T),
+    false,
     false,
     zero(T),
     zero(T),
@@ -110,13 +131,19 @@ function Base.zero(::Type{IcgemGfctCoefficient{T}}) where T
         zero(T),
         zero(T),
         false,
-        zero(T), zero(T),
+        false,
+        zero(T),
+        zero(T),
         Vector{NTuple{3,T}}(),
         Vector{NTuple{3,T}}()
     )
 end
 
-struct IcgemFile{T<:Number,NT<:Val,Coeff<:AbstractIcgemCoefficient{T}} <: GravityModels.AbstractGravityModel{T,NT}
+struct IcgemFile{
+    T<:Number,
+    NT<:Val,
+    Coeff<:AbstractIcgemCoefficient{T}
+} <: GravityModels.AbstractGravityModel{T, NT}
     # Fields related to the header.
     product_type::Symbol
     model_name::String
