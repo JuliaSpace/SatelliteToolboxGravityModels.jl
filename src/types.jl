@@ -33,13 +33,11 @@ _ij_to_lt_index(i::Int, j::Int) = (i * (i - 1)) ÷ 2 + j
 
 # == Julia API =============================================================================
 
-function Base.getindex(
+@inline function Base.getindex(
     L::LowerTriangularStorage{T},
     i::Int,
     j::Int
 ) where T<:AbstractIcgemCoefficient
-    @inline
-
     # We need to call `Base.throw_boundserror` instead of throwing an error directly to
     # avoid a huge performance degradation. This probably is caused because this function
     # does not inline and throws an exception.
@@ -51,9 +49,7 @@ function Base.getindex(
     return L.data[_ij_to_lt_index(i, j)]
 end
 
-function Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int)
-    @inline
-
+@inline function Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int)
     # We need to call `Base.throw_boundserror` instead of throwing an error directly to
     # avoid a huge performance degradation. This probably is caused because this function
     # does not inline and throws an exception.
