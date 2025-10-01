@@ -43,8 +43,7 @@ function Base.getindex(
     # We need to call `Base.throw_boundserror` instead of throwing an error directly to
     # avoid a huge performance degradation. This probably is caused because this function
     # does not inline and throws an exception.
-    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1) &&
-        Base.throw_boundserror(L, (i, j))
+    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1) && throw_boundserror(L, (i, j))
 
     # For the upper triangular part, return zero.
     j > i && return zero(T)
@@ -61,8 +60,7 @@ function Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int)
     #
     # NOTE: We also throw an error if the user tries to set a value in the upper triangular
     # part of the matrix, as these values are not stored.
-    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1 || j > i) &&
-        Base.throw_boundserror(L, (i, j))
+    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1 || j > i) && throw_boundserror(L, (i, j))
 
     L.data[_ij_to_lt_index(i, j)] = v
 
