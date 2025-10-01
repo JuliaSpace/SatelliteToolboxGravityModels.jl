@@ -33,12 +33,12 @@ _ij_to_lt_index(i::Int, j::Int) = (i * (i - 1)) ÷ 2 + j
 
 # == Julia API =============================================================================
 
-function Base.getindex(
+@propagate_inbounds function Base.getindex(
     L::LowerTriangularStorage{T},
     i::Int,
     j::Int
 ) where T<:AbstractIcgemCoefficient
-    (i > L.n || j > L.n || i < 1 || j < 1) && throw(BoundsError(L, [i, j]))
+    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1) && throw(BoundsError(L, [i, j]))
 
     # For the upper triangular part, return zero.
     j > i && return zero(T)
@@ -46,9 +46,9 @@ function Base.getindex(
     return L.data[_ij_to_lt_index(i, j)]
 end
 
-function Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int)
+@propagate_inbounds function Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int)
     # Notice that we also throw an error if trying to set an upper triangular element.
-    (i > L.n || j > L.n || i < 1 || j < 1 || j > i) && throw(BoundsError(L, [i, j]))
+    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1 || j > i) && throw(BoundsError(L, [i, j]))
 
     L.data[_ij_to_lt_index(i, j)] = v
 

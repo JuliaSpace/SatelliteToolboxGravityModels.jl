@@ -5,6 +5,7 @@ using Dates
 using Downloads
 using Scratch
 
+import Base: @boundscheck, @propagate_inbounds
 import Base: show
 
 ############################################################################################
