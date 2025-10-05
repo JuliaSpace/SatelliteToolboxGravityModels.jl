@@ -97,6 +97,13 @@ The following keywords are available:
     be created when calling the function.
     (**Default** = `nothing`)
 
+!!! note
+
+    The matrices `P` and `dP` are lower triangular. Hence, the algorithm peformance for
+    large models can be improved if they are created using the `LowerTriangularStorage`
+    (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
+    not provided by the user, they will be created using that type of storage.
+
 ```@repl usage
 GravityModels.gravitational_field_derivative(egm96, [6378.137e3, 0, 0])
 ```
@@ -136,6 +143,13 @@ The following keywords are available:
     be created when calling the function.
     (**Default** = `nothing`)
 
+!!! note
+
+    The matrices `P` and `dP` are lower triangular. Hence, the algorithm peformance for
+    large models can be improved if they are created using the `LowerTriangularStorage`
+    (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
+    not provided by the user, they will be created using that type of storage.
+
 ```@repl usage
 GravityModels.gravitational_acceleration(egm96, [6378.137e3, 0, 0])
 ```
@@ -174,6 +188,13 @@ The following keywords are available:
     derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
     be created when calling the function.
     (**Default** = `nothing`)
+
+!!! note
+
+    The matrices `P` and `dP` are lower triangular. Hence, the algorithm peformance for
+    large models can be improved if they are created using the `LowerTriangularStorage`
+    (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
+    not provided by the user, they will be created using that type of storage.
 
 Thus, we can compute the gravity acceleration in Equator using the EGM96 model by:
 

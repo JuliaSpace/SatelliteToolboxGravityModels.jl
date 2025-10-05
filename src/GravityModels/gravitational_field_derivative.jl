@@ -39,6 +39,13 @@ J2000.0 epoch.
     be created when calling the function.
     (**Default** = `nothing`)
 
+!!! note
+
+    The matrices `P` and `dP` are lower triangular. Hence, the algorithm peformance for
+    large models can be improved if they are created using the `LowerTriangularStorage`
+    (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
+    not provided by the user, they will be created using that type of storage.
+
 # Returns
 
 - `RT`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
