@@ -242,8 +242,6 @@ function gravity_acceleration(
     #   cp_accel = ω² ρ_gc
 
     ρ²_gc    = r[1]^2 + r[2]^2
-    r²_gc    = ρ²_gc  + r[3]^2
-    r_gc     = √r²_gc
     ρ_gc     = √ρ²_gc
     cp_accel = EARTH_ANGULAR_SPEED^2 * ρ_gc
 
