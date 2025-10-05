@@ -1,6 +1,18 @@
 SatelliteToolboxGravityModels.jl Changelog
 ==========================================
 
+Version 1.2.0
+-------------
+
+- ![Enhancement][badge-enhancement] The ICGEM structure and parsing algorithm was updated to
+  avoid type-instabilities when storing the coefficients. This required to change the
+  structure signature. However, this modification is internal to the package. Hence, this is
+  not a breaking change. (PR [#6][gh-pr-6])
+- ![Enhancement][badge-enhancement] If the user does not provide the storage matrices `P`
+  and `dP`, the algorithm now uses the `LowerTriangularStorage` structure from the package
+  `SatelliteToolbox.jl`. This modification provided a huge gain when evaluating large models
+  such as the EGM2008, which decreased the time to compute the gravity acceleration by 40%.
+
 Version 1.1.0
 -------------
 
@@ -75,4 +87,5 @@ Version 0.1.0
 
 [gh-pr-3]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/3
 [gh-pr-4]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/4
+[gh-pr-6]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/6
 
