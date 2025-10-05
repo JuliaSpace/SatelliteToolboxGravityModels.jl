@@ -7,6 +7,7 @@ using Scratch
 
 import Base: @boundscheck, @propagate_inbounds
 import Base: show, throw_boundserror
+import SatelliteToolboxBase: LowerTriangularStorage, RowMajor
 
 ############################################################################################
 #                                        Submodules                                        #

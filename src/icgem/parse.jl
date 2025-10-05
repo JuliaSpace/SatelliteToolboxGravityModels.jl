@@ -146,12 +146,10 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
     # Since we now have the maximum degree, we can pre-allocate and initialize the data
     # matrix.
-    data_static =
-        LowerTriangularStorage{IcgemGfcCoefficient{Tf}}(max_degree + 1, max_degree + 1)
+    data_static = LowerTriangularStorage{RowMajor, IcgemGfcCoefficient{Tf} }(max_degree + 1)
 
     use_dynamic = false
-    data_dynamic =
-        LowerTriangularStorage{IcgemGfctCoefficient{Tf}}(max_degree + 1, max_degree + 1)
+    data_dynamic = LowerTriangularStorage{RowMajor, IcgemGfctCoefficient{Tf}}(max_degree + 1)
 
     # State of the parsing algorithm.
     state = :new

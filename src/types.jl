@@ -9,66 +9,6 @@ export IcgemFile
 abstract type AbstractIcgemCoefficient{T<:Number} end
 
 ############################################################################################
-#                                 Lower Triangular Storage                                 #
-############################################################################################
-
-# We create a custom storage type for the coefficients that only stores the lower triangular
-# part of the matrix. This is because the spherical harmonic coefficients are defined only
-# for the lower triangular part (i.e., where degree >= order). This saves memory and
-# improves cache locality when accessing the coefficients.
-struct LowerTriangularStorage{T}
-    n::Int
-    data::Vector{T}
-
-    function LowerTriangularStorage{T}(num_rows::Int, num_columns::Int) where T
-        n   = max(num_rows, num_columns)
-        len = (n * (n + 1)) ÷ 2
-
-        return new{T}(n, zeros(T, len))
-    end
-end
-
-# Auxiliary function to convert (i, j) indices to the index in the 1D array.
-_ij_to_lt_index(i::Int, j::Int) = (i * (i - 1)) ÷ 2 + j
-
-# == Julia API =============================================================================
-
-@inline function Base.getindex(
-    L::LowerTriangularStorage{T},
-    i::Int,
-    j::Int
-) where T<:AbstractIcgemCoefficient
-    # We need to call `Base.throw_boundserror` instead of throwing an error directly to
-    # avoid a huge performance degradation. This probably is caused because this function
-    # does not inline and throws an exception.
-    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1) && throw_boundserror(L, (i, j))
-
-    # For the upper triangular part, return zero.
-    j > i && return zero(T)
-
-    return L.data[_ij_to_lt_index(i, j)]
-end
-
-@inline function Base.setindex!(L::LowerTriangularStorage, v, i::Int, j::Int)
-    # We need to call `Base.throw_boundserror` instead of throwing an error directly to
-    # avoid a huge performance degradation. This probably is caused because this function
-    # does not inline and throws an exception.
-    #
-    # NOTE: We also throw an error if the user tries to set a value in the upper triangular
-    # part of the matrix, as these values are not stored.
-    @boundscheck (i > L.n || j > L.n || i < 1 || j < 1 || j > i) && throw_boundserror(L, (i, j))
-
-    L.data[_ij_to_lt_index(i, j)] = v
-
-    return v
-end
-
-function Base.summary(io::IO, L::LowerTriangularStorage{T}) where T<:AbstractIcgemCoefficient
-    print(io, "$(L.n)×$(L.n) $(typeof(L))")
-    return nothing
-end
-
-############################################################################################
 #                                          ICGEM                                           #
 ############################################################################################
 
@@ -149,5 +89,5 @@ struct IcgemFile{
     norm::NT
 
     # Fields related to the data section.
-    data::LowerTriangularStorage{Coeff}
+    data::LowerTriangularStorage{RowMajor, Coeff}
 end

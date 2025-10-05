@@ -108,8 +108,7 @@ function gravitational_field_derivative(
 
     # Check if the matrices related to Legendre must be computed.
     if isnothing(P)
-        P = Matrix{RT}(undef, n_max_P + 1, m_max_P + 1)
-
+        P = LowerTriangularStorage{RowMajor, RT}(n_max_P + 1)
     else
         # If the user passed a matrix, we must check if there are enough space to store the
         # coefficients.
@@ -121,8 +120,7 @@ function gravitational_field_derivative(
     end
 
     if isnothing(dP)
-        dP = Matrix{RT}(undef, n_max_dP + 1, n_max_dP + 1)
-
+        dP = LowerTriangularStorage{RowMajor, RT}(n_max_P + 1)
     else
         # If the user passed a matrix, we must check if there are enough space to store the
         # coefficients.
@@ -206,9 +204,12 @@ function gravitational_field_derivative(
 
             # == Compute the Contributions for `m` =========================================
 
-            aux_∂U_∂r +=     P[n+1, m+1] * CcSs_nm
-            aux_∂U_∂ϕ +=    dP[n+1, m+1] * CcSs_nm
-            aux_∂U_∂λ += m * P[n+1, m+1] * ScCs_nm
+            P_nm  =  P[n + 1, m + 1]
+            dP_nm = dP[n + 1, m + 1]
+
+            aux_∂U_∂r +=     P_nm * CcSs_nm
+            aux_∂U_∂ϕ +=    dP_nm * CcSs_nm
+            aux_∂U_∂λ += m * P_nm * ScCs_nm
 
             # == Update the Values for the Next Step =======================================
 

@@ -12,6 +12,8 @@ using SatelliteToolboxBase
 using SatelliteToolboxLegendre
 using StaticArrays
 
+import SatelliteToolboxBase: LowerTriangularStorage, RowMajor
+
 ############################################################################################
 #                                          Types                                           #
 ############################################################################################
