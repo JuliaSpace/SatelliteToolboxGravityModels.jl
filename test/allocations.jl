@@ -8,8 +8,7 @@
     Aqua.test_all(
         SatelliteToolboxGravityModels;
         ambiguities      = (recursive    = false),
-        deps_compat      = (check_extras = false),
-        persistent_tasks = false
+        deps_compat      = (check_extras = false)
     )
 end
 
