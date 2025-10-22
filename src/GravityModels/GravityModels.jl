@@ -33,5 +33,6 @@ const _DT_J2000 = DateTime(2000, 1, 1, 12, 0, 0)
 include("./api.jl")
 include("./accelerations.jl")
 include("./gravitational_field_derivative.jl")
+include("./potential.jl")
 
 end # module GravityModels
