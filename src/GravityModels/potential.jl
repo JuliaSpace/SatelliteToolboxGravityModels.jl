@@ -218,6 +218,3 @@ function gravitational_potential(
         P = P,
     )
 end
-
-# Shorter alias for gravitational_potential
-const potential = gravitational_potential
