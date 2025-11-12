@@ -33,13 +33,13 @@ const _GRAV_MODEL = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
             @test df_fd ≈ df_ad rtol=1e-4
 
             f_fd2, df_fd2 = value_and_gradient(
-                (x) -> GravityModels.potential(_GRAV_MODEL, x),
+                (x) -> GravityModels.gravitational_potential(_GRAV_MODEL, x),
                 AutoFiniteDiff(),
                 Array(r_itrf)
             )
         
             f_ad2, df_ad2 = value_and_gradient(
-                (x) -> GravityModels.potential(_GRAV_MODEL, x),
+                (x) -> GravityModels.gravitational_potential(_GRAV_MODEL, x),
                 backend[2],
                 Array(r_itrf)
             )
@@ -93,13 +93,13 @@ end
             @test df_fd ≈ df_ad rtol=1e-4
 
             f_fd2, df_fd2 = value_and_derivative(
-                (x) -> GravityModels.potential(_GRAV_MODEL, r_itrf, x),
+                (x) -> GravityModels.gravitational_potential(_GRAV_MODEL, r_itrf, x),
                 AutoFiniteDiff(),
                 time
             )
 
             f_ad2, df_ad2 = value_and_derivative(
-                (x) -> GravityModels.potential(_GRAV_MODEL, r_itrf, x),
+                (x) -> GravityModels.gravitational_potential(_GRAV_MODEL, r_itrf, x),
                 backend[2],
                 time
             )
