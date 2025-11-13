@@ -51,9 +51,13 @@ if isempty(VERSION.prerelease)
     using AllocCheck
     using Aqua
 
+    import SatelliteToolboxGravityModels: IcgemGfcCoefficient, IcgemGfctCoefficient
+    import SatelliteToolboxBase: LowerTriangularStorage, RowMajor
+
     @testset "Performance and Memory Allocations" verbose = true begin
         include("./allocations.jl")
     end
+    
     @testset "Differentiation Tests" verbose = true begin
         include("differentiability.jl")
     end
