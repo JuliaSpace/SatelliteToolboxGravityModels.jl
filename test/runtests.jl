@@ -49,6 +49,7 @@ if isempty(VERSION.prerelease)
             ("Zygote", AutoZygote()),
         )
     else
+        @warn "Enzyme is not fully supported on Julia 1.12, skipping tests"
         using DifferentiationInterface
         using FiniteDiff, ForwardDiff, Mooncake, PolyesterForwardDiff, Zygote
 
