@@ -36,7 +36,7 @@ if isempty(VERSION.prerelease)
     Pkg.add("Aqua")
 
     #TODO: Remove this as Enzyme adds more support for Julia 1.12
-    if VERSION.major == 1 && VERSION.minor <= 12
+    if (VERSION.major == 1 && VERSION.minor <= 12) && isempty(VERSION.release)
         Pkg.add("Enzyme")
         using DifferentiationInterface
         using Enzyme, FiniteDiff, ForwardDiff, Mooncake, PolyesterForwardDiff, Zygote
