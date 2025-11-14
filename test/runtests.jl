@@ -68,8 +68,14 @@ if isempty(VERSION.prerelease)
     import SatelliteToolboxGravityModels: IcgemGfcCoefficient, IcgemGfctCoefficient
     import SatelliteToolboxBase: LowerTriangularStorage, RowMajor
 
-    @testset "Performance and Memory Allocations" verbose = true begin
-        include("./allocations.jl")
+    # Skip allocation tests on macOS with Julia 1.12+ due to AllocCheck detecting
+    # platform-specific runtime calls (jl_get_pgcstack_static) as allocations
+    if Sys.isapple() && (VERSION.major == 1 && VERSION.minor >= 12)
+        @warn "Allocation tests skipped on macOS with Julia 1.12+ due to AllocCheck platform limitations"
+    else
+        @testset "Performance and Memory Allocations" verbose = true begin
+            include("./allocations.jl")
+        end
     end
     
     @testset "Differentiation Tests" verbose = true begin
