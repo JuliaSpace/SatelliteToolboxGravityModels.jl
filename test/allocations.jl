@@ -27,6 +27,20 @@ end
     P = zeros(max_deg, max_ord)
     dP = zeros(max_deg, max_ord)
 
+    print("CHECK MAC OUTPUT ON GITHUB",
+        check_allocs(
+            (model, x, md, mo, p, dp) -> GravityModels.gravitational_acceleration(
+                model,
+                x;
+                max_degree = md,
+                max_order = mo,
+                P = p,
+                dP = dp
+            ),
+            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, Matrix{Float64}, Matrix{Float64})
+        )
+    )
+
     @test length(
         check_allocs(
             (model, x, md, mo, p, dp) -> GravityModels.gravitational_acceleration(

@@ -25,7 +25,6 @@ if isempty(VERSION.prerelease)
     # Adding them via the Project.toml isn't working because it tries to compile them before reaching the gating
     using Pkg
     Pkg.add("DifferentiationInterface")
-    Pkg.add("Enzyme")
     Pkg.add("FiniteDiff")
     Pkg.add("ForwardDiff")
     Pkg.add("Mooncake")
@@ -36,16 +35,30 @@ if isempty(VERSION.prerelease)
     Pkg.add("AllocCheck")
     Pkg.add("Aqua")
 
-    # Test with Mooncake and Enzyme along with the other backends
-    using DifferentiationInterface
-    using Enzyme, FiniteDiff, ForwardDiff, Mooncake, PolyesterForwardDiff, Zygote
-    const _BACKENDS = (
-        ("ForwardDiff", AutoForwardDiff()),
-        ("Enzyme", AutoEnzyme()),
-        ("Mooncake", AutoMooncake(;config=nothing)),
-        ("PolyesterForwardDiff", AutoPolyesterForwardDiff()),
-        ("Zygote", AutoZygote()),
-    )
+    #TODO: Remove this as Enzyme adds more support for Julia 1.12
+    if VERSION.major == 1 && VERSION.minor <= 12
+        Pkg.add("Enzyme")
+        using DifferentiationInterface
+        using Enzyme, FiniteDiff, ForwardDiff, Mooncake, PolyesterForwardDiff, Zygote
+
+        const _BACKENDS = (
+            ("ForwardDiff", AutoForwardDiff()),
+            ("Enzyme", AutoEnzyme()),
+            ("Mooncake", AutoMooncake(;config=nothing)),
+            ("PolyesterForwardDiff", AutoPolyesterForwardDiff()),
+            ("Zygote", AutoZygote()),
+        )
+    else
+        using DifferentiationInterface
+        using FiniteDiff, ForwardDiff, Mooncake, PolyesterForwardDiff, Zygote
+
+        const _BACKENDS = (
+            ("ForwardDiff", AutoForwardDiff()),
+            ("Mooncake", AutoMooncake(;config=nothing)),
+            ("PolyesterForwardDiff", AutoPolyesterForwardDiff()),
+            ("Zygote", AutoZygote()),
+        )
+    end
 
     using JET
     using AllocCheck
