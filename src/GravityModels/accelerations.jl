@@ -13,9 +13,9 @@
 """
     gravitational_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
 
-Compute the gravitational acceleration [m / s²] represented in ITRF using the `model` in the
-position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
-omitted, the J2000.0 epoch is used (2000-01-01T12:00:00).
+Compute the gravitational acceleration [m / s²] represented in the body-fixed frame (ITRF for Earth) using the
+`model` in the position `r` [m], also represented in the body-fixed frame, at instant `time`.
+If the latter argument is omitted, the J2000.0 epoch is used (2000-01-01T12:00:00).
 
 `time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
 J2000.0 epoch.
@@ -153,9 +153,9 @@ end
 """
     gravity_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DataTime}]; kwargs...) -> NTuple{3, RT}
 
-Compute the gravity acceleration [m / s²] represented in ITRF using the `model` in the
-position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
-omitted, the J2000.0 epoch is used.
+Compute the gravity acceleration [m / s²] represented in the body-fixed frame (ITRF for Earth) using the `model`
+in the position `r` [m], also represented in the body-fixed frame, at instant `time`. If the
+latter argument is omitted, the J2000.0 epoch is used.
 
 `time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
 J2000.0 epoch.
@@ -165,7 +165,7 @@ J2000.0 epoch.
     Gravity acceleration is the compound acceleration caused by the central body mass and
     the centrifugal force due to the planet's rotation.
 
-    For non-Earth bodies, the Earth's rotation rate can be provided using the `ω` keyword.
+    For non-Earth bodies, the body's rotation rate can be provided using the `ω` keyword.
 
 # Keywords
 
@@ -187,7 +187,8 @@ J2000.0 epoch.
     derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
     be created when calling the function.
     (**Default** = `nothing`)
-- `ω::Number`: The rotation rate of the planet [rad / s].
+- `ω::Number`: The rotation rate of the body [rad / s]. For non-Earth bodies, provide the
+    appropriate rotation rate for the celestial body.
     (**Default** = `EARTH_ANGULAR_SPEED`)
 
 !!! note

@@ -8,7 +8,7 @@ Currently, we have the following functionalities:
 
 - Compute the gravity field derivative in spherical coordinates;
 - Compute the gravitational acceleration; and
-- Compute the gravity acceleration, taking into account the Earth's rotation rate.
+- Compute the gravity acceleration, taking into account the body's rotation rate.
 
 The package contains an API to allow the user to access any gravity model while computing
 the previous functions. We also provide in-built support for

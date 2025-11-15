@@ -18,6 +18,10 @@
 
 Parse the ICGEM file `filename` using the data type `T`.
 
+This function supports ICGEM gravity model files for Earth and other celestial bodies (Moon,
+planets, etc.). The parser automatically detects whether the file uses `earth_gravity_constant`
+(for Earth models) or `gravity_constant` (for non-Earth models).
+
 !!! note
 
     `T` is converted to float to obtain the output type.
