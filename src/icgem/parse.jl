@@ -101,7 +101,6 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     mandatory_fields = (
         :product_type,
         :modelname,
-        :earth_gravity_constant,
         :radius,
         :max_degree,
         :errors,
@@ -114,12 +113,22 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
         error("[Invalid ICGEM file] The following mandatory fields are missing: $missing_fields.")
     end
 
+    # Check for gravity constant - either earth_gravity_constant (Earth) or gravity_constant (other bodies)
+    has_earth_gravity_constant = haskey(keywords, :earth_gravity_constant)
+    has_gravity_constant = haskey(keywords, :gravity_constant)
+
+    if !has_earth_gravity_constant && !has_gravity_constant
+        error("[Invalid ICGEM file] Missing gravity constant field. Expected either 'earth_gravity_constant' or 'gravity_constant'.")
+    end
+    
     product_type = Symbol(keywords[:product_type])
     model_name   = keywords[:modelname]
     max_degree   = parse(Int, keywords[:max_degree])
     errors       = Symbol(keywords[:errors])
 
-    gravity_constant = _parse_icgem_float(Tf, keywords[:earth_gravity_constant])
+    # Parse the gravity constant field (whichever one exists)
+    gravity_constant_key = has_earth_gravity_constant ? :earth_gravity_constant : :gravity_constant
+    gravity_constant = _parse_icgem_float(Tf, keywords[gravity_constant_key])
     radius           = _parse_icgem_float(Tf, keywords[:radius])
 
     isnothing(gravity_constant) && error("[Invalid ICGEM file] Could not parse the gravity constant to $Tf.")

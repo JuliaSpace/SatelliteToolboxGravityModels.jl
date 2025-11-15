@@ -165,6 +165,8 @@ J2000.0 epoch.
     Gravity acceleration is the compound acceleration caused by the central body mass and
     the centrifugal force due to the planet's rotation.
 
+    For non-Earth bodies, the Earth's rotation rate can be provided using the `ω` keyword.
+
 # Keywords
 
 - `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
@@ -185,6 +187,8 @@ J2000.0 epoch.
     derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
     be created when calling the function.
     (**Default** = `nothing`)
+- `ω::Number`: The rotation rate of the planet [rad / s].
+    (**Default** = `EARTH_ANGULAR_SPEED`)
 
 !!! note
 
@@ -205,9 +209,10 @@ function gravity_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+    ω::Number = EARTH_ANGULAR_SPEED
 ) where {T<:Number,V<:Number, NT<:Val}
-    return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP)
+    return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP, ω)
 end
 
 function gravity_acceleration(
@@ -217,7 +222,8 @@ function gravity_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+    ω::Number = EARTH_ANGULAR_SPEED
 ) where {T<:Number, V<:Number, NT<:Val}
 
     # == Gravitational Acceleration ========================================================
@@ -257,7 +263,7 @@ function gravity_acceleration(
 
     ρ²_gc    = r[1]^2 + r[2]^2
     ρ_gc     = √ρ²_gc
-    cp_accel = EARTH_ANGULAR_SPEED^2 * ρ_gc
+    cp_accel = ω^2 * ρ_gc
 
     # The centripetal acceleration at the desired position lies in a plane parallel to the
     # Equatorial plane and points toward the Earth's rotation axes.
@@ -295,7 +301,8 @@ function gravity_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+    ω::Number = EARTH_ANGULAR_SPEED
 ) where {T<:Number, V<:Number, NT<:Val}
 
     t = Dates.value(time - _DT_J2000) / 1000
@@ -308,5 +315,6 @@ function gravity_acceleration(
         max_order = max_order,
         P = P,
         dP = dP,
+        ω = ω
     )
 end

@@ -124,3 +124,41 @@ end
         end
     end
 end
+
+@testset "Rotation Rate Automatic Differentiation" begin
+    for backend in _BACKENDS
+        testset_name = "Gravity Models " * string(backend[1])
+        @testset "$testset_name" begin
+            lat   = 27.5
+            lon   = 235.3
+            h     = 0.0
+
+            # Use the model to compute the gravity using all the coefficients.
+            r_itrf = geodetic_to_ecef(lat, lon, 0)
+            time = 0.0
+
+            f_fd, df_fd = value_and_derivative(
+                (x) -> Array(GravityModels.gravity_acceleration(_GRAV_MODEL, r_itrf; ω = x)),
+                AutoFiniteDiff(),
+                EARTH_ANGULAR_SPEED
+            )
+
+            f_ad, df_ad = value_and_derivative(
+                (x) -> Array(GravityModels.gravity_acceleration(_GRAV_MODEL, r_itrf; ω = x)),
+                backend[2],
+                EARTH_ANGULAR_SPEED
+            )
+
+            f_ad2, df_ad2 = value_and_derivative(
+                (x) -> Array(GravityModels.gravity_acceleration(_GRAV_MODEL, r_itrf, time; ω = x)),
+                backend[2],
+                EARTH_ANGULAR_SPEED
+            )
+
+            @test f_fd ≈ f_ad rtol=1e-14
+            @test df_fd ≈ df_ad rtol=1e-2
+            @test f_fd ≈ f_ad2 rtol=1e-14
+            @test df_fd ≈ df_ad2 rtol=1e-2
+        end
+    end
+end
