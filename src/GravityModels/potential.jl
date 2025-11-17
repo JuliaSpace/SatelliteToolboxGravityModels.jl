@@ -14,8 +14,8 @@
     gravitational_potential(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> RT
 
 Compute the gravitational potential [J / kg] or [m² / s²] using the `model` in the position
-`r` [m], represented in the body-fixed frame (ITRF for Earth), at instant `time`. If the latter argument is
-omitted, the J2000.0 epoch is used (2000-01-01T12:00:00).
+`r` [m], represented in ITRF, at instant `time`. If the latter argument is omitted, the
+J2000.0 epoch is used (2000-01-01T12:00:00).
 
 `time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
 J2000.0 epoch.
