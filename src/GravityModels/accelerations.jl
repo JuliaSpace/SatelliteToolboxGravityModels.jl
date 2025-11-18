@@ -13,9 +13,9 @@
 """
     gravitational_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
 
-Compute the gravitational acceleration [m / s²] represented in ITRF using the `model` in the
-position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
-omitted, the J2000.0 epoch is used (2000-01-01T12:00:00).
+Compute the gravitational acceleration [m / s²] represented in the body-fixed frame (ITRF for Earth) using the
+`model` in the position `r` [m], also represented in the body-fixed frame, at instant `time`.
+If the latter argument is omitted, the J2000.0 epoch is used (2000-01-01T12:00:00).
 
 `time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
 J2000.0 epoch.
@@ -153,9 +153,9 @@ end
 """
     gravity_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DataTime}]; kwargs...) -> NTuple{3, RT}
 
-Compute the gravity acceleration [m / s²] represented in ITRF using the `model` in the
-position `r` [m], also represented in ITRF, at instant `time`. If the latter argument is
-omitted, the J2000.0 epoch is used.
+Compute the gravity acceleration [m / s²] represented in the body-fixed frame (ITRF for Earth) using the `model`
+in the position `r` [m], also represented in the body-fixed frame, at instant `time`. If the
+latter argument is omitted, the J2000.0 epoch is used.
 
 `time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
 J2000.0 epoch.
@@ -164,6 +164,8 @@ J2000.0 epoch.
 
     Gravity acceleration is the compound acceleration caused by the central body mass and
     the centrifugal force due to the planet's rotation.
+
+    For non-Earth bodies, the body's rotation rate can be provided using the `ω` keyword.
 
 # Keywords
 
@@ -185,6 +187,9 @@ J2000.0 epoch.
     derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
     be created when calling the function.
     (**Default** = `nothing`)
+- `ω::Number`: The rotation rate of the body [rad / s]. For non-Earth bodies, provide the
+    appropriate rotation rate for the celestial body.
+    (**Default** = `EARTH_ANGULAR_SPEED`)
 
 !!! note
 
@@ -205,9 +210,10 @@ function gravity_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+    ω::Number = EARTH_ANGULAR_SPEED
 ) where {T<:Number,V<:Number, NT<:Val}
-    return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP)
+    return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP, ω)
 end
 
 function gravity_acceleration(
@@ -217,7 +223,8 @@ function gravity_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+    ω::Number = EARTH_ANGULAR_SPEED
 ) where {T<:Number, V<:Number, NT<:Val}
 
     # == Gravitational Acceleration ========================================================
@@ -257,7 +264,7 @@ function gravity_acceleration(
 
     ρ²_gc    = r[1]^2 + r[2]^2
     ρ_gc     = √ρ²_gc
-    cp_accel = EARTH_ANGULAR_SPEED^2 * ρ_gc
+    cp_accel = ω^2 * ρ_gc
 
     # The centripetal acceleration at the desired position lies in a plane parallel to the
     # Equatorial plane and points toward the Earth's rotation axes.
@@ -295,7 +302,8 @@ function gravity_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+    ω::Number = EARTH_ANGULAR_SPEED
 ) where {T<:Number, V<:Number, NT<:Val}
 
     t = Dates.value(time - _DT_J2000) / 1000
@@ -308,5 +316,6 @@ function gravity_acceleration(
         max_order = max_order,
         P = P,
         dP = dP,
+        ω = ω
     )
 end

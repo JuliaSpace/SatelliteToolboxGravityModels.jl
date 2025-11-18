@@ -8,8 +8,9 @@
     gravitational_field_derivative(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
 
 Compute the gravitational field derivative [SI] with respect to the spherical coordinates
-(`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in ITRF,
-at instant `time`. If the latter argument is omitted, the J2000.0 epoch is used.
+(`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in the
+body-fixed frame (ITRF for Earth), at instant `time`. If the latter argument is omitted, the J2000.0 epoch is
+used.
 
 `time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
 J2000.0 epoch.
