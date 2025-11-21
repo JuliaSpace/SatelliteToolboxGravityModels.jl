@@ -1,6 +1,14 @@
 SatelliteToolboxGravityModels.jl Changelog
 ==========================================
 
+Version 1.3.0
+-------------
+
+- ![Feature][badge-feature] The package can now compute the gravitational potential. This
+  feature is also differentiable. (PR [#8][gh-pr-8])
+- ![Feature][badge-feature] The package now supports ICGEM files for any body, not only
+  Earth. (PR [#9][gh-pr-9])
+
 Version 1.2.0
 -------------
 
@@ -88,4 +96,6 @@ Version 0.1.0
 [gh-pr-3]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/3
 [gh-pr-4]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/4
 [gh-pr-6]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/6
+[gh-pr-8]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/8
+[gh-pr-9]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/9
 
