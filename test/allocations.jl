@@ -12,12 +12,16 @@
     )
 end
 
-@testset "JET Testing" begin
-    rep = JET.test_package(
-        SatelliteToolboxGravityModels;
-        toplevel_logger = nothing,
-        target_modules  = (@__MODULE__,)
-    )
+if VERSION >= v"1.12"
+    @warn "JET.jl test skipped on Julia 1.12+ due to MethodTableView incompatibility"
+else
+    @testset "JET Testing" begin
+        rep = JET.test_package(
+            SatelliteToolboxGravityModels;
+            toplevel_logger = nothing,
+            target_modules  = (@__MODULE__,)
+        )
+    end
 end
 
 @testset "Gravity Model Allocations (Matrix)" begin
