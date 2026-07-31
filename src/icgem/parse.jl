@@ -345,7 +345,7 @@ end
 # convert numbers in FORTRAN format. If we cannot parse `input` to `T`, it returns
 # `nothing`.
 function _parse_icgem_float(T::DataType, input::AbstractString)
-    data_str = replace(input, r"[D, d]" => "e")
+    data_str = replace(input, r"[Dd]" => "e")
     return tryparse(T, data_str)
 end
 
