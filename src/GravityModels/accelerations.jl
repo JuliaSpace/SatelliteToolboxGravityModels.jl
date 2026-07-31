@@ -241,31 +241,6 @@ function gravity_acceleration(
 
     # == Centripetal acceleration ==========================================================
     #
-    # The centripetal acceleration has the following value:
-    #
-    #   cp_accel = ω² r cos(ϕ_gc),
-    #
-    # where `ω` is the Earth's rotation rate, `r` is the distance from the Earth's center,
-    # and `ϕ_gc` is the geocentric latitude. Notice that:
-    #
-    #   cos(ϕ_gc) = √(r_x² + r_y²) / √(r_x² + r_y² + r_z²),
-    #
-    # and:
-    #
-    #   r = √(r_x² + r_y² + r_z²).
-    #
-    # Hence, letting `ρ_gc = √(r_x² + r_y²)` one gets:
-    #
-    #   r ⋅ cos(ϕ_gc) = ρ_gc
-    #
-    # Finally:
-    #
-    #   cp_accel = ω² ρ_gc
-
-    ρ²_gc    = r[1]^2 + r[2]^2
-    ρ_gc     = √ρ²_gc
-    cp_accel = ω^2 * ρ_gc
-
     # The centripetal acceleration at the desired position lies in a plane parallel to the
     # Equatorial plane and points toward the Earth's rotation axes.
     #
@@ -274,19 +249,27 @@ function gravity_acceleration(
     #
     #                   ┌                          ┐                  ┌           ┐
     #                   │ ω² r cos(ϕ_gc) cos(λ_gc) │                  │ cos(λ_gc) │
-    #   α_centrifugal = │            0             │ = ω² r cos(ϕ_gc) │    0      │,
-    #                   │ ω² r cos(ϕ_gc) sin(λ_gc) │                  │ sin(λ_gc) │
+    #   α_centrifugal = │ ω² r cos(ϕ_gc) sin(λ_gc) │ = ω² r cos(ϕ_gc) │ sin(λ_gc) │,
+    #                   │            0             │                  │    0      │
     #                   └                          ┘                  └           ┘
     #
     # where ω is the Earth rotation rate, cos(λ_gc) = r_x / √(r_x² + r_y²), and
     # sin(λ_gc) = r_y / √(r_x² + r_y²).
     #
+    # Since r ⋅ cos(ϕ_gc) = ρ_gc = √(r_x² + r_y²), the expression above simplifies to:
+    #
+    #   α_centrifugal = [ω² ⋅ r_x, ω² ⋅ r_y, 0].
+    #
+    # This form avoids the division by ρ_gc, which is 0 at the poles.
+    #
     # NOTE: The Earth rotation axes is not aligned with the Z-axis of ITRF. However, this
     # approximation provides a sufficient accuracy for most applications.
+    ω² = ω^2
+
     centrifugal_accel_itrf = @SVector [
-        r[1] / ρ_gc * cp_accel,
-        r[2] / ρ_gc * cp_accel,
-        T(0)
+        ω² * r[1],
+        ω² * r[2],
+        zero(T)
     ]
 
     # Finally, compute the gravity acceleration.
