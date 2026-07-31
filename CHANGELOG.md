@@ -1,6 +1,41 @@
 SatelliteToolboxGravityModels.jl Changelog
 ==========================================
 
+Version 1.4.0
+-------------
+
+- ![Enhancement][badge-enhancement] The pre-configured ICGEM model URLs now use https.
+- ![Enhancement][badge-enhancement] The functions `gravitational_field_derivative`,
+  `gravitational_potential`, `gravitational_acceleration`, and `gravity_acceleration` now
+  compute the spherical harmonics with concrete types when the user does not provide the
+  matrices `P` and `dP`, improving the performance in this case.
+- ![Enhancement][badge-enhancement] The data type passed to `GravityModels.load` and
+  `parse_icgem` is now inferable, and the ICGEM coefficient computation is type stable for
+  all combinations of model and time types.
+- ![Bugfix][badge-bugfix] The function `icgem_coefficients` no longer throws an
+  `UndefVarError` when called with a `DateTime` object.
+- ![Bugfix][badge-bugfix] The regex used to parse numbers in FORTRAN format no longer
+  replaces commas and spaces in the input.
+- ![Bugfix][badge-bugfix] The parser no longer throws a `MethodError` when reading files
+  with time-variable coefficients using a data type other than `Float64`.
+- ![Bugfix][badge-bugfix] The parser no longer enters an infinite loop when an invalid
+  line follows a `gfct` section.
+- ![Bugfix][badge-bugfix] The last coefficient of an ICGEM file is no longer lost when the
+  file ends inside a `gfct` section.
+- ![Bugfix][badge-bugfix] Printing an `IcgemGfctCoefficient` whose epoch has fractional
+  seconds no longer throws an `InexactError`.
+- ![Bugfix][badge-bugfix] The function `gravity_acceleration` no longer returns `NaN` at
+  the poles due to the centrifugal acceleration term, which is now computed using a
+  simplified and faster expression.
+- ![Bugfix][badge-bugfix] The elapsed time used to compute time-variable coefficients is
+  now converted to years using the Julian year (365.25 days) instead of 365-day years.
+  This modification slightly changes the results of models with time-variable
+  coefficients.
+- ![Bugfix][badge-bugfix] The function `fetch_icgem_file` now downloads the file
+  atomically. Hence, an interrupted download is no longer treated as a valid cached file.
+- ![Info][badge-info] The documentation of all functions, types, and structures was
+  reviewed and improved, including many typo fixes.
+
 Version 1.3.0
 -------------
 
@@ -86,12 +121,12 @@ Version 0.1.0
 - Initial version.
   - This version was based on the code in **SatelliteToolbox.jl**.
 
-[badge-breaking]: https://img.shields.io/badge/BREAKING-red.svg
-[badge-deprecation]: https://img.shields.io/badge/Deprecation-orange.svg
-[badge-feature]: https://img.shields.io/badge/Feature-green.svg
-[badge-enhancement]: https://img.shields.io/badge/Enhancement-blue.svg
-[badge-bugfix]: https://img.shields.io/badge/Bugfix-purple.svg
-[badge-info]: https://img.shields.io/badge/Info-gray.svg
+[badge-breaking]: https://img.shields.io/badge/Breaking-DC2626?style=flat-square
+[badge-deprecation]: https://img.shields.io/badge/Deprecation-D97706?style=flat-square
+[badge-feature]: https://img.shields.io/badge/Feature-16A34A?style=flat-square
+[badge-enhancement]: https://img.shields.io/badge/Enhancement-0284C7?style=flat-square
+[badge-bugfix]: https://img.shields.io/badge/Bugfix-DB2777?style=flat-square
+[badge-info]: https://img.shields.io/badge/Info-475569?style=flat-square
 
 [gh-pr-3]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/3
 [gh-pr-4]: https://github.com/JuliaSpace/SatelliteToolboxGravityModels.jl/pull/4
