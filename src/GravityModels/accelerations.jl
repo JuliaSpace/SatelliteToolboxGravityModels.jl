@@ -11,7 +11,7 @@
 ############################################################################################
 
 """
-    gravitational_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
+    gravitational_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> SVector{3, RT}
 
 Compute the gravitational acceleration [m / s²] represented in the body-fixed frame (ITRF for Earth) using the
 `model` in the position `r` [m], also represented in the body-fixed frame, at instant `time`.
@@ -56,9 +56,8 @@ J2000.0 epoch.
 
 # Returns
 
-- `RT`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
-- `RT`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
-- `RT`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
+- `SVector{3, RT}`: The gravitational acceleration [m / s²] represented in the body-fixed
+    frame (ITRF for Earth).
 """
 function gravitational_acceleration(
     model::AbstractGravityModel{T, NT},
@@ -151,7 +150,7 @@ function gravitational_acceleration(
 end
 
 """
-    gravity_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
+    gravity_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> SVector{3, RT}
 
 Compute the gravity acceleration [m / s²] represented in the body-fixed frame (ITRF for Earth) using the `model`
 in the position `r` [m], also represented in the body-fixed frame, at instant `time`. If the
@@ -200,9 +199,8 @@ J2000.0 epoch.
 
 # Returns
 
-- `RT`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
-- `RT`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
-- `RT`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
+- `SVector{3, RT}`: The gravity acceleration [m / s²] represented in the body-fixed frame
+    (ITRF for Earth).
 """
 function gravity_acceleration(
     model::AbstractGravityModel{T, NT},
