@@ -11,41 +11,20 @@
 ############################################################################################
 
 """
-    gravitational_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> SVector{3, RT}
+    gravitational_acceleration(model::AbstractGravityModel, r::AbstractVector[, time]; kwargs...) -> SVector{3, RT}
 
-Compute the gravitational acceleration [m / s²] represented in the body-fixed frame (ITRF for Earth) using the
-`model` in the position `r` [m], also represented in the body-fixed frame, at instant `time`.
-If the latter argument is omitted, the J2000.0 epoch is used (2000-01-01T12:00:00).
+Compute the gravitational acceleration [m/s²] represented in the body-fixed frame (ITRF
+for Earth) using the `model` in the position `r` [m], also represented in the body-fixed
+frame, at instant `time`. If the latter argument is omitted, the J2000.0 epoch
+(2000-01-01T12:00:00) is used.
 
-`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
-J2000.0 epoch.
+The return element type `RT` is obtained by promoting the type of the `model`
+coefficients, the element type of `r`, and the type of `time`.
 
 !!! note
 
     Gravitational acceleration is the acceleration caused by the central body mass only,
     i.e., without considering the centrifugal potential.
-
-# Keywords
-
-- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than the available number of
-    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
-    to the maximum degree available.
-    (**Default** = -1)
-- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
-    If it is lower than 0, it will be set to the same value as `max_degree`.
-    (**Default** = -1)
-- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
-    when calling the function.
-    (**Default** = `nothing`)
-- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
-    be created when calling the function.
-    (**Default** = `nothing`)
 
 !!! note
 
@@ -54,10 +33,49 @@ J2000.0 epoch.
     (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
     not provided by the user, they will be created using that type of storage.
 
+See also: [`gravity_acceleration`](@ref)
+
+# Arguments
+
+- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `r::AbstractVector`: Position [m] in the body-fixed frame (ITRF for Earth) at which the
+    acceleration is computed.
+- `time::Union{Number, DateTime}`: Time at which the acceleration is computed, expressed
+    as a `DateTime` object or the number of elapsed seconds [s] from the J2000.0 epoch.
+    (**Default**: J2000.0 epoch)
+
+# Keywords
+
+- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than the available number of
+    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
+    to the maximum degree available.
+    (**Default**: -1)
+- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
+    If it is lower than 0, it will be set to the same value as `max_degree`.
+    (**Default**: -1)
+- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
+    when calling the function.
+    (**Default**: `nothing`)
+- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
+    be created when calling the function.
+    (**Default**: `nothing`)
+
 # Returns
 
-- `SVector{3, RT}`: The gravitational acceleration [m / s²] represented in the body-fixed
-    frame (ITRF for Earth).
+- `SVector{3, RT}`: Gravitational acceleration [m/s²] represented in the body-fixed frame
+    (ITRF for Earth).
+
+# References
+
+- **[1]** Barthelmes, F (2013). *Definition of Functions of the Geopotential and Their
+    Calculation from Spherical Harmonic Models*. Scientific Technical Report STR09/02.
+    GeoForschungsZentrum (GFZ), p. 22.
 """
 function gravitational_acceleration(
     model::AbstractGravityModel{T, NT},
@@ -150,14 +168,15 @@ function gravitational_acceleration(
 end
 
 """
-    gravity_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> SVector{3, RT}
+    gravity_acceleration(model::AbstractGravityModel, r::AbstractVector[, time]; kwargs...) -> SVector{3, RT}
 
-Compute the gravity acceleration [m / s²] represented in the body-fixed frame (ITRF for Earth) using the `model`
-in the position `r` [m], also represented in the body-fixed frame, at instant `time`. If the
-latter argument is omitted, the J2000.0 epoch is used.
+Compute the gravity acceleration [m/s²] represented in the body-fixed frame (ITRF for
+Earth) using the `model` in the position `r` [m], also represented in the body-fixed
+frame, at instant `time`. If the latter argument is omitted, the J2000.0 epoch
+(2000-01-01T12:00:00) is used.
 
-`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
-J2000.0 epoch.
+The return element type `RT` is obtained by promoting the type of the `model`
+coefficients, the element type of `r`, and the type of `time`.
 
 !!! note
 
@@ -166,30 +185,6 @@ J2000.0 epoch.
 
     For non-Earth bodies, the body's rotation rate can be provided using the `ω` keyword.
 
-# Keywords
-
-- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than the available number of
-    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
-    to the maximum degree available. (**Default** = -1)
-- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
-    If it is lower than 0, it will be set to the same value as `max_degree`.
-    (**Default** = -1)
-- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
-    when calling the function.
-    (**Default** = `nothing`)
-- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
-    be created when calling the function.
-    (**Default** = `nothing`)
-- `ω::Number`: The rotation rate of the body [rad / s]. For non-Earth bodies, provide the
-    appropriate rotation rate for the celestial body.
-    (**Default** = `EARTH_ANGULAR_SPEED`)
-
 !!! note
 
     The matrices `P` and `dP` are lower triangular. Hence, the algorithm performance for
@@ -197,10 +192,52 @@ J2000.0 epoch.
     (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
     not provided by the user, they will be created using that type of storage.
 
+See also: [`gravitational_acceleration`](@ref)
+
+# Arguments
+
+- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `r::AbstractVector`: Position [m] in the body-fixed frame (ITRF for Earth) at which the
+    acceleration is computed.
+- `time::Union{Number, DateTime}`: Time at which the acceleration is computed, expressed
+    as a `DateTime` object or the number of elapsed seconds [s] from the J2000.0 epoch.
+    (**Default**: J2000.0 epoch)
+
+# Keywords
+
+- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than the available number of
+    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
+    to the maximum degree available.
+    (**Default**: -1)
+- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
+    If it is lower than 0, it will be set to the same value as `max_degree`.
+    (**Default**: -1)
+- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
+    when calling the function.
+    (**Default**: `nothing`)
+- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
+    be created when calling the function.
+    (**Default**: `nothing`)
+- `ω::Number`: Rotation rate of the body [rad/s]. For non-Earth bodies, provide the
+    appropriate rotation rate for the celestial body.
+    (**Default**: `EARTH_ANGULAR_SPEED`)
+
 # Returns
 
-- `SVector{3, RT}`: The gravity acceleration [m / s²] represented in the body-fixed frame
-    (ITRF for Earth).
+- `SVector{3, RT}`: Gravity acceleration [m/s²] represented in the body-fixed frame (ITRF
+    for Earth).
+
+# References
+
+- **[1]** Barthelmes, F (2013). *Definition of Functions of the Geopotential and Their
+    Calculation from Spherical Harmonic Models*. Scientific Technical Report STR09/02.
+    GeoForschungsZentrum (GFZ), pp. 22-23.
 """
 function gravity_acceleration(
     model::AbstractGravityModel{T, NT},
