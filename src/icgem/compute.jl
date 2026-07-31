@@ -65,8 +65,9 @@ function _compute_icgem_coefficient(
 
     coefficient.is_time_varying || return clm, slm
 
-    # Elapsed time from coefficients epoch [year].
-    Δt = (t - coefficient.time) / 86400 / 365
+    # Elapsed time from coefficients epoch [year], considering a Julian year with 365.25
+    # days.
+    Δt = (t - coefficient.time) / 86400 / 365.25
 
     # == Trend =============================================================================
 
