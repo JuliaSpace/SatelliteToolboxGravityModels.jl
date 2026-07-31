@@ -22,13 +22,22 @@ Fetch an ICGEM file from the `url` and return its file path to be parsed with th
 [`GravityModels.load`](@ref). If the file already exists, it will not be re-downloaded
 unless the keyword `force = true` is passed.
 
-A symbol can be passed instead of the URL to fetch pre-configured gravity field models. The
-supported values are:
+A symbol can be passed instead of the URL to fetch pre-configured gravity field models.
+The supported values are:
 
 - `:EGM96`: Earth Gravitational Model from 1996.
 - `:EGM2008`: Earth Gravitational Model from 2008.
 - `:JGM2`: Joint Gravity Model 2.
 - `:JGM3`: Joint Gravity Model 3.
+
+The function throws an `ArgumentError` if `model` is not one of the supported symbols or
+if the file name cannot be obtained from the `url`.
+
+# Keywords
+
+- `force::Bool`: If `true`, the file is downloaded again even if it already exists in the
+    local cache.
+    (**Default**: `false`)
 
 # Examples
 
