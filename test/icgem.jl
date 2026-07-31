@@ -18,7 +18,7 @@ end
 @testset "Fetching ICGEM files" verbose = true begin
     egm96_file = (@test_logs (
         :info,
-        "Downloading the ICGEM file 'EGM96.gfc' from 'http://icgem.gfz-potsdam.de/getmodel/gfc/971b0a3b49a497910aad23cd85e066d4cd9af0aeafe7ce6301a696bed8570be3/EGM96.gfc'..."
+        "Downloading the ICGEM file 'EGM96.gfc' from 'https://icgem.gfz-potsdam.de/getmodel/gfc/971b0a3b49a497910aad23cd85e066d4cd9af0aeafe7ce6301a696bed8570be3/EGM96.gfc'..."
     ) fetch_icgem_file(:EGM96))
 
     @test basename(egm96_file) == "EGM96.gfc"
@@ -60,7 +60,7 @@ end
 #
 # Hence, we obtain the following value for the day 2023-06-19:
 #
-#   C_2_2(18.473972602739725) = 2.4393378057597012e-6
+#   C_2_2(18.46132785763176) = 2.4393402707210633e-6
 #
 # For `S` coefficient, we have:
 #
@@ -73,7 +73,7 @@ end
 #
 # Hence, we obtain the following value for the day 2023-06-19:
 #
-#   S_2_2(18.473972602739725) = -1.400407403685511e-6
+#   S_2_2(18.46132785763176) = -1.4004093829317802e-6
 #
 # Finally, for the degree 100 and order 1, we have:
 #
@@ -88,15 +88,15 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, DateTime("2023-06-19"))
 
-    @test Clm ≈ +2.4393378057597012e-6 atol = 1e-20
-    @test Slm ≈ -1.400407403685511e-6  atol = 1e-20
+    @test Clm ≈ +2.4393402707210633e-6 atol = 1e-20
+    @test Slm ≈ -1.4004093829317802e-6  atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 100, 1, DateTime("2023-06-19"))
 
@@ -110,8 +110,8 @@ end
         2,
         DateTime("2000-01-01T12:00:00")
     )
-    @test Clm_j2000 ≈ 2.4393631474296326e-6 atol = 1e-20
-    @test Slm_j2000 ≈ -1.4002214986544143e-6 atol = 1e-20
+    @test Clm_j2000 ≈ 2.439363161505511e-6 atol = 1e-20
+    @test Slm_j2000 ≈ -1.4002219857412463e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2)
     @test Clm == Clm_j2000
@@ -121,8 +121,8 @@ end
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, time)
 
-    @test Clm ≈ +2.4393378057597012e-6 atol = 1e-20
-    @test Slm ≈ -1.400407403685511e-6  atol = 1e-20
+    @test Clm ≈ +2.4393402707210633e-6 atol = 1e-20
+    @test Slm ≈ -1.4004093829317802e-6  atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 100, 1, time)
 
@@ -131,8 +131,8 @@ end
 
     # Testing the version without the time parameter, which defaults to J2000.0 epoch.
     Clm_j2000, Slm_j2000 = GravityModels.coefficients(eigen6c, 2, 2, 0)
-    @test Clm_j2000 ≈  2.4393631474296326e-6 atol = 1e-20
-    @test Slm_j2000 ≈ -1.4002214986544143e-6 atol = 1e-20
+    @test Clm_j2000 ≈  2.439363161505511e-6 atol = 1e-20
+    @test Slm_j2000 ≈ -1.4002219857412463e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2)
     @test Clm == Clm_j2000
@@ -236,7 +236,7 @@ end
 
 @testset "Showing IcgemGfctCoefficients" verbose = true begin
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
