@@ -14,7 +14,7 @@
 ############################################################################################
 
 """
-    parse_icgem(filename::AbstractString, T::DataType = Float64) -> IcgemFile
+    parse_icgem(filename::AbstractString, T::Type = Float64) -> IcgemFile
 
 Parse the ICGEM file `filename` using the data type `T`.
 
@@ -26,7 +26,7 @@ planets, etc.). The parser automatically detects whether the file uses `earth_gr
 
     `T` is converted to float to obtain the output type.
 """
-function parse_icgem(filename::AbstractString, T::DataType = Float64)
+function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
     Tf = float(T)
 
     # Open the file and find the header.
@@ -359,7 +359,7 @@ end
 # Parse the `input` to float type `T` substituting all `D`s and `d`s  to `e`, so that we can
 # convert numbers in FORTRAN format. If we cannot parse `input` to `T`, it returns
 # `nothing`.
-function _parse_icgem_float(T::DataType, input::AbstractString)
+function _parse_icgem_float(::Type{T}, input::AbstractString) where T
     data_str = replace(input, r"[Dd]" => "e")
     return tryparse(T, data_str)
 end
