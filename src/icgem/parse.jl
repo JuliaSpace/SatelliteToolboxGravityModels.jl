@@ -194,6 +194,12 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
         # Process the line according to the state.
         if state === :new
+            # Every line processed in this state is consumed. Hence, we must read a new
+            # line in the next iteration regardless of the outcome. Otherwise, we can
+            # reach an infinite loop if this line was carried over from the end of a
+            # `gfct` section.
+            read_new_line = true
+
             if length(tokens) < 3
                 @warn "[Line $current_line] Invalid data line."
                 continue
@@ -213,8 +219,6 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                     data_static[deg + 1, ord + 1] = IcgemGfcCoefficient(clm, slm)
                 end
 
-                read_new_line = true
-
             # == `gfct` Data Line ==========================================================
 
             elseif tokens[1] == "gfct"
@@ -224,7 +228,6 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
 
                 # Now, we need to change the state to wait for the next terms.
                 state = :gfct
-                read_new_line = true
 
                 has_trend = false
                 trend_clm = Tf(0)
