@@ -76,9 +76,6 @@ function gravitational_potential(
 
     # == Unpack Gravity Model Data =========================================================
 
-    μ  = gravity_constant(model)
-    R₀ = radius(model)
-    norm_type = coefficient_norm(model)
     model_max_degree = maximum_degree(model)
 
     # == Process the Inputs ================================================================
@@ -109,6 +106,33 @@ function gravitational_potential(
             throw(ArgumentError("Matrix `P` must have at least $(n_max + 1) rows and $(m_max + 1) columns."))
         end
     end
+
+    # Call the kernel through a function barrier. Hence, the hot loop is always compiled
+    # with a concrete type for `P`, even when it is allocated here.
+    return _gravitational_potential_kernel(model, r, time, n_max, m_max, P)
+end
+
+#   _gravitational_potential_kernel(model, r, time, n_max, m_max, P) -> RT
+#
+# Kernel of the gravitational potential computation. It assumes all the inputs were already
+# processed and `P` has enough space to store the Legendre coefficients. This function
+# exists as a function barrier so the hot loop is compiled with a concrete type for `P`.
+function _gravitational_potential_kernel(
+    model::AbstractGravityModel{T, NT},
+    r::AbstractVector{V},
+    time::W,
+    n_max::Int,
+    m_max::Int,
+    P::AbstractMatrix
+) where {T<:Number, V<:Number, W<:Number, NT<:Val}
+
+    RT = promote_type(T, V, W)
+
+    # == Unpack Gravity Model Data =========================================================
+
+    μ  = gravity_constant(model)
+    R₀ = radius(model)
+    norm_type = coefficient_norm(model)
 
     # == Geocentric Latitude and Longitude =================================================
 

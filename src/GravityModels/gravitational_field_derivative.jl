@@ -78,9 +78,6 @@ function gravitational_field_derivative(
 
     # == Unpack Gravity Model Data =========================================================
 
-    μ  = gravity_constant(model)
-    R₀ = radius(model)
-    norm_type = coefficient_norm(model)
     model_max_degree = maximum_degree(model)
 
     # == Process the Inputs ================================================================
@@ -138,6 +135,51 @@ function gravitational_field_derivative(
             throw(ArgumentError("Matrix `dP` must have at least $(n_max_dP + 1) rows and $(m_max_dP + 1) columns."))
         end
     end
+
+    # Call the kernel through a function barrier. Hence, the hot loop is always compiled
+    # with concrete types for `P` and `dP`, even when they are allocated here.
+    return _gravitational_field_derivative_kernel(
+        model,
+        r,
+        time,
+        n_max,
+        m_max,
+        n_max_P,
+        m_max_P,
+        n_max_dP,
+        m_max_dP,
+        P,
+        dP
+    )
+end
+
+#   _gravitational_field_derivative_kernel(model, r, time, n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP) -> NTuple{3, RT}
+#
+# Kernel of the gravitational field derivative computation. It assumes all the inputs were
+# already processed and `P` and `dP` have enough space to store the Legendre coefficients.
+# This function exists as a function barrier so the hot loop is compiled with concrete
+# types for `P` and `dP`.
+function _gravitational_field_derivative_kernel(
+    model::AbstractGravityModel{T, NT},
+    r::AbstractVector{V},
+    time::W,
+    n_max::Int,
+    m_max::Int,
+    n_max_P::Int,
+    m_max_P::Int,
+    n_max_dP::Int,
+    m_max_dP::Int,
+    P::AbstractMatrix,
+    dP::AbstractMatrix
+) where {T<:Number, V<:Number, W<:Number, NT<:Val}
+
+    RT = promote_type(T, V, W)
+
+    # == Unpack Gravity Model Data =========================================================
+
+    μ  = gravity_constant(model)
+    R₀ = radius(model)
+    norm_type = coefficient_norm(model)
 
     # == Geocentric Latitude and Longitude =================================================
 
