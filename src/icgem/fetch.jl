@@ -62,8 +62,13 @@ function fetch_icgem_file(url::AbstractString; force::Bool = false)
         return filepath
 
     else
-        # Otherwise, let's fetch the file from the URL.
+        # Otherwise, let's fetch the file from the URL. We download it to a temporary file
+        # first and move it to the cache afterward. Hence, an interrupted download does not
+        # leave a partial file behind that would be treated as a valid cache entry.
         @info "Downloading the ICGEM file '$filename' from '$url'..."
-        return Downloads.download(url, filepath)
+        partial_filepath = filepath * ".part"
+        Downloads.download(url, partial_filepath)
+        mv(partial_filepath, filepath; force = true)
+        return filepath
     end
 end
