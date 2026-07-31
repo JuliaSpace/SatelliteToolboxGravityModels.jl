@@ -17,7 +17,7 @@ Compute the gravitational potential [J / kg] or [m² / s²] using the `model` in
 `r` [m], represented in ITRF, at instant `time`. If the latter argument is omitted, the
 J2000.0 epoch is used (2000-01-01T12:00:00).
 
-`time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
+`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
 J2000.0 epoch.
 
 !!! note
@@ -44,7 +44,7 @@ J2000.0 epoch.
 
 !!! note
 
-    The matrix `P` is lower triangular. Hence, the algorithm peformance for large models
+    The matrix `P` is lower triangular. Hence, the algorithm performance for large models
     can be improved if it is created using the `LowerTriangularStorage` (defined in
     SatelliteToolboxBase.jl) with a row-major ordering. If this matrix is not provided by
     the user, it will be created using that type of storage.
@@ -98,7 +98,7 @@ function gravitational_potential(
     if isnothing(P)
         P = LowerTriangularStorage{RowMajor, RT}(n_max + 1)
     else
-        # If the user passed a matrix, we must check if there are enough space to store the
+        # If the user passed a matrix, we must check if there is enough space to store the
         # coefficients.
         rows, cols = size(P)
 
@@ -147,7 +147,7 @@ function _gravitational_potential_kernel(
 
     # Sine and cosine of the geocentric longitude.
     #
-    # This values were be used in the algorithm to decrease the computational burden.
+    # These values are used in the algorithm to decrease the computational burden.
 
     sin_λ,  cos_λ  = sincos(λ_gc)
     sin_2λ, cos_2λ = sincos(2λ_gc)
@@ -172,7 +172,7 @@ function _gravitational_potential_kernel(
 
         # == Sine and Cosine with m = 1 ====================================================
         #
-        # This values will be used to update recursively `sin(m * λ_gc)` and
+        # These values will be used to update recursively `sin(m * λ_gc)` and
         # `cos(m * λ_gc)`, reducing the computational burden.
         sin_mλ   = RT(0)      # sin( 0 * λ_gc)
         sin_m_1λ = -sin_λ    # sin(-1 * λ_gc)

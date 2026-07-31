@@ -18,11 +18,11 @@ const _ONLINE_ICGEM_FILES = Dict(
     fetch_icgem_file(url::AbstractString; kwargs...) -> String
     fetch_icgem_file(model::Symbol; kwargs...) -> String
 
-Fetch a ICGEM file from the `url` and return its file path to be parsed with the function
+Fetch an ICGEM file from the `url` and return its file path to be parsed with the function
 [`GravityModels.load`](@ref). If the file already exists, it will not be re-downloaded
 unless the keyword `force = true` is passed.
 
-A symbol can be passed instead the URL to fetch pre-configured gravity field models. The
+A symbol can be passed instead of the URL to fetch pre-configured gravity field models. The
 supported values are:
 
 - `:EGM96`: Earth Gravitational Model from 1996.
@@ -43,7 +43,7 @@ julia> fetch_icgem_file(:EGM96)
 """
 function fetch_icgem_file(model::Symbol; force::Bool = false)
     !haskey(_ONLINE_ICGEM_FILES, model) &&
-        throw(ArgumentError("The model $model was not found in the pre-build dictionary."))
+        throw(ArgumentError("The model $model was not found in the pre-built dictionary."))
 
     return fetch_icgem_file(_ONLINE_ICGEM_FILES[model]; force = force)
 end

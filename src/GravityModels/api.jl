@@ -10,7 +10,7 @@
 Return the `Clm` and `Slm` coefficients of the gravity `model` for the specified `degree`,
 `order`, and `time`. If the latter argument is omitted, the J2000.0 epoch is used.
 
-`time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
+`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
 J2000.0 epoch.
 """
 function coefficients end

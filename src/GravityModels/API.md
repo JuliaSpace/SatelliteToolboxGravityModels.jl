@@ -17,7 +17,7 @@ function coefficients(model::AbstractGravityModel{T, NT}, degree::Int, order::In
 ```
 
 This function must return the coefficients `Clm` and `Slm` of the gravity `model` for the
-specified `degree`, `order`, and `time`. The latter is described as the number of ellapsed
+specified `degree`, `order`, and `time`. The latter is described as the number of elapsed
 seconds since J2000.0 epoch (2000-01-01T12:00:00.000). Hence:
 
 ```julia

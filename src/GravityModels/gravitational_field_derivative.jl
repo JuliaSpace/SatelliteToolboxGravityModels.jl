@@ -12,7 +12,7 @@ Compute the gravitational field derivative [SI] with respect to the spherical co
 body-fixed frame (ITRF for Earth), at instant `time`. If the latter argument is omitted, the J2000.0 epoch is
 used.
 
-`time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
+`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
 J2000.0 epoch.
 
 !!! info
@@ -42,7 +42,7 @@ J2000.0 epoch.
 
 !!! note
 
-    The matrices `P` and `dP` are lower triangular. Hence, the algorithm peformance for
+    The matrices `P` and `dP` are lower triangular. Hence, the algorithm performance for
     large models can be improved if they are created using the `LowerTriangularStorage`
     (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
     not provided by the user, they will be created using that type of storage.
@@ -115,7 +115,7 @@ function gravitational_field_derivative(
     if isnothing(P)
         P = LowerTriangularStorage{RowMajor, RT}(n_max_P + 1)
     else
-        # If the user passed a matrix, we must check if there are enough space to store the
+        # If the user passed a matrix, we must check if there is enough space to store the
         # coefficients.
         rows, cols = size(P)
 
@@ -127,7 +127,7 @@ function gravitational_field_derivative(
     if isnothing(dP)
         dP = LowerTriangularStorage{RowMajor, RT}(n_max_P + 1)
     else
-        # If the user passed a matrix, we must check if there are enough space to store the
+        # If the user passed a matrix, we must check if there is enough space to store the
         # coefficients.
         rows, cols = size(dP)
 
@@ -194,7 +194,7 @@ function _gravitational_field_derivative_kernel(
 
     # Sine and cosine of the geocentric longitude.
     #
-    # This values were be used in the algorithm to decrease the computational burden.
+    # These values are used in the algorithm to decrease the computational burden.
 
     sin_λ,  cos_λ  = sincos(λ_gc)
     sin_2λ, cos_2λ = sincos(2λ_gc)
@@ -224,7 +224,7 @@ function _gravitational_field_derivative_kernel(
 
         # == Sine and Cosine with m = 1 ====================================================
         #
-        # This values will be used to update recursively `sin(m * λ_gc)` and
+        # These values will be used to update recursively `sin(m * λ_gc)` and
         # `cos(m * λ_gc)`, reducing the computational burden.
         #
         # TODO: Cache the computation.

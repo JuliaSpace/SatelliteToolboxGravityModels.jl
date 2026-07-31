@@ -89,14 +89,14 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
         tokens = split(line)
 
         # We must have two keywords, otherwise we do not have a keyword. Here, we will just
-        # skip the line because old versions of ICGEM files does not define well where the
+        # skip the line because old versions of ICGEM files do not define well where the
         # header starts and comments are allowed.
         length(tokens) != 2 && continue
 
         keywords[Symbol(tokens[1])] = tokens[2]
     end
 
-    # Read one mode line to take into account the "end_of_head" line.
+    # Read one more line to take into account the "end_of_head" line.
     readline(file)
     current_line += 1
 
@@ -354,7 +354,7 @@ end
 #                                    Private Functions                                     #
 ############################################################################################
 
-#   _parse_icgem_float(T, input) -> Uniont{Nothing, T}
+#   _parse_icgem_float(T, input) -> Union{Nothing, T}
 #
 # Parse the `input` to float type `T` substituting all `D`s and `d`s  to `e`, so that we can
 # convert numbers in FORTRAN format. If we cannot parse `input` to `T`, it returns

@@ -10,7 +10,7 @@
 Compute the ICGEM coefficients (`Clm` and `Slm`) of the `model` for the specified `degree`
 and `order` in the instant `time`.
 
-`time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
+`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
 J2000.0 epoch (2000-01-01T12:00:00.000).
 """
 function icgem_coefficients(

@@ -17,7 +17,7 @@ Compute the gravitational acceleration [m / s²] represented in the body-fixed f
 `model` in the position `r` [m], also represented in the body-fixed frame, at instant `time`.
 If the latter argument is omitted, the J2000.0 epoch is used (2000-01-01T12:00:00).
 
-`time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
+`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
 J2000.0 epoch.
 
 !!! note
@@ -49,7 +49,7 @@ J2000.0 epoch.
 
 !!! note
 
-    The matrices `P` and `dP` are lower triangular. Hence, the algorithm peformance for
+    The matrices `P` and `dP` are lower triangular. Hence, the algorithm performance for
     large models can be improved if they are created using the `LowerTriangularStorage`
     (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
     not provided by the user, they will be created using that type of storage.
@@ -151,13 +151,13 @@ function gravitational_acceleration(
 end
 
 """
-    gravity_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DataTime}]; kwargs...) -> NTuple{3, RT}
+    gravity_acceleration(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
 
 Compute the gravity acceleration [m / s²] represented in the body-fixed frame (ITRF for Earth) using the `model`
 in the position `r` [m], also represented in the body-fixed frame, at instant `time`. If the
 latter argument is omitted, the J2000.0 epoch is used.
 
-`time` can be expressed using a `DateTime` object or the number of ellapsed seconds from
+`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
 J2000.0 epoch.
 
 !!! note
@@ -193,7 +193,7 @@ J2000.0 epoch.
 
 !!! note
 
-    The matrices `P` and `dP` are lower triangular. Hence, the algorithm peformance for
+    The matrices `P` and `dP` are lower triangular. Hence, the algorithm performance for
     large models can be improved if they are created using the `LowerTriangularStorage`
     (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
     not provided by the user, they will be created using that type of storage.
