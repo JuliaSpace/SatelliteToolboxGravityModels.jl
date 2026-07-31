@@ -5,40 +5,19 @@
 ############################################################################################
 
 """
-    gravitational_field_derivative(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> NTuple{3, RT}
+    gravitational_field_derivative(model::AbstractGravityModel, r::AbstractVector[, time]; kwargs...) -> NTuple{3, RT}
 
-Compute the gravitational field derivative [SI] with respect to the spherical coordinates
+Compute the gravitational field derivative with respect to the spherical coordinates
 (`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in the
-body-fixed frame (ITRF for Earth), at instant `time`. If the latter argument is omitted, the J2000.0 epoch is
-used.
+body-fixed frame (ITRF for Earth), at instant `time`. If the latter argument is omitted,
+the J2000.0 epoch (2000-01-01T12:00:00) is used.
 
-`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
-J2000.0 epoch.
+The return element type `RT` is obtained by promoting the type of the `model`
+coefficients, the element type of `r`, and the type of `time`.
 
 !!! info
 
     In this case, `ϕ` is the geocentric latitude and `λ` is the longitude.
-
-# Keywords
-
-- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than the available number of
-    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
-    to the maximum degree available. (**Default** = -1)
-- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
-    If it is lower than 0, it will be set to the same value as `max_degree`.
-    (**Default** = -1)
-- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
-    when calling the function.
-    (**Default** = `nothing`)
-- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
-    be created when calling the function.
-    (**Default** = `nothing`)
 
 !!! note
 
@@ -47,11 +26,43 @@ J2000.0 epoch.
     (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
     not provided by the user, they will be created using that type of storage.
 
+# Arguments
+
+- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `r::AbstractVector`: Position [m] in the body-fixed frame (ITRF for Earth) at which the
+    derivative is computed.
+- `time::Union{Number, DateTime}`: Time at which the derivative is computed, expressed as
+    a `DateTime` object or the number of elapsed seconds [s] from the J2000.0 epoch.
+    (**Default**: J2000.0 epoch)
+
+# Keywords
+
+- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than the available number of
+    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
+    to the maximum degree available.
+    (**Default**: -1)
+- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
+    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
+    If it is lower than 0, it will be set to the same value as `max_degree`.
+    (**Default**: -1)
+- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
+    when calling the function.
+    (**Default**: `nothing`)
+- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
+    be created when calling the function.
+    (**Default**: `nothing`)
+
 # Returns
 
-- `RT`: The derivative of the gravitational field w.r.t. the radius (`∂U/∂r`).
-- `RT`: The derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`).
-- `RT`: The derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`).
+- `RT`: Derivative of the gravitational field w.r.t. the radius (`∂U/∂r`) [m/s²].
+- `RT`: Derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`)
+    [m²/s²].
+- `RT`: Derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`) [m²/s²].
 """
 function gravitational_field_derivative(
     model::AbstractGravityModel{T, NT},
@@ -153,12 +164,41 @@ function gravitational_field_derivative(
     )
 end
 
-#   _gravitational_field_derivative_kernel(model, r, time, n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP) -> NTuple{3, RT}
-#
-# Kernel of the gravitational field derivative computation. It assumes all the inputs were
-# already processed and `P` and `dP` have enough space to store the Legendre coefficients.
-# This function exists as a function barrier so the hot loop is compiled with concrete
-# types for `P` and `dP`.
+"""
+    _gravitational_field_derivative_kernel(
+        model::AbstractGravityModel,
+        r::AbstractVector,
+        time::Number,
+        n_max::Int,
+        m_max::Int,
+        n_max_P::Int,
+        m_max_P::Int,
+        n_max_dP::Int,
+        m_max_dP::Int,
+        P::AbstractMatrix,
+        dP::AbstractMatrix
+    ) -> NTuple{3, RT}
+
+Compute the derivative of the gravitational field of `model` with respect to the spherical
+coordinates at the position `r` [m], represented in the body-fixed frame (ITRF for Earth),
+and instant `time`, expressed as the number of elapsed seconds [s] from the J2000.0 epoch
+(2000-01-01T12:00:00), using the spherical harmonics up to degree `n_max` and order
+`m_max`.
+
+This function is the kernel of [`gravitational_field_derivative`](@ref), called through a
+function barrier so the hot loop is compiled with concrete types for `P` and `dP`. It
+assumes all inputs were already processed: `n_max` and `m_max` must be valid for `model`,
+and `P` and `dP` must have at least `n_max_P + 1 × m_max_P + 1` and
+`n_max_dP + 1 × m_max_dP + 1` elements, respectively, which are overwritten with the
+associated Legendre function values and their derivatives.
+
+# Returns
+
+- `RT`: Derivative of the gravitational field w.r.t. the radius (`∂U/∂r`) [m/s²].
+- `RT`: Derivative of the gravitational field w.r.t. the geocentric latitude (`∂U/∂ϕ`)
+    [m²/s²].
+- `RT`: Derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`) [m²/s²].
+"""
 function _gravitational_field_derivative_kernel(
     model::AbstractGravityModel{T, NT},
     r::AbstractVector{V},
