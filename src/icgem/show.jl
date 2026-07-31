@@ -81,7 +81,12 @@ end
 #                                    Private Functions                                     #
 ############################################################################################
 
-# Print the vectors with the coefficients related to the sine and cosine terms.
+"""
+    _print_asin_acos_vectors(io::IO, v::Vector{NTuple{3, T}}) -> Nothing
+
+Print to `io` the periodic terms in `v`, in which each element contains the amplitude for
+`Clm` [-], the amplitude for `Slm` [-], and the period [year].
+"""
 function _print_asin_acos_vectors(io::IO, v::Vector{NTuple{3, T}}) where T
     num_coefficients = length(v)
     for k in 1:num_coefficients
