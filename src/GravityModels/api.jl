@@ -5,13 +5,25 @@
 ############################################################################################
 
 """
-    coefficients(model::AbstractGravityModel{T, NT}, degree::Int, order::Int[, time::Union{Number, DateTime}]) where {T<:Number, NT} -> T, T
+    coefficients(model::AbstractGravityModel, degree::Int, order::Int[, time]) -> T, T
 
-Return the `Clm` and `Slm` coefficients of the gravity `model` for the specified `degree`,
-`order`, and `time`. If the latter argument is omitted, the J2000.0 epoch is used.
+Return the `Clm` and `Slm` coefficients [-] of the gravity `model` for the specified
+`degree`, `order`, and `time`. If the latter argument is omitted, the J2000.0 epoch
+(2000-01-01T12:00:00) is used.
 
-`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
-J2000.0 epoch.
+# Arguments
+
+- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `degree::Int`: Degree of the coefficients.
+- `order::Int`: Order of the coefficients.
+- `time::Union{Number, DateTime}`: Time at which the coefficients are computed, expressed
+    as a `DateTime` object or the number of elapsed seconds [s] from the J2000.0 epoch.
+    (**Default**: J2000.0 epoch)
+
+# Returns
+
+- `T`: Coefficient `Clm` [-] for the specified `degree`, `order`, and `time`.
+- `T`: Coefficient `Slm` [-] for the specified `degree`, `order`, and `time`.
 """
 function coefficients end
 
@@ -25,10 +37,10 @@ function coefficients(model::AbstractGravityModel, degree::Int, order::Int, time
 end
 
 """
-    coefficient_norm(model::AbstractGravityModel{T, NT}) where {T<:Number, NT<:Val} -> Symbol
+    coefficient_norm(model::AbstractGravityModel) -> Symbol
 
-Return the normalization we must use in the spherical harmonics when computing the Legendre
-associated functions. The accepted values are:
+Return the normalization we must use in the spherical harmonics when computing the
+Legendre associated functions for the gravity `model`. The accepted values are:
 
 - `:full`: Use full normalization.
 - `:schmidt`: Use Schmidt quasi-normalization.
@@ -37,14 +49,14 @@ associated functions. The accepted values are:
 function coefficient_norm end
 
 """
-    gravity_constant(model::AbstractGravityModel{T, NT}) where {T<:Number, NT<:Val} -> T
+    gravity_constant(model::AbstractGravityModel{T, NT}) -> T
 
-Return the gravity constant [m³ / s²] for the gravity model.
+Return the gravity constant [m³/s²] of the gravity `model`.
 """
 function gravity_constant end
 
 """
-    load(::Type{T}, args...; kwargs...) where T<:AbstractGravityModel -> T
+    load(::Type{T}, args...; kwargs...) -> T
 
 Load a gravity model of type `T` using the arguments `args...` and keywords `kwargs...`.
 """
@@ -58,8 +70,8 @@ Return the maximum degree of the gravity `model`.
 function maximum_degree end
 
 """
-    radius(model::AbstractGravityModel{T, NT}) where {T<:Number, NT<:Val} -> T
+    radius(model::AbstractGravityModel{T, NT}) -> T
 
-Return the radius [m] for the gravity model.
+Return the reference radius [m] of the gravity `model`.
 """
 function radius end
