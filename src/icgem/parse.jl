@@ -182,6 +182,38 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
     read_new_line = true
     tokens        = nothing
 
+    # Flush the coefficient built from a `gfct` section and its subsequent lines to the
+    # dynamic data storage, creating the latter if needed.
+    function flush_gfct_coefficient!()
+        if isnothing(data_dynamic)
+            data_dynamic =
+                LowerTriangularStorage{RowMajor, IcgemGfctCoefficient{Tf}}(max_degree + 1)
+
+            for i in 1:(max_degree + 1), j in 1:i
+                data_dynamic[i, j] = IcgemGfctCoefficient(data_static[i, j])
+            end
+        end
+
+        is_time_varying =
+            has_trend ||
+            (length(asin_coefficients) > 0) ||
+            (length(acos_coefficients) > 0)
+
+        data_dynamic[deg + 1, ord + 1] = IcgemGfctCoefficient(
+            clm,
+            slm,
+            Tf(time),
+            is_time_varying,
+            has_trend,
+            trend_clm,
+            trend_slm,
+            copy(asin_coefficients),
+            copy(acos_coefficients),
+        )
+
+        return nothing
+    end
+
     # Read the entire file and build the coefficients.
     while !eof(file)
         # Check if we need to read a new line from the file.
@@ -291,37 +323,17 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
             else
                 # If we reach this part, the `gfct` section is over. Thus, we should create
                 # the element related to `gfct` and proceed with the new information.
-                if isnothing(data_dynamic)
-                    data_dynamic =
-                        LowerTriangularStorage{RowMajor, IcgemGfctCoefficient{Tf}}(max_degree + 1)
-
-                    for i in 1:(max_degree + 1), j in 1:i
-                        data_dynamic[i, j] = IcgemGfctCoefficient(data_static[i, j])
-                    end
-                end
-
-                is_time_varying =
-                    has_trend ||
-                    (length(asin_coefficients) > 0) ||
-                    (length(acos_coefficients) > 0)
-
-                data_dynamic[deg + 1, ord + 1] = IcgemGfctCoefficient(
-                    clm,
-                    slm,
-                    Tf(time),
-                    is_time_varying,
-                    has_trend,
-                    trend_clm,
-                    trend_slm,
-                    copy(asin_coefficients),
-                    copy(acos_coefficients),
-                )
+                flush_gfct_coefficient!()
 
                 state = :new
                 read_new_line = false
             end
         end
     end
+
+    # If the file ended while we were processing a `gfct` section, we must flush the
+    # pending coefficient. Otherwise, the last time-variable coefficient would be lost.
+    state === :gfct && flush_gfct_coefficient!()
 
     # Create the ICGEM object.
     icgem_file = IcgemFile(
