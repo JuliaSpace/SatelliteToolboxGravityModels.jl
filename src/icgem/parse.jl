@@ -227,8 +227,8 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 read_new_line = true
 
                 has_trend = false
-                trend_clm = T(0)
-                trend_slm = T(0)
+                trend_clm = Tf(0)
+                trend_slm = Tf(0)
                 empty!(asin_coefficients)
                 empty!(acos_coefficients)
             end
@@ -305,7 +305,7 @@ function parse_icgem(filename::AbstractString, T::DataType = Float64)
                 data_dynamic[deg + 1, ord + 1] = IcgemGfctCoefficient(
                     clm,
                     slm,
-                    time,
+                    Tf(time),
                     is_time_varying,
                     has_trend,
                     trend_clm,
