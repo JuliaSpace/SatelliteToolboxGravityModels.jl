@@ -238,7 +238,7 @@ function _gravitational_field_derivative_kernel(
         cos_m_1λ = +cos_λ    # cos(-1 * λ_gc)
         cos_m_2λ = +cos_2λ   # cos(-2 * λ_gc)
 
-        # == Compute the Contributions When `m ∈ [1, min(n, m_max)]` =======================
+        # == Compute the Contributions When `m ∈ [0, min(n, m_max)]` =======================
 
         for m in 0:min(n, m_max)
             # Compute recursively `sin(m * λ_gc)` and `cos(m * λ_gc)`.
@@ -269,10 +269,10 @@ function _gravitational_field_derivative_kernel(
             cos_m_1λ = cos_mλ
         end
 
-        # fact = (a / r)^(n + 1)
+        # fact = (a / r)^n
         fact *= ratio
 
-        # aux_<> *= (a / r)^(n + 1)
+        # aux_<> *= (a / r)^n
         aux_∂U_∂r *= fact
         aux_∂U_∂ϕ *= fact
         aux_∂U_∂λ *= fact

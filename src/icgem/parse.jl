@@ -431,7 +431,7 @@ function _parse_gfc_data_line(Tf, tokens, current_line)
     return deg, ord, clm, slm
 end
 
-#   _parse_gfc_data_line(Tf, tokens, current_line) -> Int, Int, Tf, Tf, Number
+#   _parse_gfct_data_line(Tf, tokens, current_line) -> Int, Int, Tf, Tf, Number
 #
 # Parse the `gfct` data line in `tokens` using the data type `Tf` for the floating point
 # fields. The `current_line` number is used for debugging purposes.
