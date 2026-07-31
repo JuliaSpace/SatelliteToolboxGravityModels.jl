@@ -36,7 +36,7 @@ function icgem_coefficients(
     time::DateTime
 ) where T<:Number
 
-    t = Dates.value(t - _DT_J2000) / 1000
+    t = Dates.value(time - _DT_J2000) / 1000
 
     return icgem_coefficients(
         model,
