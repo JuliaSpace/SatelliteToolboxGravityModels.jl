@@ -16,15 +16,24 @@
 """
     parse_icgem(filename::AbstractString, T::Type = Float64) -> IcgemFile
 
-Parse the ICGEM file `filename` using the data type `T`.
+Parse the ICGEM file `filename` using the data type `T` and return an [`IcgemFile`](@ref)
+object with the parsed data.
 
-This function supports ICGEM gravity model files for Earth and other celestial bodies (Moon,
-planets, etc.). The parser automatically detects whether the file uses `earth_gravity_constant`
-(for Earth models) or `gravity_constant` (for non-Earth models).
+This function supports ICGEM gravity model files for Earth and other celestial bodies
+(Moon, planets, etc.). The parser automatically detects whether the file uses
+`earth_gravity_constant` (for Earth models) or `gravity_constant` (for non-Earth models).
+
+The function throws an `ErrorException` if the file does not conform to the ICGEM format,
+and logs a warning for each invalid data line, which is skipped.
 
 !!! note
 
     `T` is converted to float to obtain the output type.
+
+# References
+
+- **[1]** Barthelmes, F., Förste, C (2011). *The ICGEM-format*. GFZ Potsdam, Department 1
+    "Geodesy and Remote Sensing".
 """
 function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
     Tf = float(T)
@@ -354,11 +363,13 @@ end
 #                                    Private Functions                                     #
 ############################################################################################
 
-#   _parse_icgem_float(T, input) -> Union{Nothing, T}
-#
-# Parse the `input` to float type `T` substituting all `D`s and `d`s  to `e`, so that we can
-# convert numbers in FORTRAN format. If we cannot parse `input` to `T`, it returns
-# `nothing`.
+"""
+    _parse_icgem_float(::Type{T}, input::AbstractString) -> Union{Nothing, T}
+
+Parse the `input` to the float type `T`, substituting all `D`s and `d`s by `e` so that
+numbers in FORTRAN format can be converted. If `input` cannot be parsed to `T`, return
+`nothing`.
+"""
 function _parse_icgem_float(::Type{T}, input::AbstractString) where T
     data_str = replace(input, r"[Dd]" => "e")
     return tryparse(T, data_str)
@@ -366,15 +377,22 @@ end
 
 # == Functions to Parse Data Lines =========================================================
 
-#   _parse_degree_and_order(tokens, current_line) -> Int, Int
-#
-# Parse the degree in `tokens[2]` and order in `tokens[3]`. The `current_line` number is
-# used for debugging purposes.
-#
-# # Returns
-#
-# - `Int`: Degree.
-# - `Int`: Order.
+"""
+    _parse_degree_and_order(tokens, current_line) -> Union{Nothing, Tuple{Int, Int}}
+
+Parse the degree in `tokens[2]` and the order in `tokens[3]`. If any of them cannot be
+parsed, log a warning with the `current_line` number and return `nothing`.
+
+# Arguments
+
+- `tokens::AbstractVector{<:AbstractString}`: Tokens of the data line.
+- `current_line::Int`: Number of the line being parsed, used in the warning messages.
+
+# Returns
+
+- `Int`: Degree.
+- `Int`: Order.
+"""
 function _parse_degree_and_order(tokens, current_line)
     deg = tryparse(Int, tokens[2])
 
@@ -393,17 +411,26 @@ function _parse_degree_and_order(tokens, current_line)
     return deg, ord
 end
 
-#   _parse_gfc_data_line(Tf, tokens, current_line) -> Int, Int, Tf, Tf
-#
-# Parse the `gfc` data line in `tokens` using the data type `Tf` for the floating point
-# fields. The `current_line` number is used for debugging purposes.
-#
-# # Returns
-#
-# - `Int`: Degree.
-# - `Int`: Order.
-# - `T`: `Clm` coefficient.
-# - `T`: `Slm` coefficient.
+"""
+    _parse_gfc_data_line(Tf, tokens, current_line) -> Union{Nothing, Tuple}
+
+Parse the `gfc` data line in `tokens` using the type `Tf` for the floating point fields.
+If any field cannot be parsed, log a warning with the `current_line` number and return
+`nothing`.
+
+# Arguments
+
+- `Tf::Type`: Type used to parse the floating point fields.
+- `tokens::AbstractVector{<:AbstractString}`: Tokens of the data line.
+- `current_line::Int`: Number of the line being parsed, used in the warning messages.
+
+# Returns
+
+- `Int`: Degree.
+- `Int`: Order.
+- `Tf`: Coefficient `Clm` [-].
+- `Tf`: Coefficient `Slm` [-].
+"""
 function _parse_gfc_data_line(Tf, tokens, current_line)
     if length(tokens) < 5
         @warn "[Line $current_line] Invalid `gfc` data line."
@@ -431,19 +458,29 @@ function _parse_gfc_data_line(Tf, tokens, current_line)
     return deg, ord, clm, slm
 end
 
-#   _parse_gfct_data_line(Tf, tokens, current_line) -> Int, Int, Tf, Tf, Number
-#
-# Parse the `gfct` data line in `tokens` using the data type `Tf` for the floating point
-# fields. The `current_line` number is used for debugging purposes.
-#
-# # Returns
-#
-# - `Int`: Degree.
-# - `Int`: Order.
-# - `T`: `Clm` coefficient.
-# - `T`: `Slm` coefficient.
-# - `Number`: Epoch (`t₀`) of the coefficients, expressed as the number of elapsed seconds
-#   since J2000.0.
+"""
+    _parse_gfct_data_line(Tf, tokens, current_line) -> Union{Nothing, Tuple}
+
+Parse the `gfct` data line in `tokens` using the type `Tf` for the floating point fields.
+If any field cannot be parsed, log a warning with the `current_line` number and return
+`nothing`. The function throws an `ArgumentError` if the epoch in the last token is not a
+valid date in the `yyyymmdd` format.
+
+# Arguments
+
+- `Tf::Type`: Type used to parse the floating point fields.
+- `tokens::AbstractVector{<:AbstractString}`: Tokens of the data line.
+- `current_line::Int`: Number of the line being parsed, used in the warning messages.
+
+# Returns
+
+- `Int`: Degree.
+- `Int`: Order.
+- `Tf`: Coefficient `Clm` [-] at the epoch.
+- `Tf`: Coefficient `Slm` [-] at the epoch.
+- `Float64`: Epoch (`t₀`) of the coefficients, expressed as the number of elapsed seconds
+    [s] since the J2000.0 epoch (2000-01-01T12:00:00).
+"""
 function _parse_gfct_data_line(Tf, tokens, current_line)
     if length(tokens) < 6
         @warn "[Line $current_line] Invalid `gfct` data line."
@@ -461,17 +498,26 @@ function _parse_gfct_data_line(Tf, tokens, current_line)
     return deg, ord, clm, slm, time
 end
 
-#   _parse_trnd_data_line(Tf, tokens, current_line) -> Int, Int, Tf, Tf
-#
-# Parse the `trnd` data line in `tokens` using the data type `Tf` for the floating point
-# fields. The `current_line` number is used for debugging purposes.
-#
-# # Returns
-#
-# - `Int`: Degree.
-# - `Int`: Order.
-# - `T`: `Clm` trend coefficient.
-# - `T`: `Slm` trend coefficient.
+"""
+    _parse_trnd_data_line(Tf, tokens, current_line) -> Union{Nothing, Tuple}
+
+Parse the `trnd` data line in `tokens` using the type `Tf` for the floating point fields.
+If any field cannot be parsed, log a warning with the `current_line` number and return
+`nothing`.
+
+# Arguments
+
+- `Tf::Type`: Type used to parse the floating point fields.
+- `tokens::AbstractVector{<:AbstractString}`: Tokens of the data line.
+- `current_line::Int`: Number of the line being parsed, used in the warning messages.
+
+# Returns
+
+- `Int`: Degree.
+- `Int`: Order.
+- `Tf`: Linear trend of `Clm` [year⁻¹].
+- `Tf`: Linear trend of `Slm` [year⁻¹].
+"""
 function _parse_trnd_data_line(Tf, tokens, current_line)
     if length(tokens) < 5
         @warn "[Line $current_line] Invalid `trnd` data line."
@@ -501,18 +547,27 @@ function _parse_trnd_data_line(Tf, tokens, current_line)
     return deg, ord, trend_clm, trend_slm
 end
 
-#   _parse_asin_acos_data_line(Tf, tokens, current_line) -> Int, Int, Tf, Tf, Tf
-#
-# Parse the `asin` or `acos` data line in `tokens` using the data type `Tf` for the floating
-# point fields. The `current_line` number is used for debugging purposes.
-#
-# # Returns
-#
-# - `Int`: Degree.
-# - `Int`: Order.
-# - `T`: `Clm` amplitude.
-# - `T`: `Slm` amplitude.
-# - `T`: Period.
+"""
+    _parse_asin_acos_data_line(Tf, tokens, current_line) -> Union{Nothing, Tuple}
+
+Parse the `asin` or `acos` data line in `tokens` using the type `Tf` for the floating
+point fields. If any field cannot be parsed, log a warning with the `current_line` number
+and return `nothing`.
+
+# Arguments
+
+- `Tf::Type`: Type used to parse the floating point fields.
+- `tokens::AbstractVector{<:AbstractString}`: Tokens of the data line.
+- `current_line::Int`: Number of the line being parsed, used in the warning messages.
+
+# Returns
+
+- `Int`: Degree.
+- `Int`: Order.
+- `Tf`: Amplitude of the periodic term for `Clm` [-].
+- `Tf`: Amplitude of the periodic term for `Slm` [-].
+- `Tf`: Period of the term [year].
+"""
 function _parse_asin_acos_data_line(Tf, tokens, current_line)
     if length(tokens) < 6
         @warn "[Line $current_line] Invalid `asin` or `acos` data line."
