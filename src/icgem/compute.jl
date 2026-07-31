@@ -60,14 +60,17 @@ function _compute_icgem_coefficient(
     coefficient::IcgemGfctCoefficient{T},
     t::Number
 ) where T<:Number
-    clm = coefficient.clm
-    slm = coefficient.slm
+    # Promote the coefficients beforehand so both return paths have the same type.
+    RT = float(promote_type(T, typeof(t)))
+
+    clm = RT(coefficient.clm)
+    slm = RT(coefficient.slm)
 
     coefficient.is_time_varying || return clm, slm
 
     # Elapsed time from coefficients epoch [year], considering a Julian year with 365.25
     # days.
-    Δt = (t - coefficient.time) / 86400 / 365.25
+    Δt = RT((t - coefficient.time) / 86400 / 365.25)
 
     # == Trend =============================================================================
 
@@ -81,7 +84,7 @@ function _compute_icgem_coefficient(
     for c in coefficient.asin_coefficients
         A_clm, A_slm, p = c
 
-        aux  = sin(T(2π) / p * Δt)
+        aux  = sin(RT(2π) / p * Δt)
         clm += A_clm * aux
         slm += A_slm * aux
     end
@@ -91,7 +94,7 @@ function _compute_icgem_coefficient(
     for c in coefficient.acos_coefficients
         A_clm, A_slm, p = c
 
-        aux  = cos(T(2π) / p * Δt)
+        aux  = cos(RT(2π) / p * Δt)
         clm += A_clm * aux
         slm += A_slm * aux
     end
