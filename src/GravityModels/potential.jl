@@ -11,36 +11,19 @@
 ############################################################################################
 
 """
-    gravitational_potential(model::AbstractGravityModel{Number, NormType}, r::AbstractVector{Number}[, time::Union{Number, DateTime}]; kwargs...) -> RT
+    gravitational_potential(model::AbstractGravityModel, r::AbstractVector[, time]; kwargs...) -> RT
 
-Compute the gravitational potential [J / kg] or [m² / s²] using the `model` in the position
-`r` [m], represented in ITRF, at instant `time`. If the latter argument is omitted, the
-J2000.0 epoch is used (2000-01-01T12:00:00).
+Compute the gravitational potential `U` [m²/s²] using the `model` in the position `r` [m],
+represented in the body-fixed frame (ITRF for Earth), at instant `time`. If the latter
+argument is omitted, the J2000.0 epoch (2000-01-01T12:00:00) is used.
 
-`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
-J2000.0 epoch.
+The return type `RT` is obtained by promoting the type of the `model` coefficients, the
+element type of `r`, and the type of `time`.
 
 !!! note
 
     Gravitational potential is the potential caused by the central body mass only, i.e.,
     without considering the centrifugal potential.
-
-# Keywords
-
-- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
-    gravitational potential. If it is higher than the available number of coefficients in
-    the `model`, it will be clamped. If it is lower than 0, it will be set to the maximum
-    degree available.
-    (**Default** = -1)
-- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
-    gravitational potential. If it is higher than `max_degree`, it will be clamped. If it
-    is lower than 0, it will be set to the same value as `max_degree`.
-    (**Default** = -1)
-- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
-    when calling the function.
-    (**Default** = `nothing`)
 
 !!! note
 
@@ -49,9 +32,37 @@ J2000.0 epoch.
     SatelliteToolboxBase.jl) with a row-major ordering. If this matrix is not provided by
     the user, it will be created using that type of storage.
 
-# Returns
+# Arguments
 
-- `RT`: The gravitational potential `U`.
+- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `r::AbstractVector`: Position [m] in the body-fixed frame (ITRF for Earth) at which the
+    potential is computed.
+- `time::Union{Number, DateTime}`: Time at which the potential is computed, expressed as a
+    `DateTime` object or the number of elapsed seconds [s] from the J2000.0 epoch.
+    (**Default**: J2000.0 epoch)
+
+# Keywords
+
+- `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
+    gravitational potential. If it is higher than the available number of coefficients in
+    the `model`, it will be clamped. If it is lower than 0, it will be set to the maximum
+    degree available.
+    (**Default**: -1)
+- `max_order::Int`: Maximum order used in the spherical harmonics when computing the
+    gravitational potential. If it is higher than `max_degree`, it will be clamped. If it
+    is lower than 0, it will be set to the same value as `max_degree`.
+    (**Default**: -1)
+- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
+    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
+    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
+    when calling the function.
+    (**Default**: `nothing`)
+
+# References
+
+- **[1]** Barthelmes, F (2013). *Definition of Functions of the Geopotential and Their
+    Calculation from Spherical Harmonic Models*. Scientific Technical Report STR09/02.
+    GeoForschungsZentrum (GFZ), p. 19.
 """
 function gravitational_potential(
     model::AbstractGravityModel{T, NT},
@@ -112,11 +123,27 @@ function gravitational_potential(
     return _gravitational_potential_kernel(model, r, time, n_max, m_max, P)
 end
 
-#   _gravitational_potential_kernel(model, r, time, n_max, m_max, P) -> RT
-#
-# Kernel of the gravitational potential computation. It assumes all the inputs were already
-# processed and `P` has enough space to store the Legendre coefficients. This function
-# exists as a function barrier so the hot loop is compiled with a concrete type for `P`.
+"""
+    _gravitational_potential_kernel(
+        model::AbstractGravityModel,
+        r::AbstractVector,
+        time::Number,
+        n_max::Int,
+        m_max::Int,
+        P::AbstractMatrix
+    ) -> RT
+
+Compute the gravitational potential [m²/s²] of `model` at the position `r` [m],
+represented in the body-fixed frame (ITRF for Earth), and instant `time`, expressed as the
+number of elapsed seconds [s] from the J2000.0 epoch (2000-01-01T12:00:00), using the
+spherical harmonics up to degree `n_max` and order `m_max`.
+
+This function is the kernel of [`gravitational_potential`](@ref), called through a
+function barrier so the hot loop is compiled with a concrete type for `P`. It assumes all
+inputs were already processed: `n_max` and `m_max` must be valid for `model`, and `P` must
+have at least `n_max + 1 × m_max + 1` elements, which are overwritten with the associated
+Legendre function values.
+"""
 function _gravitational_potential_kernel(
     model::AbstractGravityModel{T, NT},
     r::AbstractVector{V},
