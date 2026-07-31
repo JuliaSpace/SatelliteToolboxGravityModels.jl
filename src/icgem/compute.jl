@@ -5,13 +5,30 @@
 ############################################################################################
 
 """
-    icgem_coefficients(model::IcgemFile{T}, degree::Int, order::Int, time::Union{Number, DateTime}) where T<:Number -> T, T
+    icgem_coefficients(model::IcgemFile, degree::Int, order::Int, time) -> RT, RT
 
-Compute the ICGEM coefficients (`Clm` and `Slm`) of the `model` for the specified `degree`
-and `order` in the instant `time`.
+Compute the coefficients `Clm` and `Slm` [-] of the ICGEM `model` for the specified
+`degree` and `order` at the instant `time`, expressed as a `DateTime` object or the number
+of elapsed seconds [s] from the J2000.0 epoch (2000-01-01T12:00:00).
 
-`time` can be expressed using a `DateTime` object or the number of elapsed seconds from
-J2000.0 epoch (2000-01-01T12:00:00.000).
+The function throws an `ArgumentError` if `order` is higher than `degree` or if `degree`
+is higher than the maximum degree available in `model`.
+
+# Arguments
+
+- `model::IcgemFile{T}`: ICGEM model.
+- `degree::Int`: Degree of the coefficients.
+- `order::Int`: Order of the coefficients.
+- `time::Union{Number, DateTime}`: Time at which the coefficients are computed, expressed
+    as a `DateTime` object or the number of elapsed seconds [s] from the J2000.0 epoch.
+
+# Returns
+
+- `RT`: Coefficient `Clm` [-].
+- `RT`: Coefficient `Slm` [-].
+
+The return type `RT` is `T` for models with only constant coefficients, or
+`float(promote_type(T, typeof(time)))` for models with time-variable coefficients.
 """
 function icgem_coefficients(
     model::IcgemFile{T},
@@ -50,12 +67,35 @@ end
 #                                    Private Functions                                     #
 ############################################################################################
 
-# Compute the coefficients `Clm` and `Slm` for a coefficient of type `IcgemGfcCoefficient`.
+"""
+    _compute_icgem_coefficient(coefficient::IcgemGfcCoefficient{T}, t::Number) -> T, T
+
+Return the constant coefficients `Clm` [-] and `Slm` [-] stored in `coefficient`. The time
+`t` [s] is unused since the coefficient is constant.
+"""
 function _compute_icgem_coefficient(coefficient::IcgemGfcCoefficient, t::Number)
     return coefficient.clm, coefficient.slm
 end
 
-# Compute the coefficients `Clm` and `Slm` for a coefficient of type `IcgemGfctCoefficient`.
+"""
+    _compute_icgem_coefficient(coefficient::IcgemGfctCoefficient{T}, t::Number) -> RT, RT
+
+Compute the coefficients `Clm` [-] and `Slm` [-] of the time-variable `coefficient` at the
+instant `t`, expressed as the number of elapsed seconds [s] from the J2000.0 epoch
+(2000-01-01T12:00:00).
+
+The coefficients are obtained by adding the linear trend and the sine and cosine periodic
+terms to the values at the coefficient epoch, as described in the ICGEM format
+documentation [1]. The elapsed time from the epoch is converted to Julian years (365.25
+days).
+
+The return type `RT` is `float(promote_type(T, typeof(t)))`.
+
+# References
+
+- **[1]** Barthelmes, F., Förste, C (2011). *The ICGEM-format*. GFZ Potsdam, Department 1
+    "Geodesy and Remote Sensing".
+"""
 function _compute_icgem_coefficient(
     coefficient::IcgemGfctCoefficient{T},
     t::Number
