@@ -83,8 +83,8 @@ function gravitational_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT<:Val}
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT <: Val}
     return gravitational_acceleration(model, r, 0; max_degree, max_order, P, dP)
 end
 
@@ -95,24 +95,18 @@ function gravitational_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT<:Val}
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT <: Val}
 
     # Compute the partial derivatives of the gravitational field w.r.t. the spherical
     # coordinates.
     ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ = gravitational_field_derivative(
-        model,
-        r,
-        time;
-        max_degree = max_degree,
-        max_order = max_order,
-        P = P,
-        dP = dP
+        model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
     )
 
     # Auxiliary variables.
     ρ²_gc = r[1]^2 + r[2]^2
-    r²_gc = ρ²_gc  + r[3]^2
+    r²_gc = ρ²_gc + r[3]^2
     r_gc  = √r²_gc
     ρ_gc  = √ρ²_gc
     ϕ_gc  = atan(r[3], ρ_gc)
@@ -129,11 +123,7 @@ function gravitational_acceleration(
     # Notice that the singularity is not a problem here. When computing `cos(π / 2)` a very
     # small number will be returned and `∂U / ∂λ` is 0. Hence, the 2nd component will be 0.
 
-    a_uen = @SVector [
-        ∂U_∂r,
-        ∂U_∂λ / (r_gc * cos(ϕ_gc)),
-        ∂U_∂ϕ / r_gc
-    ]
+    a_uen = @SVector [∂U_∂r, ∂U_∂λ / (r_gc * cos(ϕ_gc)), ∂U_∂ϕ / r_gc]
 
     # The vector `a_uen` is represented in the local UEN (Up-Earth-North) reference frame.
     # Hence, we need to describe the unitary vectors of this frame in the ECEF reference
@@ -151,19 +141,12 @@ function gravitational_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT<:Val}
-
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT <: Val}
     t = Dates.value(time - _DT_J2000) / 1000
 
     return gravitational_acceleration(
-        model,
-        r,
-        t;
-        max_degree = max_degree,
-        max_order = max_order,
-        P = P,
-        dP = dP,
+        model, r, t; max_degree = max_degree, max_order = max_order, P = P, dP = dP
     )
 end
 
@@ -246,8 +229,8 @@ function gravity_acceleration(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-    ω::Number = EARTH_ANGULAR_SPEED
-) where {T<:Number,V<:Number, NT<:Val}
+    ω::Number = EARTH_ANGULAR_SPEED,
+) where {T <: Number, V <: Number, NT <: Val}
     return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP, ω)
 end
 
@@ -259,19 +242,13 @@ function gravity_acceleration(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-    ω::Number = EARTH_ANGULAR_SPEED
-) where {T<:Number, V<:Number, NT<:Val}
+    ω::Number = EARTH_ANGULAR_SPEED,
+) where {T <: Number, V <: Number, NT <: Val}
 
     # == Gravitational Acceleration ========================================================
 
     grav_itrf = gravitational_acceleration(
-        model,
-        r,
-        time;
-        max_degree = max_degree,
-        max_order = max_order,
-        P = P,
-        dP = dP
+        model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
     )
 
     # == Centripetal acceleration ==========================================================
@@ -301,11 +278,7 @@ function gravity_acceleration(
     # approximation provides a sufficient accuracy for most applications.
     ω² = ω^2
 
-    centrifugal_accel_itrf = @SVector [
-        ω² * r[1],
-        ω² * r[2],
-        zero(T)
-    ]
+    centrifugal_accel_itrf = @SVector [ω² * r[1], ω² * r[2], zero(T)]
 
     # Finally, compute the gravity acceleration.
     g_itrf = grav_itrf + centrifugal_accel_itrf
@@ -321,19 +294,11 @@ function gravity_acceleration(
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-    ω::Number = EARTH_ANGULAR_SPEED
-) where {T<:Number, V<:Number, NT<:Val}
-
+    ω::Number = EARTH_ANGULAR_SPEED,
+) where {T <: Number, V <: Number, NT <: Val}
     t = Dates.value(time - _DT_J2000) / 1000
 
     return gravity_acceleration(
-        model,
-        r,
-        t;
-        max_degree = max_degree,
-        max_order = max_order,
-        P = P,
-        dP = dP,
-        ω = ω
+        model, r, t; max_degree = max_degree, max_order = max_order, P = P, dP = dP, ω = ω
     )
 end

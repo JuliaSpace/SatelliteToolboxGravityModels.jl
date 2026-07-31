@@ -11,7 +11,7 @@ const _ONLINE_ICGEM_FILES = Dict(
     :EGM96   => "https://icgem.gfz-potsdam.de/getmodel/gfc/971b0a3b49a497910aad23cd85e066d4cd9af0aeafe7ce6301a696bed8570be3/EGM96.gfc",
     :EGM2008 => "https://icgem.gfz-potsdam.de/getmodel/gfc/c50128797a9cb62e936337c890e4425f03f0461d7329b09a8cc8561504465340/EGM2008.gfc",
     :JGM2    => "https://icgem.gfz-potsdam.de/getmodel/gfc/291f7d127f49fe3bcb4a633a06e8b50f461d4b13ff8e7f2046644a8148b57fc6/JGM2.gfc",
-    :JGM3    => "https://icgem.gfz-potsdam.de/getmodel/gfc/a3375e01a717ac162962138a5e94f10466b71aa4a130d7f7d5b18ab3d5f90c3d/JGM3.gfc"
+    :JGM3    => "https://icgem.gfz-potsdam.de/getmodel/gfc/a3375e01a717ac162962138a5e94f10466b71aa4a130d7f7d5b18ab3d5f90c3d/JGM3.gfc",
 )
 
 """
@@ -62,7 +62,8 @@ function fetch_icgem_file(url::AbstractString; force::Bool = false)
 
     # We must be able to get the file name from the URL.
     filename = basename(url)
-    isempty(filename) && throw(ArgumentError("We could not obtain the file name from the URL."))
+    isempty(filename) &&
+        throw(ArgumentError("We could not obtain the file name from the URL."))
 
     filepath = joinpath(cache_dir, filename)
 

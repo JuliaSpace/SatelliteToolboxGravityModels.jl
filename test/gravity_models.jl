@@ -24,7 +24,7 @@ const MOON_ELLIPSOID = Ellipsoid(1738140.0, 3.086419753086420E-04)
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
@@ -51,9 +51,13 @@ end
 @testset "Gravitational Acceleration" verbose = true begin
     tests = (
         (:EGM96, "./test_results/gravitation/EGM96.gdf", :earth),
-        (:JGM2,  "./test_results/gravitation/JGM2.gdf", :earth),
-        (:JGM3,  "./test_results/gravitation/JGM3.gdf", :earth),
-        ("https://icgem.gfz-potsdam.de/getmodel/gfc/de07bfc4a3b18d157eb02b16352fbac8aff156a8d43366cc73d9cf77a5201ace/AIUB-GRL200A.gfc", "./test_results/gravitation/AIUB-GRL200A.gdf", :moon)
+        (:JGM2, "./test_results/gravitation/JGM2.gdf", :earth),
+        (:JGM3, "./test_results/gravitation/JGM3.gdf", :earth),
+        (
+            "https://icgem.gfz-potsdam.de/getmodel/gfc/de07bfc4a3b18d157eb02b16352fbac8aff156a8d43366cc73d9cf77a5201ace/AIUB-GRL200A.gfc",
+            "./test_results/gravitation/AIUB-GRL200A.gdf",
+            :moon,
+        ),
     )
 
     for t in tests
@@ -102,7 +106,7 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
@@ -110,7 +114,9 @@ end
 
     time = Dates.value(DateTime("2023-06-19") - dt_J2000) / 1000
     g_itrf_expected = GravityModels.gravitational_acceleration(eigen6c, r_itrf, time)
-    g_itrf = GravityModels.gravitational_acceleration(eigen6c, r_itrf, DateTime("2023-06-19"))
+    g_itrf = GravityModels.gravitational_acceleration(
+        eigen6c, r_itrf, DateTime("2023-06-19")
+    )
 
     @test g_itrf == g_itrf_expected
 end
@@ -118,8 +124,8 @@ end
 @testset "Gravity Acceleration" verbose = true begin
     tests = (
         (:EGM96, "./test_results/gravity/EGM96.gdf"),
-        (:JGM2,  "./test_results/gravity/JGM2.gdf"),
-        (:JGM3,  "./test_results/gravity/JGM3.gdf"),
+        (:JGM2, "./test_results/gravity/JGM2.gdf"),
+        (:JGM3, "./test_results/gravity/JGM3.gdf"),
     )
 
     for t in tests
@@ -152,7 +158,7 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
@@ -175,25 +181,28 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
     r_itrf = [7000.0e3, 0, 0]
 
     time = Dates.value(DateTime("2023-06-19") - dt_J2000) / 1000
-    ∂U_∂r_expected, ∂U_∂ϕ_expected, ∂U_∂λ_expected =
-        GravityModels.gravitational_field_derivative(eigen6c, r_itrf, time)
+    ∂U_∂r_expected, ∂U_∂ϕ_expected, ∂U_∂λ_expected = GravityModels.gravitational_field_derivative(
+        eigen6c, r_itrf, time
+    )
 
-    ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ =
-        GravityModels.gravitational_field_derivative(eigen6c, r_itrf, DateTime("2023-06-19"))
+    ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ = GravityModels.gravitational_field_derivative(
+        eigen6c, r_itrf, DateTime("2023-06-19")
+    )
 
     @test ∂U_∂r == ∂U_∂r_expected
     @test ∂U_∂ϕ == ∂U_∂ϕ_expected
     @test ∂U_∂λ == ∂U_∂λ_expected
 
-    ∂U_∂r_expected, ∂U_∂ϕ_expected, ∂U_∂λ_expected =
-        GravityModels.gravitational_field_derivative(eigen6c, r_itrf, 0)
+    ∂U_∂r_expected, ∂U_∂ϕ_expected, ∂U_∂λ_expected = GravityModels.gravitational_field_derivative(
+        eigen6c, r_itrf, 0
+    )
 
     ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ = GravityModels.gravitational_field_derivative(eigen6c, r_itrf)
 
@@ -203,10 +212,7 @@ end
 
     # Test when `max_degrees != max_order`.
     ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ = GravityModels.gravitational_field_derivative(
-        eigen6c,
-        [6378.137e3, 0, 0];
-        max_degree = 1,
-        max_order = 0
+        eigen6c, [6378.137e3, 0, 0]; max_degree = 1, max_order = 0
     )
 
     @test ∂U_∂r ≈ -9.798285471812783
@@ -224,7 +230,9 @@ end
     P  = zeros(361, 361)
     dP = zeros(10, 10)
     @test_throws ArgumentError GravityModels.gravity_acceleration(egm96, r_itrf; dP = dP)
-    @test_throws ArgumentError GravityModels.gravity_acceleration(egm96, r_itrf; P = P, dP = dP)
+    @test_throws ArgumentError GravityModels.gravity_acceleration(
+        egm96, r_itrf; P = P, dP = dP
+    )
 end
 
 # == File: ./src/GravityModels/potential.jl ====================================================
@@ -234,7 +242,7 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
@@ -258,10 +266,7 @@ end
     # == Test with max_degree and max_order ================================================
 
     U = GravityModels.gravitational_potential(
-        eigen6c,
-        [6378.137e3, 0, 0];
-        max_degree = 1,
-        max_order = 0
+        eigen6c, [6378.137e3, 0, 0]; max_degree = 1, max_order = 0
     )
 
     # Verify the potential value is reasonable (should be positive and close to GM/r)
@@ -274,9 +279,13 @@ end
 @testset "Gravitational Potential Verification" verbose = true begin
     tests = (
         (:EGM96, "./test_results/potential/EGM96.gdf", :earth),
-        (:JGM2,  "./test_results/potential/JGM2.gdf", :earth),
-        (:JGM3,  "./test_results/potential/JGM3.gdf", :earth),
-        ("https://icgem.gfz-potsdam.de/getmodel/gfc/de07bfc4a3b18d157eb02b16352fbac8aff156a8d43366cc73d9cf77a5201ace/AIUB-GRL200A.gfc", "./test_results/potential/AIUB-GRL200A.gdf", :moon)
+        (:JGM2, "./test_results/potential/JGM2.gdf", :earth),
+        (:JGM3, "./test_results/potential/JGM3.gdf", :earth),
+        (
+            "https://icgem.gfz-potsdam.de/getmodel/gfc/de07bfc4a3b18d157eb02b16352fbac8aff156a8d43366cc73d9cf77a5201ace/AIUB-GRL200A.gfc",
+            "./test_results/potential/AIUB-GRL200A.gdf",
+            :moon,
+        ),
     )
 
     for t in tests

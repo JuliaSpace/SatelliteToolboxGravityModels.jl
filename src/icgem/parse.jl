@@ -35,7 +35,7 @@ and logs a warning for each invalid data line, which is skipped.
 - **[1]** Barthelmes, F., Förste, C (2011). *The ICGEM-format*. GFZ Potsdam, Department 1
     "Geodesy and Remote Sensing".
 """
-function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
+function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where {T}
     Tf = float(T)
 
     # Open the file and find the header.
@@ -111,19 +111,15 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
 
     # == Parse Mandatory Header Fields =====================================================
 
-    mandatory_fields = (
-        :product_type,
-        :modelname,
-        :radius,
-        :max_degree,
-        :errors,
-    )
+    mandatory_fields = (:product_type, :modelname, :radius, :max_degree, :errors)
 
     has_mandatory_fields = map(f -> haskey(keywords, f), mandatory_fields)
 
     if !prod(has_mandatory_fields)
         missing_fields = mandatory_fields[findall(!, has_mandatory_fields)]
-        error("[Invalid ICGEM file] The following mandatory fields are missing: $missing_fields.")
+        error(
+            "[Invalid ICGEM file] The following mandatory fields are missing: $missing_fields.",
+        )
     end
 
     # Check for gravity constant - either earth_gravity_constant (Earth) or gravity_constant (other bodies)
@@ -131,24 +127,29 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
     has_gravity_constant = haskey(keywords, :gravity_constant)
 
     if !has_earth_gravity_constant && !has_gravity_constant
-        error("[Invalid ICGEM file] Missing gravity constant field. Expected either 'earth_gravity_constant' or 'gravity_constant'.")
+        error(
+            "[Invalid ICGEM file] Missing gravity constant field. Expected either 'earth_gravity_constant' or 'gravity_constant'.",
+        )
     end
-    
+
     product_type = Symbol(keywords[:product_type])
     model_name   = keywords[:modelname]
     max_degree   = parse(Int, keywords[:max_degree])
     errors       = Symbol(keywords[:errors])
 
     # Parse the gravity constant field (whichever one exists)
-    gravity_constant_key = has_earth_gravity_constant ? :earth_gravity_constant : :gravity_constant
+    gravity_constant_key =
+        has_earth_gravity_constant ? :earth_gravity_constant : :gravity_constant
     gravity_constant = _parse_icgem_float(Tf, keywords[gravity_constant_key])
-    radius           = _parse_icgem_float(Tf, keywords[:radius])
+    radius = _parse_icgem_float(Tf, keywords[:radius])
 
-    isnothing(gravity_constant) && error("[Invalid ICGEM file] Could not parse the gravity constant to $Tf.")
+    isnothing(gravity_constant) &&
+        error("[Invalid ICGEM file] Could not parse the gravity constant to $Tf.")
     isnothing(radius) && error("[Invalid ICGEM file] Could not parse the radius to $Tf.")
 
     # Check if some keywords are valid.
-    gravity_constant <= 0 && error("[Invalid ICGEM file] The gravity constant must be positive.")
+    gravity_constant <= 0 &&
+        error("[Invalid ICGEM file] The gravity constant must be positive.")
 
     radius <= 0 && error("[Invalid ICGEM file] The radius must be positive.")
 
@@ -168,7 +169,7 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
 
     # Since we now have the maximum degree, we can pre-allocate and initialize the data
     # matrix.
-    data_static  = LowerTriangularStorage{RowMajor, IcgemGfcCoefficient{Tf} }(max_degree + 1)
+    data_static  = LowerTriangularStorage{RowMajor, IcgemGfcCoefficient{Tf}}(max_degree + 1)
     data_dynamic = nothing
 
     # State of the parsing algorithm.
@@ -195,8 +196,9 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
     # dynamic data storage, creating the latter if needed.
     function flush_gfct_coefficient!()
         if isnothing(data_dynamic)
-            data_dynamic =
-                LowerTriangularStorage{RowMajor, IcgemGfctCoefficient{Tf}}(max_degree + 1)
+            data_dynamic = LowerTriangularStorage{RowMajor, IcgemGfctCoefficient{Tf}}(
+                max_degree + 1
+            )
 
             for i in 1:(max_degree + 1), j in 1:i
                 data_dynamic[i, j] = IcgemGfctCoefficient(data_static[i, j])
@@ -204,9 +206,7 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
         end
 
         is_time_varying =
-            has_trend ||
-            (length(asin_coefficients) > 0) ||
-            (length(acos_coefficients) > 0)
+            has_trend || (length(asin_coefficients) > 0) || (length(acos_coefficients) > 0)
 
         data_dynamic[deg + 1, ord + 1] = IcgemGfctCoefficient(
             clm,
@@ -254,13 +254,14 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
 
                 deg, ord, clm, slm = ret
                 if !isnothing(data_dynamic)
-                    data_dynamic[deg + 1, ord + 1] =
-                        IcgemGfctCoefficient(IcgemGfcCoefficient(clm, slm))
+                    data_dynamic[deg + 1, ord + 1] = IcgemGfctCoefficient(
+                        IcgemGfcCoefficient(clm, slm)
+                    )
                 else
                     data_static[deg + 1, ord + 1] = IcgemGfcCoefficient(clm, slm)
                 end
 
-            # == `gfct` Data Line ==========================================================
+                # == `gfct` Data Line ==========================================================
 
             elseif tokens[1] == "gfct"
                 ret = _parse_gfct_data_line(Tf, tokens, current_line)
@@ -290,13 +291,14 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
 
                 adeg, aord, trend_clm, trend_slm = ret
 
-                ((adeg != deg) || (aord != ord)) &&
-                    error("[Invalid ICGEM file] The degree or order of a `trnd` line is different from the corresponding `gfct` line.")
+                ((adeg != deg) || (aord != ord)) && error(
+                    "[Invalid ICGEM file] The degree or order of a `trnd` line is different from the corresponding `gfct` line.",
+                )
 
                 has_trend = true
                 read_new_line = true
 
-            # == `asin` Data Line of a `gfct` Section ======================================
+                # == `asin` Data Line of a `gfct` Section ======================================
 
             elseif tokens[1] == "asin"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
@@ -307,13 +309,16 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
 
                 adeg, aord, asin_amplitude_clm, asin_amplitude_slm, asin_period = ret
 
-                ((adeg != deg) || (aord != ord)) &&
-                    error("[Invalid ICGEM file] The degree or order of a `asin` line is different from the corresponding `gfct` line.")
+                ((adeg != deg) || (aord != ord)) && error(
+                    "[Invalid ICGEM file] The degree or order of a `asin` line is different from the corresponding `gfct` line.",
+                )
 
-                push!(asin_coefficients, (asin_amplitude_clm, asin_amplitude_slm, asin_period))
+                push!(
+                    asin_coefficients, (asin_amplitude_clm, asin_amplitude_slm, asin_period)
+                )
                 read_new_line = true
 
-            # == `acos` Data Line of a `gfct` Section ======================================
+                # == `acos` Data Line of a `gfct` Section ======================================
 
             elseif tokens[1] == "acos"
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
@@ -323,10 +328,13 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
                 end
                 adeg, aord, acos_amplitude_clm, acos_amplitude_slm, acos_period = ret
 
-                ((adeg != deg) || (aord != ord)) &&
-                    error("[Invalid ICGEM file] The degree or order of a `acos` line is different from the corresponding `gfct` line.")
+                ((adeg != deg) || (aord != ord)) && error(
+                    "[Invalid ICGEM file] The degree or order of a `acos` line is different from the corresponding `gfct` line.",
+                )
 
-                push!(acos_coefficients, (acos_amplitude_clm, acos_amplitude_slm, acos_period))
+                push!(
+                    acos_coefficients, (acos_amplitude_clm, acos_amplitude_slm, acos_period)
+                )
                 read_new_line = true
 
             else
@@ -354,7 +362,7 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where T
         errors,
         tide_system,
         Val(norm),
-        isnothing(data_dynamic) ? data_static : data_dynamic
+        isnothing(data_dynamic) ? data_static : data_dynamic,
     )
     return icgem_file
 end
@@ -370,7 +378,7 @@ Parse the `input` to the float type `T`, substituting all `D`s and `d`s by `e` s
 numbers in FORTRAN format can be converted. If `input` cannot be parsed to `T`, return
 `nothing`.
 """
-function _parse_icgem_float(::Type{T}, input::AbstractString) where T
+function _parse_icgem_float(::Type{T}, input::AbstractString) where {T}
     data_str = replace(input, r"[Dd]" => "e")
     return tryparse(T, data_str)
 end

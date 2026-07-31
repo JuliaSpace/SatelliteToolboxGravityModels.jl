@@ -11,7 +11,7 @@ export IcgemFile
 
 Abstract type of all spherical harmonics coefficients stored in an ICGEM file.
 """
-abstract type AbstractIcgemCoefficient{T<:Number} end
+abstract type AbstractIcgemCoefficient{T <: Number} end
 
 ############################################################################################
 #                                          ICGEM                                           #
@@ -27,7 +27,7 @@ Store a constant (`gfc`) spherical harmonics coefficient of an ICGEM file.
 - `clm::T`: Cosine coefficient `Clm` [-].
 - `slm::T`: Sine coefficient `Slm` [-].
 """
-struct IcgemGfcCoefficient{T<:Number} <: AbstractIcgemCoefficient{T}
+struct IcgemGfcCoefficient{T <: Number} <: AbstractIcgemCoefficient{T}
     clm::T
     slm::T
 end
@@ -57,7 +57,7 @@ Store a time-variable (`gfct`) spherical harmonics coefficient of an ICGEM file.
     contains the amplitude for `Clm` [-], the amplitude for `Slm` [-], and the period
     [year].
 """
-struct IcgemGfctCoefficient{T<:Number} <: AbstractIcgemCoefficient{T}
+struct IcgemGfctCoefficient{T <: Number} <: AbstractIcgemCoefficient{T}
     clm::T
     slm::T
     time::T # .................................................. Seconds since J2000.0 epoch
@@ -84,7 +84,7 @@ end
 Create an [`IcgemGfctCoefficient`](@ref) from the constant coefficient `c`, keeping `Clm`
 and `Slm` and marking the result as not time-varying.
 """
-IcgemGfctCoefficient(c::IcgemGfcCoefficient{T}) where T = IcgemGfctCoefficient(
+IcgemGfctCoefficient(c::IcgemGfcCoefficient{T}) where {T} = IcgemGfctCoefficient(
     c.clm,
     c.slm,
     zero(T),
@@ -92,15 +92,15 @@ IcgemGfctCoefficient(c::IcgemGfcCoefficient{T}) where T = IcgemGfctCoefficient(
     false,
     zero(T),
     zero(T),
-    NTuple{3,T}[],
-    NTuple{3,T}[],
+    NTuple{3, T}[],
+    NTuple{3, T}[],
 )
 
-function Base.zero(::Type{IcgemGfcCoefficient{T}}) where T
+function Base.zero(::Type{IcgemGfcCoefficient{T}}) where {T}
     return IcgemGfcCoefficient(zero(T), zero(T))
 end
 
-function Base.zero(::Type{IcgemGfctCoefficient{T}}) where T
+function Base.zero(::Type{IcgemGfctCoefficient{T}}) where {T}
     return IcgemGfctCoefficient(
         zero(T),
         zero(T),
@@ -109,8 +109,8 @@ function Base.zero(::Type{IcgemGfctCoefficient{T}}) where T
         false,
         zero(T),
         zero(T),
-        Vector{NTuple{3,T}}(),
-        Vector{NTuple{3,T}}()
+        Vector{NTuple{3, T}}(),
+        Vector{NTuple{3, T}}(),
     )
 end
 
@@ -135,11 +135,8 @@ Store the information of a parsed ICGEM file.
     model, in which the element `[n + 1, m + 1]` is the coefficient of degree `n` and
     order `m`.
 """
-struct IcgemFile{
-    T<:Number,
-    NT<:Val,
-    Coeff<:AbstractIcgemCoefficient{T}
-} <: GravityModels.AbstractGravityModel{T, NT}
+struct IcgemFile{T <: Number, NT <: Val, Coeff <: AbstractIcgemCoefficient{T}} <:
+       GravityModels.AbstractGravityModel{T, NT}
     # Fields related to the header.
     product_type::Symbol
     model_name::String

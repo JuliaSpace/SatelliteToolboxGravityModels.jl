@@ -8,7 +8,9 @@
 
 @testset "API Support" verbose = true begin
     @testset "Unnormalized Coefficients" begin
-        model = GravityModels.load(IcgemFile, "./icgem_test_files/unnormalized_coefficients.gfc")
+        model = GravityModels.load(
+            IcgemFile, "./icgem_test_files/unnormalized_coefficients.gfc"
+        )
         @test GravityModels.coefficient_norm(model) == :unnormalized
     end
 end
@@ -18,7 +20,7 @@ end
 @testset "Fetching ICGEM files" verbose = true begin
     egm96_file = (@test_logs (
         :info,
-        "Downloading the ICGEM file 'EGM96.gfc' from 'https://icgem.gfz-potsdam.de/getmodel/gfc/971b0a3b49a497910aad23cd85e066d4cd9af0aeafe7ce6301a696bed8570be3/EGM96.gfc'..."
+        "Downloading the ICGEM file 'EGM96.gfc' from 'https://icgem.gfz-potsdam.de/getmodel/gfc/971b0a3b49a497910aad23cd85e066d4cd9af0aeafe7ce6301a696bed8570be3/EGM96.gfc'...",
     ) fetch_icgem_file(:EGM96))
 
     @test basename(egm96_file) == "EGM96.gfc"
@@ -88,7 +90,7 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
@@ -96,7 +98,7 @@ end
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, DateTime("2023-06-19"))
 
     @test Clm ≈ +2.4393402707210633e-6 atol = 1e-20
-    @test Slm ≈ -1.4004093829317802e-6  atol = 1e-20
+    @test Slm ≈ -1.4004093829317802e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 100, 1, DateTime("2023-06-19"))
 
@@ -105,10 +107,7 @@ end
 
     # Testing the version without the time parameter, which defaults to J2000.0 epoch.
     Clm_j2000, Slm_j2000 = GravityModels.coefficients(
-        eigen6c,
-        2,
-        2,
-        DateTime("2000-01-01T12:00:00")
+        eigen6c, 2, 2, DateTime("2000-01-01T12:00:00")
     )
     @test Clm_j2000 ≈ 2.439363161505511e-6 atol = 1e-20
     @test Slm_j2000 ≈ -1.4002219857412463e-6 atol = 1e-20
@@ -122,7 +121,7 @@ end
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2, time)
 
     @test Clm ≈ +2.4393402707210633e-6 atol = 1e-20
-    @test Slm ≈ -1.4004093829317802e-6  atol = 1e-20
+    @test Slm ≈ -1.4004093829317802e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 100, 1, time)
 
@@ -131,7 +130,7 @@ end
 
     # Testing the version without the time parameter, which defaults to J2000.0 epoch.
     Clm_j2000, Slm_j2000 = GravityModels.coefficients(eigen6c, 2, 2, 0)
-    @test Clm_j2000 ≈  2.439363161505511e-6 atol = 1e-20
+    @test Clm_j2000 ≈ 2.439363161505511e-6 atol = 1e-20
     @test Slm_j2000 ≈ -1.4002219857412463e-6 atol = 1e-20
 
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2)
@@ -148,12 +147,16 @@ end
     )
 
     @test_throws(
-        ErrorException("[Invalid ICGEM file] The mandatory keyword `end_of_head` was not found!"),
+        ErrorException(
+            "[Invalid ICGEM file] The mandatory keyword `end_of_head` was not found!"
+        ),
         GravityModels.load(IcgemFile, "./icgem_test_files/no_end_of_head.gfc")
     )
 
     @test_throws(
-        ErrorException("[Invalid ICGEM file] The following mandatory fields are missing: (:radius, :max_degree)."),
+        ErrorException(
+            "[Invalid ICGEM file] The following mandatory fields are missing: (:radius, :max_degree).",
+        ),
         GravityModels.load(IcgemFile, "./icgem_test_files/missing_mandatory_fields.gfc")
     )
 
@@ -180,13 +183,19 @@ end
         (:warn, "[Line 28] Could not parse `Clm` to Float64: 9.57a11211877e-07."),
         (:warn, "[Line 34] Could not parse `Slm` to Float64: 0.00b000000000e+00."),
         (:warn, "[Line 41] Could not parse `trend_C` to Float64: -5.03a51696812e-12."),
-        (:warn, "[Line 42] Could not parse `Clm` amplitude to Float64: -1.05b85537206e-10."),
+        (
+            :warn,
+            "[Line 42] Could not parse `Clm` amplitude to Float64: -1.05b85537206e-10.",
+        ),
         (:warn, "[Line 43] Could not parse `Clm` amplitude to Float64: 5.08c62560512e-12."),
         (:warn, "[Line 48] Invalid `asin` or `acos` data line."),
         (:warn, "[Line 49] Invalid `asin` or `acos` data line."),
         (:warn, "[Line 53] Invalid `trnd` data line."),
         (:warn, "[Line 59] Could not parse `trend_S` to Float64: 0.0b0000000000e+00."),
-        (:warn, "[Line 86] Could not parse `Slm` amplitude to Float64: -1.07328392828e-12."),
+        (
+            :warn,
+            "[Line 86] Could not parse `Slm` amplitude to Float64: -1.07328392828e-12.",
+        ),
         (:warn, "[Line 90] Could not parse period to Float64: -3.72637514028e-12."),
         GravityModels.load(IcgemFile, "./icgem_test_files/invalid_gfct_data_lines.gfc")
     )
@@ -236,7 +245,7 @@ end
 
 @testset "Showing IcgemGfctCoefficients" verbose = true begin
     eigen6c_file = fetch_icgem_file(
-        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc"
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)

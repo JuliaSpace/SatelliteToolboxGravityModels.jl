@@ -22,17 +22,10 @@ function ChainRulesCore.rrule(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT}
-
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT}
     y = GravityModels.gravitational_acceleration(
-        model,
-        r,
-        time;
-        max_degree = max_degree,
-        max_order = max_order,
-        P = P,
-        dP = dP,
+        model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
     )
 
     function _gravitational_acceleration_pullback(Δ)
@@ -46,18 +39,22 @@ function ChainRulesCore.rrule(
                 P = P,
                 dP = dP,
             ),
-            [r; time]
+            [r; time],
         )
 
         vjp = Δ' * jac
 
-        return (NoTangent(), NoTangent(), vjp[1:3], vjp[4], (NoTangent(), NoTangent(), NoTangent(), NoTangent()))
-
+        return (
+            NoTangent(),
+            NoTangent(),
+            vjp[1:3],
+            vjp[4],
+            (NoTangent(), NoTangent(), NoTangent(), NoTangent()),
+        )
     end
 
     return y, _gravitational_acceleration_pullback
-
-end 
+end
 
 function ChainRulesCore.rrule(
     ::typeof(GravityModels.gravitational_potential),
@@ -67,15 +64,9 @@ function ChainRulesCore.rrule(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-) where {T<:Number, V<:Number, NT}
-
+) where {T <: Number, V <: Number, NT}
     y = GravityModels.gravitational_potential(
-        model,
-        r,
-        time;
-        max_degree = max_degree,
-        max_order = max_order,
-        P = P,
+        model, r, time; max_degree = max_degree, max_order = max_order, P = P
     )
 
     function _gravitational_potential_pullback(Δ)
@@ -88,17 +79,21 @@ function ChainRulesCore.rrule(
                 max_order = max_order,
                 P = P,
             ),
-            [r; time]
+            [r; time],
         )
 
         vjp = Δ' * grad
 
-        return (NoTangent(), NoTangent(), vjp[1:3], vjp[4], (NoTangent(), NoTangent(), NoTangent()))
-
+        return (
+            NoTangent(),
+            NoTangent(),
+            vjp[1:3],
+            vjp[4],
+            (NoTangent(), NoTangent(), NoTangent()),
+        )
     end
 
     return y, _gravitational_potential_pullback
-
 end
 
 function ChainRulesCore.rrule(
@@ -109,17 +104,10 @@ function ChainRulesCore.rrule(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT}
-
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT}
     y = GravityModels.gravitational_field_derivative(
-        model,
-        r,
-        time;
-        max_degree = max_degree,
-        max_order = max_order,
-        P = P,
-        dP = dP,
+        model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
     )
 
     function _gravitational_field_derivative_pullback(Δ)
@@ -137,7 +125,7 @@ function ChainRulesCore.rrule(
                 # Convert result to a vector for jacobian computation
                 return collect(result)
             end,
-            vcat(collect(r), time)
+            vcat(collect(r), time),
         )
 
         # Handle the tangent properly - extract the values from the tangent structure
@@ -162,12 +150,16 @@ function ChainRulesCore.rrule(
 
         vjp = Δ_vec' * jac
 
-        return (NoTangent(), NoTangent(), vjp[1:3], vjp[4], (NoTangent(), NoTangent(), NoTangent(), NoTangent()))
-
+        return (
+            NoTangent(),
+            NoTangent(),
+            vjp[1:3],
+            vjp[4],
+            (NoTangent(), NoTangent(), NoTangent(), NoTangent()),
+        )
     end
 
     return y, _gravitational_field_derivative_pullback
-
 end
 
 end

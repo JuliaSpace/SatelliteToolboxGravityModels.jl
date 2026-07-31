@@ -4,17 +4,17 @@
 #
 ############################################################################################
 
-function show(io::IO, c::IcgemGfcCoefficient{T}) where T
+function show(io::IO, c::IcgemGfcCoefficient{T}) where {T}
     print(io, typeof(c), "(Clm = ", c.clm, ", Slm = ", c.slm, ")")
     return nothing
 end
 
-function show(io::IO, c::IcgemGfctCoefficient{T}) where T
+function show(io::IO, c::IcgemGfctCoefficient{T}) where {T}
     print(io, typeof(c), "(Clm₀ = ", c.clm, ", Slm₀ = ", c.slm, ")")
     return nothing
 end
 
-function show(io::IO, mime::MIME"text/plain", c::IcgemGfcCoefficient{T}) where T
+function show(io::IO, mime::MIME"text/plain", c::IcgemGfcCoefficient{T}) where {T}
     # Check for color support in the `io`.
     color = get(io, :color, false)
     b = color ? _B : ""
@@ -22,12 +22,12 @@ function show(io::IO, mime::MIME"text/plain", c::IcgemGfcCoefficient{T}) where T
 
     println(io, typeof(c), ":")
     println(io, "$(b)  Clm :$(d) ", c.clm)
-    print(  io, "$(b)  Slm :$(d) ", c.slm)
+    print(io, "$(b)  Slm :$(d) ", c.slm)
 
     return nothing
 end
 
-function show(io::IO, mime::MIME"text/plain", c::IcgemGfctCoefficient{T}) where T
+function show(io::IO, mime::MIME"text/plain", c::IcgemGfctCoefficient{T}) where {T}
     # Check for color support in the `io`.
     color = get(io, :color, false)
     b = color ? _B : ""
@@ -36,24 +36,37 @@ function show(io::IO, mime::MIME"text/plain", c::IcgemGfctCoefficient{T}) where 
     println(io, typeof(c), ":")
     println(io, "$(b)    Clm₀ :$(d) ", c.clm)
     println(io, "$(b)    Slm₀ :$(d) ", c.slm)
-    println(io, "$(b)   Epoch :$(d) ", _DT_J2000 + Dates.Millisecond(round(Int64, 1000 * c.time)))
+    println(
+        io,
+        "$(b)   Epoch :$(d) ",
+        _DT_J2000 + Dates.Millisecond(round(Int64, 1000 * c.time)),
+    )
     println(io, "$(b)   Trend :$(d) Clm = ", c.trend_clm, ", Slm = ", c.trend_slm)
-    print(  io, "$(b)    Sine :$(d) ")
+    print(io, "$(b)    Sine :$(d) ")
     _print_asin_acos_vectors(io, c.asin_coefficients)
     println(io)
-    print(  io, "$(b)  Cosine : $(d)")
+    print(io, "$(b)  Cosine : $(d)")
     _print_asin_acos_vectors(io, c.acos_coefficients)
 
     return nothing
 end
 
-function show(io::IO, m::IcgemFile{T}) where T
+function show(io::IO, m::IcgemFile{T}) where {T}
     # Check for color support in the `io`.
     color = get(io, :color, false)
     b = color ? _B : ""
     d = color ? _D : ""
 
-    print(io, "$(b)ICGEM ", m.model_name, "$(d) (Degree = ", m.max_degree, ") {", string(T), "}")
+    print(
+        io,
+        "$(b)ICGEM ",
+        m.model_name,
+        "$(d) (Degree = ",
+        m.max_degree,
+        ") {",
+        string(T),
+        "}",
+    )
     return nothing
 end
 
@@ -72,7 +85,7 @@ function show(io::IO, mime::MIME"text/plain", m::IcgemFile{T, Val{NT}}) where {T
     println(io, "$(b)            Errors :$(d) ", m.errors)
     println(io, "$(b)       Tide system :$(d) ", m.tide_system)
     println(io, "$(b)              Norm :$(d) ", NT)
-    print(  io, "$(b)         Data type :$(d) ", string(T))
+    print(io, "$(b)         Data type :$(d) ", string(T))
 
     return nothing
 end
@@ -87,7 +100,7 @@ end
 Print to `io` the periodic terms in `v`, in which each element contains the amplitude for
 `Clm` [-], the amplitude for `Slm` [-], and the period [year].
 """
-function _print_asin_acos_vectors(io::IO, v::Vector{NTuple{3, T}}) where T
+function _print_asin_acos_vectors(io::IO, v::Vector{NTuple{3, T}}) where {T}
     num_coefficients = length(v)
     for k in 1:num_coefficients
         c = v[k]

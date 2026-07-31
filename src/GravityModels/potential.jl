@@ -69,8 +69,8 @@ function gravitational_potential(
     r::AbstractVector{V};
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT<:Val}
+    P::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT <: Val}
     return gravitational_potential(model, r, 0; max_degree, max_order, P)
 end
 
@@ -80,9 +80,8 @@ function gravitational_potential(
     time::W;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, W<:Number, NT<:Val}
-
+    P::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, W <: Number, NT <: Val}
     RT = promote_type(T, V, W)
 
     # == Unpack Gravity Model Data =========================================================
@@ -114,7 +113,11 @@ function gravitational_potential(
         rows, cols = size(P)
 
         if (rows < n_max + 1) || (cols < m_max + 1)
-            throw(ArgumentError("Matrix `P` must have at least $(n_max + 1) rows and $(m_max + 1) columns."))
+            throw(
+                ArgumentError(
+                    "Matrix `P` must have at least $(n_max + 1) rows and $(m_max + 1) columns.",
+                ),
+            )
         end
     end
 
@@ -150,21 +153,20 @@ function _gravitational_potential_kernel(
     time::W,
     n_max::Int,
     m_max::Int,
-    P::AbstractMatrix
-) where {T<:Number, V<:Number, W<:Number, NT<:Val}
-
+    P::AbstractMatrix,
+) where {T <: Number, V <: Number, W <: Number, NT <: Val}
     RT = promote_type(T, V, W)
 
     # == Unpack Gravity Model Data =========================================================
 
-    μ  = gravity_constant(model)
+    μ = gravity_constant(model)
     R₀ = radius(model)
     norm_type = coefficient_norm(model)
 
     # == Geocentric Latitude and Longitude =================================================
 
     ρ²_gc = r[1]^2 + r[2]^2
-    r²_gc = ρ²_gc  + r[3]^2
+    r²_gc = ρ²_gc + r[3]^2
     r_gc  = √r²_gc
     ρ_gc  = √ρ²_gc
     ϕ_gc  = atan(r[3], ρ_gc)
@@ -176,7 +178,7 @@ function _gravitational_potential_kernel(
     #
     # These values are used in the algorithm to decrease the computational burden.
 
-    sin_λ,  cos_λ  = sincos(λ_gc)
+    sin_λ, cos_λ   = sincos(λ_gc)
     sin_2λ, cos_2λ = sincos(2λ_gc)
 
     # == Gravitational Potential ===========================================================
@@ -255,17 +257,11 @@ function gravitational_potential(
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT<:Val}
-
+    P::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT <: Val}
     t = Dates.value(time - _DT_J2000) / 1000
 
     return gravitational_potential(
-        model,
-        r,
-        t;
-        max_degree = max_degree,
-        max_order = max_order,
-        P = P,
+        model, r, t; max_degree = max_degree, max_order = max_order, P = P
     )
 end

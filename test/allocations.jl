@@ -7,8 +7,8 @@
 @testset "Aqua.jl" begin
     Aqua.test_all(
         SatelliteToolboxGravityModels;
-        ambiguities      = (recursive    = false),
-        deps_compat      = (check_extras = false)
+        ambiguities = (recursive = false),
+        deps_compat = (check_extras = false),
     )
 end
 
@@ -19,7 +19,7 @@ else
         rep = JET.test_package(
             SatelliteToolboxGravityModels;
             toplevel_logger = nothing,
-            target_modules  = (@__MODULE__,)
+            target_modules  = (@__MODULE__,),
         )
     end
 end
@@ -34,58 +34,66 @@ end
     @test length(
         check_allocs(
             (model, x, md, mo, p, dp) -> GravityModels.gravitational_acceleration(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p,
-                dP = dp
+                model, x; max_degree = md, max_order = mo, P = p, dP = dp
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, Matrix{Float64}, Matrix{Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                Matrix{Float64},
+                Matrix{Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, x, md, mo, p, dp) -> GravityModels.gravitational_acceleration(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p,
-                dP = dp
+                model, x; max_degree = md, max_order = mo, P = p, dP = dp
             ),
-            (IcgemFile{Float64, Val{:unnormalized}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, Matrix{Float64}, Matrix{Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:unnormalized}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                Matrix{Float64},
+                Matrix{Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, x, md, mo, p, dp) -> GravityModels.gravitational_acceleration(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p,
-                dP = dp
+                model, x; max_degree = md, max_order = mo, P = p, dP = dp
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, Matrix{Float64}, Matrix{Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                Matrix{Float64},
+                Matrix{Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, r_itrf, t, md, mo, p, dp) -> GravityModels.gravitational_acceleration(
-                model,
-                r_itrf,
-                t;
-                max_degree = md,
-                max_order = mo,
-                P = p,
-                dP = dp
+                model, r_itrf, t; max_degree = md, max_order = mo, P = p, dP = dp
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Float64, Int, Int, Matrix{Float64}, Matrix{Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Float64,
+                Int,
+                Int,
+                Matrix{Float64},
+                Matrix{Float64},
+            ),
+        ),
     ) == 0
 end
 
@@ -98,54 +106,62 @@ end
     @test length(
         check_allocs(
             (model, x, md, mo, p) -> GravityModels.gravitational_potential(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p
+                model, x; max_degree = md, max_order = mo, P = p
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, Matrix{Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                Matrix{Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, x, md, mo, p) -> GravityModels.gravitational_potential(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p
+                model, x; max_degree = md, max_order = mo, P = p
             ),
-            (IcgemFile{Float64, Val{:unnormalized}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, Matrix{Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:unnormalized}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                Matrix{Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, x, md, mo, p) -> GravityModels.gravitational_potential(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p
+                model, x; max_degree = md, max_order = mo, P = p
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, Matrix{Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                Matrix{Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, r_itrf, t, md, mo, p) -> GravityModels.gravitational_potential(
-                model,
-                r_itrf,
-                t;
-                max_degree = md,
-                max_order = mo,
-                P = p
+                model, r_itrf, t; max_degree = md, max_order = mo, P = p
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Float64, Int, Int, Matrix{Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Float64,
+                Int,
+                Int,
+                Matrix{Float64},
+            ),
+        ),
     ) == 0
 end
 
@@ -159,58 +175,66 @@ end
     @test length(
         check_allocs(
             (model, x, md, mo, p, dp) -> GravityModels.gravitational_acceleration(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p,
-                dP = dp
+                model, x; max_degree = md, max_order = mo, P = p, dP = dp
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, LowerTriangularStorage{RowMajor, Float64}, LowerTriangularStorage{RowMajor, Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                LowerTriangularStorage{RowMajor, Float64},
+                LowerTriangularStorage{RowMajor, Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, x, md, mo, p, dp) -> GravityModels.gravitational_acceleration(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p,
-                dP = dp
+                model, x; max_degree = md, max_order = mo, P = p, dP = dp
             ),
-            (IcgemFile{Float64, Val{:unnormalized}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, LowerTriangularStorage{RowMajor, Float64}, LowerTriangularStorage{RowMajor, Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:unnormalized}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                LowerTriangularStorage{RowMajor, Float64},
+                LowerTriangularStorage{RowMajor, Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, x, md, mo, p, dp) -> GravityModels.gravitational_acceleration(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p,
-                dP = dp
+                model, x; max_degree = md, max_order = mo, P = p, dP = dp
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, LowerTriangularStorage{RowMajor, Float64}, LowerTriangularStorage{RowMajor, Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                LowerTriangularStorage{RowMajor, Float64},
+                LowerTriangularStorage{RowMajor, Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, r_itrf, t, md, mo, p, dp) -> GravityModels.gravitational_acceleration(
-                model,
-                r_itrf,
-                t;
-                max_degree = md,
-                max_order = mo,
-                P = p,
-                dP = dp
+                model, r_itrf, t; max_degree = md, max_order = mo, P = p, dP = dp
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Float64, Int, Int, LowerTriangularStorage{RowMajor, Float64}, LowerTriangularStorage{RowMajor, Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Float64,
+                Int,
+                Int,
+                LowerTriangularStorage{RowMajor, Float64},
+                LowerTriangularStorage{RowMajor, Float64},
+            ),
+        ),
     ) == 0
 end
 
@@ -223,53 +247,61 @@ end
     @test length(
         check_allocs(
             (model, x, md, mo, p) -> GravityModels.gravitational_potential(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p
+                model, x; max_degree = md, max_order = mo, P = p
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, LowerTriangularStorage{RowMajor, Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                LowerTriangularStorage{RowMajor, Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, x, md, mo, p) -> GravityModels.gravitational_potential(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p
+                model, x; max_degree = md, max_order = mo, P = p
             ),
-            (IcgemFile{Float64, Val{:unnormalized}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, LowerTriangularStorage{RowMajor, Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:unnormalized}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                LowerTriangularStorage{RowMajor, Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, x, md, mo, p) -> GravityModels.gravitational_potential(
-                model,
-                x;
-                max_degree = md,
-                max_order = mo,
-                P = p
+                model, x; max_degree = md, max_order = mo, P = p
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Int, Int, LowerTriangularStorage{RowMajor, Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Int,
+                Int,
+                LowerTriangularStorage{RowMajor, Float64},
+            ),
+        ),
     ) == 0
 
     @test length(
         check_allocs(
             (model, r_itrf, t, md, mo, p) -> GravityModels.gravitational_potential(
-                model,
-                r_itrf,
-                t;
-                max_degree = md,
-                max_order = mo,
-                P = p
+                model, r_itrf, t; max_degree = md, max_order = mo, P = p
             ),
-            (IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}}, Vector{Float64}, Float64, Int, Int, LowerTriangularStorage{RowMajor, Float64})
-        )
+            (
+                IcgemFile{Float64, Val{:full}, IcgemGfcCoefficient{Float64}},
+                Vector{Float64},
+                Float64,
+                Int,
+                Int,
+                LowerTriangularStorage{RowMajor, Float64},
+            ),
+        ),
     ) == 0
 end

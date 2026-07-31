@@ -31,15 +31,14 @@ The return type `RT` is `T` for models with only constant coefficients, or
 `float(promote_type(T, typeof(time)))` for models with time-variable coefficients.
 """
 function icgem_coefficients(
-    model::IcgemFile{T},
-    degree::Int,
-    order::Int,
-    time::Number
-) where T<:Number
+    model::IcgemFile{T}, degree::Int, order::Int, time::Number
+) where {T <: Number}
     # First let's check if the degree and order is inside the expected range.
-    order > degree && throw(ArgumentError("`order` must be lower than or equal to `degree`."))
-    degree > model.max_degree &&
-        throw(ArgumentError("The maximum degree available in the model is $(model.max_degree)."))
+    order > degree &&
+        throw(ArgumentError("`order` must be lower than or equal to `degree`."))
+    degree > model.max_degree && throw(
+        ArgumentError("The maximum degree available in the model is $(model.max_degree)."),
+    )
 
     # Get the data element related to the degree and order.
     coefficient = @inbounds model.data[degree + 1, order + 1]
@@ -47,20 +46,11 @@ function icgem_coefficients(
 end
 
 function icgem_coefficients(
-    model::IcgemFile{T},
-    degree::Int,
-    order::Int,
-    time::DateTime
-) where T<:Number
-
+    model::IcgemFile{T}, degree::Int, order::Int, time::DateTime
+) where {T <: Number}
     t = Dates.value(time - _DT_J2000) / 1000
 
-    return icgem_coefficients(
-        model,
-        degree,
-        order,
-        t,
-    )
+    return icgem_coefficients(model, degree, order, t)
 end
 
 ############################################################################################
@@ -97,9 +87,8 @@ The return type `RT` is `float(promote_type(T, typeof(t)))`.
     "Geodesy and Remote Sensing".
 """
 function _compute_icgem_coefficient(
-    coefficient::IcgemGfctCoefficient{T},
-    t::Number
-) where T<:Number
+    coefficient::IcgemGfctCoefficient{T}, t::Number
+) where {T <: Number}
     # Promote the coefficients beforehand so both return paths have the same type.
     RT = float(promote_type(T, typeof(t)))
 
@@ -124,7 +113,7 @@ function _compute_icgem_coefficient(
     for c in coefficient.asin_coefficients
         A_clm, A_slm, p = c
 
-        aux  = sin(RT(2π) / p * Δt)
+        aux = sin(RT(2π) / p * Δt)
         clm += A_clm * aux
         slm += A_slm * aux
     end
@@ -134,7 +123,7 @@ function _compute_icgem_coefficient(
     for c in coefficient.acos_coefficients
         A_clm, A_slm, p = c
 
-        aux  = cos(RT(2π) / p * Δt)
+        aux = cos(RT(2π) / p * Δt)
         clm += A_clm * aux
         slm += A_slm * aux
     end

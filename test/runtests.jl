@@ -19,7 +19,6 @@ end
     include("./gravity_models.jl")
 end
 
-
 if isempty(VERSION.prerelease)
     using Pkg
     Pkg.add("DifferentiationInterface")

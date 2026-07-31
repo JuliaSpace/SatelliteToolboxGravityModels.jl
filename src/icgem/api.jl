@@ -8,7 +8,9 @@ function GravityModels.coefficients(model::IcgemFile, degree::Int, order::Int, t
     return icgem_coefficients(model, degree, order, time)
 end
 
-function GravityModels.coefficient_norm(model::IcgemFile{T, Val{NT}}) where {T<:Number, NT}
+function GravityModels.coefficient_norm(
+    model::IcgemFile{T, Val{NT}}
+) where {T <: Number, NT}
     if NT === :unnormalized
         return :unnormalized
     else
@@ -28,10 +30,8 @@ throws an `ErrorException` if the file does not conform to the ICGEM format.
 See also: [`parse_icgem`](@ref), [`fetch_icgem_file`](@ref)
 """
 function GravityModels.load(
-    ::Type{IcgemFile},
-    filename::AbstractString,
-    ::Type{T} = Float64
-) where T
+    ::Type{IcgemFile}, filename::AbstractString, ::Type{T} = Float64
+) where {T}
     return parse_icgem(filename, T)
 end
 

@@ -36,7 +36,9 @@ end
 end
 
 @testset "gravitational_field_derivative(model, r, t)" begin
-    fn = (x) -> collect(GravityModels.gravitational_field_derivative(_GRAV_MODEL, x[1:3], x[4]))
+    fn =
+        (x) ->
+            collect(GravityModels.gravitational_field_derivative(_GRAV_MODEL, x[1:3], x[4]))
     input = [r_itrf; time]
 
     _, jac_fd = value_and_jacobian(fn, AutoForwardDiff(), input)

@@ -28,7 +28,7 @@ include("./types.jl")
 #                                        Constants                                         #
 ############################################################################################
 
-const _D = string(Crayon(reset = true))
+const _D = string(Crayon(; reset = true))
 const _B = string(crayon"bold")
 
 const _DT_J2000 = DateTime(2000, 1, 1, 12, 0, 0)

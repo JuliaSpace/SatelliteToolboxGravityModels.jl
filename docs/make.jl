@@ -1,9 +1,9 @@
 using Documenter
 using SatelliteToolboxGravityModels
 
-makedocs(
+makedocs(;
     modules = [SatelliteToolboxGravityModels],
-    format = Documenter.HTML(
+    format = Documenter.HTML(;
         prettyurls = !("local" in ARGS),
         canonical = "https://juliaspace.github.io/SatelliteToolboxGravityModels.jl/stable/",
     ),
@@ -17,7 +17,6 @@ makedocs(
     ],
 )
 
-deploydocs(
-    repo = "github.com/JuliaSpace/SatelliteToolboxGravityModels.jl.git",
-    target = "build",
+deploydocs(;
+    repo = "github.com/JuliaSpace/SatelliteToolboxGravityModels.jl.git", target = "build"
 )

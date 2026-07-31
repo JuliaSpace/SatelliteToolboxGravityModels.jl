@@ -70,8 +70,8 @@ function gravitational_field_derivative(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT<:Val}
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT <: Val}
     return gravitational_field_derivative(model, r, 0; max_degree, max_order, P, dP)
 end
 
@@ -82,9 +82,8 @@ function gravitational_field_derivative(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, W<:Number, NT<:Val}
-
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, W <: Number, NT <: Val}
     RT = promote_type(T, V, W)
 
     # == Unpack Gravity Model Data =========================================================
@@ -113,7 +112,7 @@ function gravitational_field_derivative(
     # order at least one time higher than `dP`. Otherwise, we will access regions with
     # undefined numbers.
     if n_max == m_max
-        n_max_P  = m_max_P  = n_max
+        n_max_P  = m_max_P = n_max
         n_max_dP = m_max_dP = n_max
     else
         n_max_P  = n_max
@@ -131,7 +130,11 @@ function gravitational_field_derivative(
         rows, cols = size(P)
 
         if (rows < n_max_P + 1) || (cols < m_max_P + 1)
-            throw(ArgumentError("Matrix `P` must have at least $(n_max_P + 1) rows and $(m_max_P + 1) columns."))
+            throw(
+                ArgumentError(
+                    "Matrix `P` must have at least $(n_max_P + 1) rows and $(m_max_P + 1) columns.",
+                ),
+            )
         end
     end
 
@@ -143,24 +146,18 @@ function gravitational_field_derivative(
         rows, cols = size(dP)
 
         if (rows < n_max_dP + 1) || (cols < m_max_dP + 1)
-            throw(ArgumentError("Matrix `dP` must have at least $(n_max_dP + 1) rows and $(m_max_dP + 1) columns."))
+            throw(
+                ArgumentError(
+                    "Matrix `dP` must have at least $(n_max_dP + 1) rows and $(m_max_dP + 1) columns.",
+                ),
+            )
         end
     end
 
     # Call the kernel through a function barrier. Hence, the hot loop is always compiled
     # with concrete types for `P` and `dP`, even when they are allocated here.
     return _gravitational_field_derivative_kernel(
-        model,
-        r,
-        time,
-        n_max,
-        m_max,
-        n_max_P,
-        m_max_P,
-        n_max_dP,
-        m_max_dP,
-        P,
-        dP
+        model, r, time, n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP
     )
 end
 
@@ -210,21 +207,20 @@ function _gravitational_field_derivative_kernel(
     n_max_dP::Int,
     m_max_dP::Int,
     P::AbstractMatrix,
-    dP::AbstractMatrix
-) where {T<:Number, V<:Number, W<:Number, NT<:Val}
-
+    dP::AbstractMatrix,
+) where {T <: Number, V <: Number, W <: Number, NT <: Val}
     RT = promote_type(T, V, W)
 
     # == Unpack Gravity Model Data =========================================================
 
-    μ  = gravity_constant(model)
+    μ = gravity_constant(model)
     R₀ = radius(model)
     norm_type = coefficient_norm(model)
 
     # == Geocentric Latitude and Longitude =================================================
 
     ρ²_gc = r[1]^2 + r[2]^2
-    r²_gc = ρ²_gc  + r[3]^2
+    r²_gc = ρ²_gc + r[3]^2
     r_gc  = √r²_gc
     ρ_gc  = √ρ²_gc
     ϕ_gc  = atan(r[3], ρ_gc)
@@ -236,7 +232,7 @@ function _gravitational_field_derivative_kernel(
     #
     # These values are used in the algorithm to decrease the computational burden.
 
-    sin_λ,  cos_λ  = sincos(λ_gc)
+    sin_λ, cos_λ   = sincos(λ_gc)
     sin_2λ, cos_2λ = sincos(2λ_gc)
 
     # == First Derivative of the Non-Spherical Portion of the Gravitational Field ==========
@@ -294,11 +290,11 @@ function _gravitational_field_derivative_kernel(
 
             # == Compute the Contributions for `m` =========================================
 
-            P_nm  =  P[n + 1, m + 1]
+            P_nm  = P[n + 1, m + 1]
             dP_nm = dP[n + 1, m + 1]
 
-            aux_∂U_∂r +=     P_nm * CcSs_nm
-            aux_∂U_∂ϕ +=    dP_nm * CcSs_nm
+            aux_∂U_∂r += P_nm * CcSs_nm
+            aux_∂U_∂ϕ += dP_nm * CcSs_nm
             aux_∂U_∂λ += m * P_nm * ScCs_nm
 
             # == Update the Values for the Next Step =======================================
@@ -336,18 +332,11 @@ function gravitational_field_derivative(
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing
-) where {T<:Number, V<:Number, NT<:Val}
-
+    dP::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT <: Val}
     t = Dates.value(time - _DT_J2000) / 1000
 
     return gravitational_field_derivative(
-        model,
-        r,
-        t;
-        max_degree = max_degree,
-        max_order = max_order,
-        P = P,
-        dP = dP,
+        model, r, t; max_degree = max_degree, max_order = max_order, P = P, dP = dP
     )
 end
