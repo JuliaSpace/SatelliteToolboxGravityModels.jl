@@ -136,6 +136,15 @@ end
     Clm, Slm = GravityModels.coefficients(eigen6c, 2, 2)
     @test Clm == Clm_j2000
     @test Slm == Slm_j2000
+
+    # The coefficients omitted in the file must be zero.
+    egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
+
+    for m in 0:1
+        Clm, Slm = GravityModels.coefficients(egm96, 1, m)
+        @test Clm == 0
+        @test Slm == 0
+    end
 end
 
 # == File: ./src/icgem/parse.jl ============================================================

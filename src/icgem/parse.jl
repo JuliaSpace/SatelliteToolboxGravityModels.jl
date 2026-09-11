@@ -168,8 +168,9 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where {T}
     # TODO: Should we really need to allocate both static and dynamic data storage?
 
     # Since we now have the maximum degree, we can pre-allocate and initialize the data
-    # matrix.
-    data_static  = LowerTriangularStorage{RowMajor, IcgemGfcCoefficient{Tf}}(max_degree + 1)
+    # matrix. The storage must be filled with zeros because the file can omit coefficients,
+    # such as those of degree 1, which are zero by definition.
+    data_static  = zeros(LowerTriangularStorage{RowMajor, IcgemGfcCoefficient{Tf}}, max_degree + 1)
     data_dynamic = nothing
 
     # State of the parsing algorithm.
@@ -196,8 +197,8 @@ function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where {T}
     # dynamic data storage, creating the latter if needed.
     function flush_gfct_coefficient!()
         if isnothing(data_dynamic)
-            data_dynamic = LowerTriangularStorage{RowMajor, IcgemGfctCoefficient{Tf}}(
-                max_degree + 1
+            data_dynamic = zeros(
+                LowerTriangularStorage{RowMajor, IcgemGfctCoefficient{Tf}}, max_degree + 1
             )
 
             for i in 1:(max_degree + 1), j in 1:i

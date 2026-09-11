@@ -96,6 +96,10 @@ IcgemGfctCoefficient(c::IcgemGfcCoefficient{T}) where {T} = IcgemGfctCoefficient
     NTuple{3, T}[],
 )
 
+# The coefficients are scalars in broadcasting operations, allowing, for example, to fill a
+# storage with `zero(IcgemGfcCoefficient{T})`.
+Base.broadcastable(c::AbstractIcgemCoefficient) = Ref(c)
+
 function Base.zero(::Type{IcgemGfcCoefficient{T}}) where {T}
     return IcgemGfcCoefficient(zero(T), zero(T))
 end
