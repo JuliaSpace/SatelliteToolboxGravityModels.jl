@@ -1,7 +1,10 @@
 ## Description #############################################################################
 #
-# Zygote Extension for the SatelliteToolboxGravityModels.jl package. Needed since gravitational_acceleration
-# is mutating and changing that would require a large rework. Instead use ForwardDiff for this function instead.
+# Zygote.jl extension for the SatelliteToolboxGravityModels.jl package.
+#
+# The evaluation functions mutate the buffers of the associated Legendre functions, which
+# Zygote.jl cannot differentiate. Hence, this extension defines reverse rules whose
+# pullbacks compute the Jacobians with ForwardDiff.jl.
 #
 ############################################################################################
 

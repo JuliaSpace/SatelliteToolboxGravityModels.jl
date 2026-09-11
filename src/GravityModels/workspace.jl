@@ -238,7 +238,13 @@ end
 
 """
     _legendre!(N::Val, P::AbstractMatrix, θ::Number, n_max::Int, m_max::Int) -> Nothing
-    _legendre!(coefficients::LegendreCoefficients, P::AbstractMatrix, θ::Number, n_max::Int, m_max::Int) -> Nothing
+    _legendre!(
+        coefficients::LegendreCoefficients,
+        P::AbstractMatrix,
+        θ::Number,
+        n_max::Int,
+        m_max::Int
+    ) -> Nothing
 
 Compute in `P` the associated Legendre functions `P_n,m[cos(θ)]` up to the degree `n_max`
 and order `m_max` without the Condon-Shortley phase term, using either the normalization
@@ -257,8 +263,22 @@ function _legendre!(
 end
 
 """
-    _dlegendre!(N::Val, dP::AbstractMatrix, θ::Number, P::AbstractMatrix, n_max::Int, m_max::Int) -> Nothing
-    _dlegendre!(coefficients::LegendreCoefficients, dP::AbstractMatrix, θ::Number, P::AbstractMatrix, n_max::Int, m_max::Int) -> Nothing
+    _dlegendre!(
+        N::Val,
+        dP::AbstractMatrix,
+        θ::Number,
+        P::AbstractMatrix,
+        n_max::Int,
+        m_max::Int
+    ) -> Nothing
+    _dlegendre!(
+        coefficients::LegendreCoefficients,
+        dP::AbstractMatrix,
+        θ::Number,
+        P::AbstractMatrix,
+        n_max::Int,
+        m_max::Int
+    ) -> Nothing
 
 Compute in `dP` the first-order derivatives of the associated Legendre functions
 `P_n,m[cos(θ)]` with respect to `θ` [rad] up to the degree `n_max` and order `m_max`

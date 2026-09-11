@@ -5,7 +5,8 @@
 ############################################################################################
 
 """
-    gravitational_field_derivative(model::AbstractGravityModel, r::AbstractVector[, time]; kwargs...) -> NTuple{3, RT}
+    gravitational_field_derivative(model::AbstractGravityModel, r::AbstractVector, time::Number = 0; kwargs...) -> RT, RT, RT
+    gravitational_field_derivative(model::AbstractGravityModel, r::AbstractVector, time::DateTime; kwargs...) -> RT, RT, RT
 
 Compute the gravitational field derivative with respect to the spherical coordinates
 (`∂U/∂r`, `∂U/∂ϕ`, `∂U/∂λ`) using the `model` in the position `r` [m], represented in the
@@ -247,10 +248,10 @@ function _gravitational_field_derivative_kernel(
 
     # == First Derivative of the Non-Spherical Portion of the Gravitational Field ==========
 
-    ∂U_∂r = RT(1)  # ........................................... Derivative w.r.t. the radius
-    ∂U_∂ϕ = RT(0)  # .............................. Derivative w.r.t. the geocentric latitude
-    ∂U_∂λ = RT(0)  # ............................. Derivative w.r.t. the geocentric longitude
-    ∂U_∂λ_over_cosϕ_pole = RT(0)  # ........... Limit of (∂U/∂λ) / cos(ϕ_gc) at the poles
+    ∂U_∂r = RT(1)  # .......................................... Derivative w.r.t. the radius
+    ∂U_∂ϕ = RT(0)  # ............................. Derivative w.r.t. the geocentric latitude
+    ∂U_∂λ = RT(0)  # ............................ Derivative w.r.t. the geocentric longitude
+    ∂U_∂λ_over_cosϕ_pole = RT(0)  # .............. Limit of (∂U/∂λ) / cos(ϕ_gc) at the poles
 
     # Compute the associated Legendre functions `P_n,m[cos(θ)]` with the required
     # normalization and their first-order derivatives w.r.t. θ. Since θ ∈ [0, π / 2], the

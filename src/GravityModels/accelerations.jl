@@ -11,7 +11,8 @@
 ############################################################################################
 
 """
-    gravitational_acceleration(model::AbstractGravityModel, r::AbstractVector[, time]; kwargs...) -> SVector{3, RT}
+    gravitational_acceleration(model::AbstractGravityModel, r::AbstractVector, time::Number = 0; kwargs...) -> SVector{3, RT}
+    gravitational_acceleration(model::AbstractGravityModel, r::AbstractVector, time::DateTime; kwargs...) -> SVector{3, RT}
 
 Compute the gravitational acceleration [m/s²] represented in the body-fixed frame (ITRF
 for Earth) using the `model` in the position `r` [m], also represented in the body-fixed
@@ -46,13 +47,13 @@ See also: [`gravity_acceleration`](@ref)
 # Keywords
 
 - `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than the available number of
-    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
-    to the maximum degree available.
+    acceleration. If it is higher than the available number of coefficients in the
+    `model`, it will be clamped. If it is lower than 0, it will be set to the maximum
+    degree available.
     (**Default**: -1)
 - `max_order::Int`: Maximum order used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
-    If it is lower than 0, it will be set to the same value as `max_degree`.
+    acceleration. If it is higher than `max_degree`, it will be clamped. If it is lower
+    than 0, it will be set to the same value as `max_degree`.
     (**Default**: -1)
 - `workspace::Union{Nothing, Workspace}`: Workspace created with [`Workspace`](@ref) for
     the `model`, holding the buffers and the precomputed coefficients used in the
@@ -148,7 +149,8 @@ function gravitational_acceleration(
 end
 
 """
-    gravity_acceleration(model::AbstractGravityModel, r::AbstractVector[, time]; kwargs...) -> SVector{3, RT}
+    gravity_acceleration(model::AbstractGravityModel, r::AbstractVector, time::Number = 0; kwargs...) -> SVector{3, RT}
+    gravity_acceleration(model::AbstractGravityModel, r::AbstractVector, time::DateTime; kwargs...) -> SVector{3, RT}
 
 Compute the gravity acceleration [m/s²] represented in the body-fixed frame (ITRF for
 Earth) using the `model` in the position `r` [m], also represented in the body-fixed
@@ -186,13 +188,13 @@ See also: [`gravitational_acceleration`](@ref)
 # Keywords
 
 - `max_degree::Int`: Maximum degree used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than the available number of
-    coefficients in the `model`, it will be clamped. If it is lower than 0, it will be set
-    to the maximum degree available.
+    acceleration. If it is higher than the available number of coefficients in the
+    `model`, it will be clamped. If it is lower than 0, it will be set to the maximum
+    degree available.
     (**Default**: -1)
 - `max_order::Int`: Maximum order used in the spherical harmonics when computing the
-    gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
-    If it is lower than 0, it will be set to the same value as `max_degree`.
+    acceleration. If it is higher than `max_degree`, it will be clamped. If it is lower
+    than 0, it will be set to the same value as `max_degree`.
     (**Default**: -1)
 - `workspace::Union{Nothing, Workspace}`: Workspace created with [`Workspace`](@ref) for
     the `model`, holding the buffers and the precomputed coefficients used in the

@@ -117,7 +117,8 @@ function parse_icgem(
         )
     end
 
-    # Check for gravity constant - either earth_gravity_constant (Earth) or gravity_constant (other bodies)
+    # The gravity constant is defined by `earth_gravity_constant` for Earth models or by
+    # `gravity_constant` for models of other bodies.
     has_earth_gravity_constant = haskey(keywords, :earth_gravity_constant)
     has_gravity_constant = haskey(keywords, :gravity_constant)
 
@@ -259,7 +260,7 @@ function parse_icgem(
 
                 data[deg + 1, ord + 1] = IcgemGfcCoefficient(clm, slm)
 
-                # == `gfct` Data Line ==========================================================
+                # == `gfct` Data Line ======================================================
 
             elseif tokens[1] == "gfct"
                 ret = _parse_gfct_data_line(Tf, tokens, current_line, is_format_2)
@@ -298,7 +299,7 @@ function parse_icgem(
 
                 read_new_line = true
 
-                # == `asin` and `acos` Data Lines of a `gfct` Section ==========================
+                # == `asin` and `acos` Data Lines of a `gfct` Section ======================
 
             elseif (tokens[1] == "asin") || (tokens[1] == "acos")
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
@@ -447,7 +448,13 @@ function _is_degree_and_order_valid(
 end
 
 """
-    _add_periodic_term!(periodic_terms::Vector{IcgemPeriodicTerm{T}}, is_sine::Bool, amplitude_clm::T, amplitude_slm::T, period::T) -> Nothing
+    _add_periodic_term!(
+        periodic_terms::Vector{IcgemPeriodicTerm{T}},
+        is_sine::Bool,
+        amplitude_clm::T,
+        amplitude_slm::T,
+        period::T
+    ) -> Nothing
 
 Add to `periodic_terms` the sine (`is_sine = true`) or cosine (`is_sine = false`) term with
 the amplitudes `amplitude_clm` [-] and `amplitude_slm` [-] and the `period` [year]. If
@@ -494,7 +501,7 @@ end
 # == Functions to Parse Data Lines =========================================================
 
 """
-    _parse_degree_and_order(tokens, current_line) -> Union{Nothing, Tuple{Int, Int}}
+    _parse_degree_and_order(tokens::AbstractVector{<:AbstractString}, current_line::Int) -> Union{Nothing, Tuple{Int, Int}}
 
 Parse the degree in `tokens[2]` and the order in `tokens[3]`. If any of them cannot be
 parsed, log a warning with the `current_line` number and return `nothing`.
@@ -509,7 +516,9 @@ parsed, log a warning with the `current_line` number and return `nothing`.
 - `Int`: Degree.
 - `Int`: Order.
 """
-function _parse_degree_and_order(tokens, current_line)
+function _parse_degree_and_order(
+    tokens::AbstractVector{<:AbstractString}, current_line::Int
+)
     deg = tryparse(Int, tokens[2])
 
     if isnothing(deg)
@@ -528,7 +537,7 @@ function _parse_degree_and_order(tokens, current_line)
 end
 
 """
-    _parse_gfc_data_line(Tf, tokens, current_line) -> Union{Nothing, Tuple}
+    _parse_gfc_data_line(Tf::Type, tokens::AbstractVector{<:AbstractString}, current_line::Int) -> Union{Nothing, Tuple}
 
 Parse the `gfc` data line in `tokens` using the type `Tf` for the floating point fields.
 If any field cannot be parsed, log a warning with the `current_line` number and return
@@ -547,7 +556,9 @@ If any field cannot be parsed, log a warning with the `current_line` number and 
 - `Tf`: Coefficient `Clm` [-].
 - `Tf`: Coefficient `Slm` [-].
 """
-function _parse_gfc_data_line(Tf, tokens, current_line)
+function _parse_gfc_data_line(
+    Tf::Type, tokens::AbstractVector{<:AbstractString}, current_line::Int
+)
     if length(tokens) < 5
         @warn "[Line $current_line] Invalid `gfc` data line."
         return nothing
@@ -575,7 +586,7 @@ function _parse_gfc_data_line(Tf, tokens, current_line)
 end
 
 """
-    _parse_gfct_data_line(Tf, tokens, current_line, is_format_2) -> Union{Nothing, Tuple}
+    _parse_gfct_data_line(Tf::Type, tokens::AbstractVector{<:AbstractString}, current_line::Int, is_format_2::Bool) -> Union{Nothing, Tuple}
 
 Parse the `gfct` data line in `tokens` using the type `Tf` for the floating point fields.
 If any field cannot be parsed, log a warning with the `current_line` number and return
@@ -603,7 +614,9 @@ epoch `t₀` and the end `t₁` of the validity interval.
 - `Tf`: End (`t₁`) of the validity interval, expressed as the number of elapsed seconds [s]
     since the J2000.0 epoch (2000-01-01T12:00:00), or `Inf` in the ICGEM format 1.0.
 """
-function _parse_gfct_data_line(Tf, tokens, current_line, is_format_2)
+function _parse_gfct_data_line(
+    Tf::Type, tokens::AbstractVector{<:AbstractString}, current_line::Int, is_format_2::Bool
+)
     if length(tokens) < (is_format_2 ? 7 : 6)
         @warn "[Line $current_line] Invalid `gfct` data line."
         return nothing
@@ -637,7 +650,7 @@ function _parse_gfct_data_line(Tf, tokens, current_line, is_format_2)
 end
 
 """
-    _parse_trnd_data_line(Tf, tokens, current_line) -> Union{Nothing, Tuple}
+    _parse_trnd_data_line(Tf::Type, tokens::AbstractVector{<:AbstractString}, current_line::Int) -> Union{Nothing, Tuple}
 
 Parse the `trnd` data line in `tokens` using the type `Tf` for the floating point fields.
 If any field cannot be parsed, log a warning with the `current_line` number and return
@@ -656,7 +669,9 @@ If any field cannot be parsed, log a warning with the `current_line` number and 
 - `Tf`: Linear trend of `Clm` [year⁻¹].
 - `Tf`: Linear trend of `Slm` [year⁻¹].
 """
-function _parse_trnd_data_line(Tf, tokens, current_line)
+function _parse_trnd_data_line(
+    Tf::Type, tokens::AbstractVector{<:AbstractString}, current_line::Int
+)
     if length(tokens) < 5
         @warn "[Line $current_line] Invalid `trnd` data line."
         return nothing
@@ -686,7 +701,7 @@ function _parse_trnd_data_line(Tf, tokens, current_line)
 end
 
 """
-    _parse_asin_acos_data_line(Tf, tokens, current_line) -> Union{Nothing, Tuple}
+    _parse_asin_acos_data_line(Tf::Type, tokens::AbstractVector{<:AbstractString}, current_line::Int) -> Union{Nothing, Tuple}
 
 Parse the `asin` or `acos` data line in `tokens` using the type `Tf` for the floating
 point fields. If any field cannot be parsed, log a warning with the `current_line` number
@@ -706,7 +721,9 @@ and return `nothing`.
 - `Tf`: Amplitude of the periodic term for `Slm` [-].
 - `Tf`: Period of the term [year].
 """
-function _parse_asin_acos_data_line(Tf, tokens, current_line)
+function _parse_asin_acos_data_line(
+    Tf::Type, tokens::AbstractVector{<:AbstractString}, current_line::Int
+)
     if length(tokens) < 6
         @warn "[Line $current_line] Invalid `asin` or `acos` data line."
         return nothing

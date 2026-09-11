@@ -11,7 +11,8 @@
 ############################################################################################
 
 """
-    gravitational_potential(model::AbstractGravityModel, r::AbstractVector[, time]; kwargs...) -> RT
+    gravitational_potential(model::AbstractGravityModel, r::AbstractVector, time::Number = 0; kwargs...) -> RT
+    gravitational_potential(model::AbstractGravityModel, r::AbstractVector, time::DateTime; kwargs...) -> RT
 
 Compute the gravitational potential `U` [m²/s²] using the `model` in the position `r` [m],
 represented in the body-fixed frame (ITRF for Earth), at instant `time`. If the latter

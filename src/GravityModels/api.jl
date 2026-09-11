@@ -5,11 +5,16 @@
 ############################################################################################
 
 """
-    coefficients(model::AbstractGravityModel, degree::Int, order::Int[, time]) -> T, T
+    coefficients(model::AbstractGravityModel, degree::Int, order::Int, time::Number) -> RT, RT
+    coefficients(model::AbstractGravityModel, degree::Int, order::Int, time::DateTime) -> RT, RT
+    coefficients(model::AbstractGravityModel, degree::Int, order::Int) -> RT, RT
 
 Return the `Clm` and `Slm` coefficients [-] of the gravity `model` for the specified
 `degree`, `order`, and `time`. If the latter argument is omitted, the J2000.0 epoch
 (2000-01-01T12:00:00) is used.
+
+The models must implement only the method that receives `time` as a `Number`. The other
+methods convert the time and call it.
 
 # Arguments
 
@@ -22,8 +27,11 @@ Return the `Clm` and `Slm` coefficients [-] of the gravity `model` for the speci
 
 # Returns
 
-- `T`: Coefficient `Clm` [-] for the specified `degree`, `order`, and `time`.
-- `T`: Coefficient `Slm` [-] for the specified `degree`, `order`, and `time`.
+- `RT`: Coefficient `Clm` [-] for the specified `degree`, `order`, and `time`.
+- `RT`: Coefficient `Slm` [-] for the specified `degree`, `order`, and `time`.
+
+The return type `RT` is the type `T` of the model coefficients, or its promotion with the
+type of `time` if the model has time-variable coefficients.
 """
 function coefficients end
 
@@ -66,7 +74,9 @@ function gravity_constant end
 """
     load(::Type{T}, args...; kwargs...) -> T
 
-Load a gravity model of type `T` using the arguments `args...` and keywords `kwargs...`.
+Load a gravity model of type `T` using the arguments `args...` and keywords `kwargs...`,
+which are defined by each model type. For example, [`IcgemFile`](@ref) requires the file
+name and accepts the coefficient type and the angular speed of the body.
 """
 function load end
 

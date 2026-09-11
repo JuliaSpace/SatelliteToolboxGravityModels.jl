@@ -39,15 +39,21 @@ if the file name cannot be obtained from the `url`.
     local cache.
     (**Default**: `false`)
 
-# Examples
+# Extended help
+
+The files are stored in the scratch space of the package, managed by **Scratch.jl**. The
+first call downloads the file and logs a message, whereas the next calls return the cached
+file path.
+
+## Examples
 
 ```julia-repl
 julia> fetch_icgem_file(:EGM96)
 [ Info: Downloading the ICGEM file 'EGM96.gfc' from 'https://icgem.gfz-potsdam.de/getmodel/gfc/971b0a3b49a497910aad23cd85e066d4cd9af0aeafe7ce6301a696bed8570be3/EGM96.gfc'...
-"/Users/ronan.arraes/.julia/scratchspaces/bd9e9728-6f7b-4d28-9e50-c765cb1b7c8c/icgem/EGM96.gfc"
+"<scratch space>/icgem/EGM96.gfc"
 
 julia> fetch_icgem_file(:EGM96)
-"/Users/ronan.arraes/.julia/scratchspaces/bd9e9728-6f7b-4d28-9e50-c765cb1b7c8c/icgem/EGM96.gfc"
+"<scratch space>/icgem/EGM96.gfc"
 ```
 """
 function fetch_icgem_file(model::Symbol; force::Bool = false)
