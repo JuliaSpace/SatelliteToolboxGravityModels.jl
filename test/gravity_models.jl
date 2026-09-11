@@ -24,7 +24,7 @@ const MOON_ELLIPSOID = Ellipsoid(1738140.0, 3.086419753086420E-04)
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
@@ -106,7 +106,7 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
@@ -188,7 +188,7 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
@@ -211,7 +211,7 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
@@ -272,7 +272,7 @@ end
 
     # We will fetch the EIGEN-6C model that has time dependent coefficients.
     eigen6c_file = fetch_icgem_file(
-        "http://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
