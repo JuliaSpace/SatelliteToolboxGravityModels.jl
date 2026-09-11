@@ -167,21 +167,23 @@ end
 # == File: ./src/icgem/parse.jl ============================================================
 
 @testset "Parsing IcgemFile [ERRORS]" verbose = true begin
+    @test sprint(showerror, IcgemParseError("Message.")) == "IcgemParseError: Message."
+    @test sprint(showerror, IcgemParseError("Message.", 8)) ==
+        "IcgemParseError: [Line 8] Message."
+
     @test_throws(
-        ErrorException("[Invalid ICGEM file] Two `begin_of_head` keywords were found!"),
+        IcgemParseError("Two `begin_of_head` keywords were found.", 8),
         GravityModels.load(IcgemFile, "./icgem_test_files/two_begin_of_head.gfc")
     )
 
     @test_throws(
-        ErrorException(
-            "[Invalid ICGEM file] The mandatory keyword `end_of_head` was not found!"
-        ),
+        IcgemParseError("The mandatory keyword `end_of_head` was not found."),
         GravityModels.load(IcgemFile, "./icgem_test_files/no_end_of_head.gfc")
     )
 
     @test_throws(
-        ErrorException(
-            "[Invalid ICGEM file] The following mandatory fields are missing: (:radius, :max_degree).",
+        IcgemParseError(
+            "The following mandatory fields are missing: (:radius, :max_degree)."
         ),
         GravityModels.load(IcgemFile, "./icgem_test_files/missing_mandatory_fields.gfc")
     )

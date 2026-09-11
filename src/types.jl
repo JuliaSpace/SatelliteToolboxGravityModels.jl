@@ -4,7 +4,46 @@
 #
 ############################################################################################
 
-export IcgemFile
+export IcgemFile, IcgemParseError
+
+############################################################################################
+#                                       Exceptions                                        #
+############################################################################################
+
+"""
+    struct IcgemParseError <: Exception
+
+Exception thrown when an ICGEM file does not conform to the ICGEM format.
+
+# Fields
+
+- `message::String`: Description of the problem found in the file.
+- `line::Int`: Number of the line in which the problem was found, or 0 if the problem is
+    not related to a specific line.
+"""
+struct IcgemParseError <: Exception
+    message::String
+    line::Int
+end
+
+"""
+    IcgemParseError(message::String) -> IcgemParseError
+
+Create an [`IcgemParseError`](@ref) with the `message` that is not related to a specific
+line of the file.
+"""
+IcgemParseError(message::String) = IcgemParseError(message, 0)
+
+function Base.showerror(io::IO, e::IcgemParseError)
+    print(io, "IcgemParseError: ")
+    (e.line > 0) && print(io, "[Line ", e.line, "] ")
+    print(io, e.message)
+    return nothing
+end
+
+############################################################################################
+#                                          ICGEM                                           #
+############################################################################################
 
 """
     abstract type AbstractIcgemCoefficient{T<:Number}
@@ -12,10 +51,6 @@ export IcgemFile
 Abstract type of all spherical harmonics coefficients stored in an ICGEM file.
 """
 abstract type AbstractIcgemCoefficient{T <: Number} end
-
-############################################################################################
-#                                          ICGEM                                           #
-############################################################################################
 
 """
     struct IcgemGfcCoefficient{T<:Number} <: AbstractIcgemCoefficient{T}

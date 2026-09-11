@@ -25,8 +25,8 @@ This function supports ICGEM gravity model files for Earth and other celestial b
 (Moon, planets, etc.). The parser automatically detects whether the file uses
 `earth_gravity_constant` (for Earth models) or `gravity_constant` (for non-Earth models).
 
-The function throws an `ErrorException` if the file does not conform to the ICGEM format,
-and logs a warning for each invalid data line, which is skipped.
+The function throws an [`IcgemParseError`](@ref) if the file does not conform to the ICGEM
+format, and logs a warning for each invalid data line, which is skipped.
 
 !!! note
 
@@ -67,7 +67,11 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
         if tokens[1] == "begin_of_head"
             # We should not have two `begin_of_head`.
             if begin_of_head_found
-                error("[Invalid ICGEM file] Two `begin_of_head` keywords were found!")
+                throw(
+                    IcgemParseError(
+                        "Two `begin_of_head` keywords were found.", current_line
+                    ),
+                )
             end
 
             header_start_line = current_line
@@ -83,7 +87,7 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
 
     # `end_of_head` keyword is mandatory.
     if !end_of_head_found
-        error("[Invalid ICGEM file] The mandatory keyword `end_of_head` was not found!")
+        throw(IcgemParseError("The mandatory keyword `end_of_head` was not found."))
     end
 
     # Rewind file to read again.
@@ -122,8 +126,8 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
 
     if !prod(has_mandatory_fields)
         missing_fields = mandatory_fields[findall(!, has_mandatory_fields)]
-        error(
-            "[Invalid ICGEM file] The following mandatory fields are missing: $missing_fields.",
+        throw(
+            IcgemParseError("The following mandatory fields are missing: $missing_fields.")
         )
     end
 
@@ -132,14 +136,16 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
     has_gravity_constant = haskey(keywords, :gravity_constant)
 
     if !has_earth_gravity_constant && !has_gravity_constant
-        error(
-            "[Invalid ICGEM file] Missing gravity constant field. Expected either 'earth_gravity_constant' or 'gravity_constant'.",
+        throw(
+            IcgemParseError(
+                "The gravity constant field is missing. Expected either `earth_gravity_constant` or `gravity_constant`.",
+            ),
         )
     end
 
     product_type = Symbol(keywords[:product_type])
     model_name   = keywords[:modelname]
-    max_degree   = parse(Int, keywords[:max_degree])
+    max_degree   = tryparse(Int, keywords[:max_degree])
     errors       = Symbol(keywords[:errors])
 
     # Parse the gravity constant field (whichever one exists)
@@ -149,19 +155,21 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
     radius = _parse_icgem_float(Tf, keywords[:radius])
 
     isnothing(gravity_constant) &&
-        error("[Invalid ICGEM file] Could not parse the gravity constant to $Tf.")
-    isnothing(radius) && error("[Invalid ICGEM file] Could not parse the radius to $Tf.")
+        throw(IcgemParseError("Could not parse the gravity constant to $Tf."))
+    isnothing(radius) && throw(IcgemParseError("Could not parse the radius to $Tf."))
+    isnothing(max_degree) &&
+        throw(IcgemParseError("Could not parse the maximum degree to an integer."))
 
     # Check if some keywords are valid.
     gravity_constant <= 0 &&
-        error("[Invalid ICGEM file] The gravity constant must be positive.")
+        throw(IcgemParseError("The gravity constant must be positive."))
 
-    radius <= 0 && error("[Invalid ICGEM file] The radius must be positive.")
+    radius <= 0 && throw(IcgemParseError("The radius must be positive."))
 
-    max_degree < 0 && error("[Invalid ICGEM file] The maximum degree must not be negative.")
+    max_degree < 0 && throw(IcgemParseError("The maximum degree must not be negative."))
 
     errors ∉ (:no, :calibrated, :calibrated_and_formal, :formal) &&
-        error("[Invalid ICGEM file] An invalid value was found for the keyword `errors`.")
+        throw(IcgemParseError("An invalid value was found for the keyword `errors`."))
 
     # == Parse Optional Keywords ===========================================================
 
@@ -297,8 +305,11 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
 
                 adeg, aord, trend_clm, trend_slm = ret
 
-                ((adeg != deg) || (aord != ord)) && error(
-                    "[Invalid ICGEM file] The degree or order of a `trnd` line is different from the corresponding `gfct` line.",
+                ((adeg != deg) || (aord != ord)) && throw(
+                    IcgemParseError(
+                        "The degree or order of a `trnd` line is different from the corresponding `gfct` line.",
+                        current_line,
+                    ),
                 )
 
                 has_trend = true
@@ -315,8 +326,11 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
 
                 adeg, aord, asin_amplitude_clm, asin_amplitude_slm, asin_period = ret
 
-                ((adeg != deg) || (aord != ord)) && error(
-                    "[Invalid ICGEM file] The degree or order of a `asin` line is different from the corresponding `gfct` line.",
+                ((adeg != deg) || (aord != ord)) && throw(
+                    IcgemParseError(
+                        "The degree or order of a `asin` line is different from the corresponding `gfct` line.",
+                        current_line,
+                    ),
                 )
 
                 push!(
@@ -334,8 +348,11 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
                 end
                 adeg, aord, acos_amplitude_clm, acos_amplitude_slm, acos_period = ret
 
-                ((adeg != deg) || (aord != ord)) && error(
-                    "[Invalid ICGEM file] The degree or order of a `acos` line is different from the corresponding `gfct` line.",
+                ((adeg != deg) || (aord != ord)) && throw(
+                    IcgemParseError(
+                        "The degree or order of a `acos` line is different from the corresponding `gfct` line.",
+                        current_line,
+                    ),
                 )
 
                 push!(

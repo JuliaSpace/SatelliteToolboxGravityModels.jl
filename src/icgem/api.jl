@@ -25,7 +25,7 @@ GravityModels.gravity_constant(model::IcgemFile) = model.gravity_constant
 
 Load the ICGEM file `filename` and return an [`IcgemFile`](@ref) object with its parsed
 data. `T` is converted to float to obtain the type of the model coefficients. The function
-throws an `ErrorException` if the file does not conform to the ICGEM format.
+throws an [`IcgemParseError`](@ref) if the file does not conform to the ICGEM format.
 
 See also: [`parse_icgem`](@ref), [`fetch_icgem_file`](@ref)
 """
