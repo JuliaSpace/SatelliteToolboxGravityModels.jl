@@ -75,8 +75,8 @@ function gravity_constant end
     load(::Type{T}, args...; kwargs...) -> T
 
 Load a gravity model of type `T` using the arguments `args...` and keywords `kwargs...`,
-which are defined by each model type. For example, [`IcgemFile`](@ref) requires the file
-name and accepts the coefficient type and the angular speed of the body.
+which are defined by each model type. For example, `IcgemFile` requires the file name and
+accepts the coefficient type and the angular speed of the body.
 """
 function load end
 
