@@ -199,6 +199,24 @@ end
     g_itrf = GravityModels.gravity_acceleration(eigen6c, r_itrf, DateTime("2023-06-19"))
 
     @test g_itrf == g_itrf_expected
+
+    # == Test the Angular Speed of the Model ===============================================
+
+    # The angular speed stored in the model must be used by default.
+    moon_file = fetch_icgem_file(
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/de07bfc4a3b18d157eb02b16352fbac8aff156a8d43366cc73d9cf77a5201ace/AIUB-GRL200A.gfc",
+    )
+
+    ω_moon = 2.6617e-6
+    moon   = GravityModels.load(IcgemFile, moon_file; angular_speed = ω_moon)
+    r_moon = [1800.0e3, 0, 0]
+
+    g_moon_expected = GravityModels.gravity_acceleration(moon, r_moon; ω = ω_moon)
+    g_moon          = GravityModels.gravity_acceleration(moon, r_moon)
+
+    @test g_moon == g_moon_expected
+    @test g_moon !=
+        GravityModels.gravity_acceleration(moon, r_moon; ω = EARTH_ANGULAR_SPEED)
 end
 
 # == File: ./src/GravityModels/gravitational_field_derivative.jl ===========================

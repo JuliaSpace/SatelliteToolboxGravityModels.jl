@@ -89,6 +89,7 @@ function show(io::IO, mime::MIME"text/plain", m::IcgemFile{T, Val{N}}) where {T,
     println(io, "$(b)       Model name  :$(d) ", m.model_name)
     println(io, "$(b)  Gravity constant :$(d) ", m.gravity_constant)
     println(io, "$(b)            Radius :$(d) ", m.radius)
+    println(io, "$(b)     Angular speed :$(d) ", m.angular_speed)
     println(io, "$(b)    Maximum degree :$(d) ", m.max_degree)
     println(io, "$(b)            Errors :$(d) ", m.errors)
     println(io, "$(b)       Tide system :$(d) ", m.tide_system)

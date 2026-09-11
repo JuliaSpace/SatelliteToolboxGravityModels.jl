@@ -6,7 +6,7 @@ using Downloads
 using Scratch
 
 import Base: show
-import SatelliteToolboxBase: LowerTriangularStorage, RowMajor
+import SatelliteToolboxBase: EARTH_ANGULAR_SPEED, LowerTriangularStorage, RowMajor
 
 ############################################################################################
 #                                        Submodules                                        #

@@ -144,6 +144,9 @@ only up to the degree `max_time_variable_degree`.
 - `model_name::String`: Name of the gravity model.
 - `gravity_constant::T`: Gravity constant [m³/s²] of the central body.
 - `radius::T`: Reference radius [m] of the model.
+- `angular_speed::T`: Angular speed [rad/s] of the central body, used to compute the
+    centrifugal acceleration. It is not defined in the ICGEM file and must be provided
+    when the model is loaded.
 - `max_degree::Int`: Maximum degree available in the model.
 - `errors::Symbol`: Type of the errors described in the file (`:no`, `:calibrated`,
     `:calibrated_and_formal`, or `:formal`).
@@ -171,6 +174,7 @@ struct IcgemFile{T <: Number, N <: Val} <: GravityModels.AbstractGravityModel{T}
     model_name::String
     gravity_constant::T
     radius::T
+    angular_speed::T
     max_degree::Int
     errors::Symbol
     tide_system::Symbol

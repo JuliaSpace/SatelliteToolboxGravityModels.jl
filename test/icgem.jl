@@ -13,6 +13,19 @@
         )
         @test GravityModels.coefficient_norm(model) == Val(:unnormalized)
     end
+
+    @testset "Angular Speed" begin
+        filename = "./icgem_test_files/unnormalized_coefficients.gfc"
+
+        model = GravityModels.load(IcgemFile, filename)
+        @test GravityModels.angular_speed(model) == EARTH_ANGULAR_SPEED
+
+        model = GravityModels.load(IcgemFile, filename; angular_speed = 2.6617e-6)
+        @test GravityModels.angular_speed(model) == 2.6617e-6
+
+        model = GravityModels.load(IcgemFile, filename, Float32; angular_speed = 2.6617e-6)
+        @test GravityModels.angular_speed(model) === 2.6617f-6
+    end
 end
 
 # == File: ./src/icgem/parse.jl ============================================================
@@ -372,6 +385,7 @@ IcgemFile{Float64, :full}:
        Model name  : EGM96
   Gravity constant : 3.986004415e14
             Radius : 6.3781363e6
+     Angular speed : 7.292115146706979e-5
     Maximum degree : 360
             Errors : formal
        Tide system : tide_free

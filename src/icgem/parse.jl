@@ -14,8 +14,8 @@
 ############################################################################################
 
 """
-    parse_icgem(filename::AbstractString, T::Type = Float64) -> IcgemFile
-    parse_icgem(io::IO, T::Type = Float64) -> IcgemFile
+    parse_icgem(filename::AbstractString, T::Type = Float64; kwargs...) -> IcgemFile
+    parse_icgem(io::IO, T::Type = Float64; kwargs...) -> IcgemFile
 
 Parse the ICGEM file `filename`, or the ICGEM data read from the stream `io`, using the
 data type `T` and return an [`IcgemFile`](@ref) object with the parsed data. The file is
@@ -34,18 +34,31 @@ format, and logs a warning for each invalid data line, which is skipped.
 
     `T` is converted to float to obtain the output type.
 
+# Keywords
+
+- `angular_speed::Number`: Angular speed [rad/s] of the central body, which is not
+    defined in the ICGEM file and is used to compute the centrifugal acceleration. It
+    must be provided for models of bodies other than Earth.
+    (**Default**: `EARTH_ANGULAR_SPEED`)
+
 # References
 
 - **[1]** Barthelmes, F., Förste, C (2011). *The ICGEM-format*. GFZ Potsdam, Department 1
     "Geodesy and Remote Sensing".
 """
-function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where {T}
+function parse_icgem(
+    filename::AbstractString,
+    ::Type{T} = Float64;
+    angular_speed::Number = EARTH_ANGULAR_SPEED,
+) where {T}
     return open(filename, "r") do file
-        return parse_icgem(file, T)
+        return parse_icgem(file, T; angular_speed = angular_speed)
     end
 end
 
-function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
+function parse_icgem(
+    file::IO, ::Type{T} = Float64; angular_speed::Number = EARTH_ANGULAR_SPEED
+) where {T}
     Tf = float(T)
 
     # == Header ============================================================================
@@ -357,6 +370,7 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
         model_name,
         gravity_constant,
         radius,
+        Tf(angular_speed),
         max_degree,
         errors,
         tide_system,

@@ -36,6 +36,14 @@ function coefficients(model::AbstractGravityModel, degree::Int, order::Int, time
 end
 
 """
+    angular_speed(model::AbstractGravityModel{T}) -> T
+
+Return the angular speed [rad/s] of the central body of the gravity `model`, which is used
+to compute the centrifugal acceleration in [`gravity_acceleration`](@ref).
+"""
+function angular_speed end
+
+"""
     coefficient_norm(model::AbstractGravityModel) -> Val
 
 Return the normalization we must use in the spherical harmonics when computing the

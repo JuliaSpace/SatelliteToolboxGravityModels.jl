@@ -163,7 +163,8 @@ coefficients, the element type of `r`, and the type of `time`.
     Gravity acceleration is the compound acceleration caused by the central body mass and
     the centrifugal force due to the planet's rotation.
 
-    For non-Earth bodies, the body's rotation rate can be provided using the `ω` keyword.
+    The angular speed of the body is obtained from the `model` (see
+    [`angular_speed`](@ref)) unless the keyword `ω` is provided.
 
 !!! note
 
@@ -200,9 +201,9 @@ See also: [`gravitational_acceleration`](@ref)
     function throws an `ArgumentError`. If it is `nothing`, the buffers are allocated at
     every call.
     (**Default**: `nothing`)
-- `ω::Number`: Rotation rate of the body [rad/s]. For non-Earth bodies, provide the
-    appropriate rotation rate for the celestial body.
-    (**Default**: `EARTH_ANGULAR_SPEED`)
+- `ω::Number`: Angular speed of the body [rad/s], which defaults to the value stored in
+    the `model` (see [`angular_speed`](@ref)).
+    (**Default**: `angular_speed(model)`)
 
 # Returns
 
@@ -222,7 +223,7 @@ function gravity_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     workspace::Union{Nothing, Workspace} = nothing,
-    ω::Number = EARTH_ANGULAR_SPEED,
+    ω::Number = angular_speed(model),
 ) where {T <: Number, V <: Number}
 
     # == Gravitational Acceleration ========================================================
@@ -278,7 +279,7 @@ function gravity_acceleration(
     max_degree::Int = -1,
     max_order::Int = -1,
     workspace::Union{Nothing, Workspace} = nothing,
-    ω::Number = EARTH_ANGULAR_SPEED,
+    ω::Number = angular_speed(model),
 ) where {T <: Number, V <: Number}
     return gravity_acceleration(
         model,
