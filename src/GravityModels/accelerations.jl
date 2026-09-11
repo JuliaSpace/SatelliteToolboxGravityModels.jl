@@ -97,22 +97,24 @@ function gravitational_acceleration(
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
 ) where {T <: Number, V <: Number, NT <: Val}
+    RT = promote_type(T, V, typeof(time))
 
-    # Compute the partial derivatives of the gravitational field w.r.t. the spherical
-    # coordinates.
-    ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ = gravitational_field_derivative(
-        model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
+    # == Partial Derivatives of the Gravitational Field ====================================
+
+    n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP = _prepare_field_derivative_inputs(
+        model, RT, max_degree, max_order, P, dP
     )
 
-    # Auxiliary variables.
-    ρ²_gc = r[1]^2 + r[2]^2
-    r²_gc = ρ²_gc + r[3]^2
-    r_gc  = √r²_gc
-    ρ_gc  = √ρ²_gc
-    ϕ_gc  = atan(r[3], ρ_gc)
-    λ_gc  = atan(r[2], r[1])
+    ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ, ∂U_∂λ_over_cosϕ_pole = _gravitational_field_derivative_kernel(
+        model, r, time, n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP
+    )
 
-    # == Acceleration Represented in the ITRF ==============================================
+    # == Acceleration Represented in the UEN Frame =========================================
+
+    r_gc, ρ_gc, _, sin_λ, cos_λ, _ = _spherical_coordinates(r, RT)
+
+    sin_ϕ = r[3] / r_gc
+    cos_ϕ = ρ_gc / r_gc
 
     # Compute the partial derivatives in spherical coordinate systems [1, p. 22] (eq. 120):
     #
@@ -120,16 +122,25 @@ function gravitational_acceleration(
     #    ---- , ---------.---- , ---.----
     #     ∂r     r.cos ϕ   ∂λ     r   ∂ϕ
     #
-    # Notice that the singularity is not a problem here. When computing `cos(π / 2)` a very
-    # small number will be returned and `∂U / ∂λ` is 0. Hence, the 2nd component will be 0.
+    # Notice that r ⋅ cos(ϕ_gc) = ρ_gc. On the polar axis, both `∂U / ∂λ` and `ρ_gc` are
+    # 0 and we must use the limit computed by the kernel.
+    a_u = ∂U_∂r
+    a_e = (ρ_gc > 0) ? ∂U_∂λ / ρ_gc : ∂U_∂λ_over_cosϕ_pole / r_gc
+    a_n = ∂U_∂ϕ / r_gc
 
-    a_uen = @SVector [∂U_∂r, ∂U_∂λ / (r_gc * cos(ϕ_gc)), ∂U_∂ϕ / r_gc]
+    # == Acceleration Represented in the ITRF ==============================================
 
-    # The vector `a_uen` is represented in the local UEN (Up-Earth-North) reference frame.
-    # Hence, we need to describe the unitary vectors of this frame in the ECEF reference
-    # frame. This can be accomplished by the following rotations matrix.
-    D_itrf_uen = angle_to_dcm(ϕ_gc, -λ_gc, :YZ)
-    a_itrf = D_itrf_uen * a_uen
+    # The unit vectors of the local UEN (Up-East-North) reference frame represented in the
+    # body-fixed frame (ITRF for Earth) are:
+    #
+    #   up    = [ cos(ϕ) cos(λ),  cos(ϕ) sin(λ), sin(ϕ) ],
+    #   east  = [        -sin(λ),         cos(λ),      0 ],
+    #   north = [-sin(ϕ) cos(λ), -sin(ϕ) sin(λ), cos(ϕ) ].
+    a_itrf = @SVector [
+        a_u * cos_ϕ * cos_λ - a_e * sin_λ - a_n * sin_ϕ * cos_λ,
+        a_u * cos_ϕ * sin_λ + a_e * cos_λ - a_n * sin_ϕ * sin_λ,
+        a_u * sin_ϕ + a_n * cos_ϕ,
+    ]
 
     return a_itrf
 end

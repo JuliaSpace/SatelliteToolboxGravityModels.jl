@@ -84,47 +84,38 @@ function gravitational_potential(
 ) where {T <: Number, V <: Number, W <: Number, NT <: Val}
     RT = promote_type(T, V, W)
 
-    # == Unpack Gravity Model Data =========================================================
+    n_max, m_max = _process_degree_and_order(model, max_degree, max_order)
 
-    model_max_degree = maximum_degree(model)
-
-    # == Process the Inputs ================================================================
-
-    # Check maximum degree value.
-    if (max_degree < 0) || (max_degree > model_max_degree)
-        max_degree = model_max_degree
-    end
-
-    # Check maximum order value.
-    if (max_order < 0) || (max_order > max_degree)
-        max_order = max_degree
-    end
-
-    # Obtain the degree and order used for the computation.
-    n_max = max_degree
-    m_max = max_order
-
-    # Check if the matrix related to Legendre must be computed.
+    # Check if the matrix related to Legendre must be allocated.
     if isnothing(P)
         P = LowerTriangularStorage{RowMajor, RT}(n_max + 1)
     else
-        # If the user passed a matrix, we must check if there is enough space to store the
-        # coefficients.
-        rows, cols = size(P)
-
-        if (rows < n_max + 1) || (cols < m_max + 1)
-            throw(
-                ArgumentError(
-                    "Matrix `P` must have at least $(n_max + 1) rows and $(m_max + 1) columns.",
-                ),
-            )
-        end
+        _check_legendre_matrix(P, "P", n_max, m_max)
     end
 
     # Call the kernel through a function barrier. Hence, the hot loop is always compiled
     # with a concrete type for `P`, even when it is allocated here.
     return _gravitational_potential_kernel(model, r, time, n_max, m_max, P)
 end
+
+function gravitational_potential(
+    model::AbstractGravityModel{T, NT},
+    r::AbstractVector{V},
+    time::DateTime;
+    max_degree::Int = -1,
+    max_order::Int = -1,
+    P::Union{Nothing, AbstractMatrix} = nothing,
+) where {T <: Number, V <: Number, NT <: Val}
+    t = Dates.value(time - _DT_J2000) / 1000
+
+    return gravitational_potential(
+        model, r, t; max_degree = max_degree, max_order = max_order, P = P
+    )
+end
+
+############################################################################################
+#                                    Private Functions                                     #
+############################################################################################
 
 """
     _gravitational_potential_kernel(
@@ -163,37 +154,42 @@ function _gravitational_potential_kernel(
     R₀ = radius(model)
     norm_type = coefficient_norm(model)
 
-    # == Geocentric Latitude and Longitude =================================================
+    # == Geocentric Spherical Coordinates ==================================================
 
-    ρ²_gc = r[1]^2 + r[2]^2
-    r²_gc = ρ²_gc + r[3]^2
-    r_gc  = √r²_gc
-    ρ_gc  = √ρ²_gc
-    ϕ_gc  = atan(r[3], ρ_gc)
-    λ_gc  = atan(r[2], r[1])
+    r_gc, _, θ, sin_λ, cos_λ, south = _spherical_coordinates(r, RT)
 
     # == Auxiliary Variables ===============================================================
 
-    # Sine and cosine of the geocentric longitude.
-    #
-    # These values are used in the algorithm to decrease the computational burden.
+    # The Legendre functions are evaluated at the angle θ between the position and the
+    # polar axis, which is the geocentric colatitude θ_gc = π / 2 - ϕ_gc in the northern
+    # hemisphere and π - θ_gc in the southern one (see `_spherical_coordinates`). In the
+    # latter case, the parity P_n,m[cos(π - θ)] = (-1)^(n + m) P_n,m[cos(θ)] is used to
+    # recover the values at the colatitude: the factor (-1)^m is absorbed by shifting the
+    # longitude by π, which changes the sign of its sine and cosine, and the factor (-1)^n
+    # is absorbed by changing the sign of the ratio R₀ / r.
+    if south
+        sin_λ = -sin_λ
+        cos_λ = -cos_λ
+        ratio = -R₀ / r_gc
+    else
+        ratio = +R₀ / r_gc
+    end
 
-    sin_λ, cos_λ   = sincos(λ_gc)
-    sin_2λ, cos_2λ = sincos(2λ_gc)
+    fact = ratio
+
+    # Sine and cosine of twice the geocentric longitude, which are used to initialize the
+    # recursion that computes `sin(m * λ_gc)` and `cos(m * λ_gc)`.
+    sin_2λ = 2sin_λ * cos_λ
+    cos_2λ = cos_λ^2 - sin_λ^2
 
     # == Gravitational Potential ===========================================================
 
     U = RT(1)  # Gravitational potential
 
-    # Compute the associated Legendre functions `P_n,m[sin(ϕ_gc)]` with the required
-    # normalization.
-    #
-    # Notice that cos(ϕ_gc - π / 2) = sin(ϕ_gc).
-    legendre!(Val(norm_type), P, ϕ_gc - RT(π / 2), n_max, m_max; ph_term = false)
-
-    # Auxiliary variables.
-    ratio = R₀ / r_gc
-    fact  = ratio
+    # Compute the associated Legendre functions `P_n,m[cos(θ)]` with the required
+    # normalization. Since θ ∈ [0, π / 2], the functions are well-defined and no sign
+    # adjustments are needed.
+    legendre!(Val(norm_type), P, θ, n_max, m_max; ph_term = false)
 
     # Compute the potential.
     @inbounds for n in 2:n_max
@@ -249,19 +245,4 @@ function _gravitational_potential_kernel(
     U *= μ / r_gc
 
     return U
-end
-
-function gravitational_potential(
-    model::AbstractGravityModel{T, NT},
-    r::AbstractVector{V},
-    time::DateTime;
-    max_degree::Int = -1,
-    max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT <: Val}
-    t = Dates.value(time - _DT_J2000) / 1000
-
-    return gravitational_potential(
-        model, r, t; max_degree = max_degree, max_order = max_order, P = P
-    )
 end

@@ -84,14 +84,14 @@ end
                 end
                 g_norm = norm(GravityModels.gravitational_acceleration(model, r_itrf))
 
-                # Compare the results.
-                # Moon models show ~5e-3 relative error due to differences in reference data generation
-                # TODO: Check why the precision is worse in the poles.3
-                if abs(lat) ≈ π/2
+                # Compare the results. The reference values at the poles are less accurate
+                # than the others, and the Moon model shows a larger error at the poles due
+                # to differences in the reference data generation.
+                if abs(lat) ≈ π / 2
                     if $t[3] == :moon
-                        @test g_norm ≈ expected_g_norm atol = 5e-7
+                        @test g_norm ≈ expected_g_norm atol = 1e-7
                     else
-                        @test g_norm ≈ expected_g_norm atol = 5e-8
+                        @test g_norm ≈ expected_g_norm atol = 5e-9
                     end
                 else
                     @test g_norm ≈ expected_g_norm atol = 1e-13
@@ -119,6 +119,36 @@ end
     )
 
     @test g_itrf == g_itrf_expected
+end
+
+@testset "Gravitational Acceleration at the Poles" verbose = true begin
+    egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
+
+    # The results are compared with those obtained using `BigFloat`, which do not suffer
+    # from the loss of precision near the poles.
+    setprecision(BigFloat, 256) do
+        for lat in (-π / 2, -π / 2 + 1e-9, π / 2 - 1e-9, π / 2), lon in (0.0, 1.0, 4.0)
+            r_itrf   = geodetic_to_ecef(lat, lon, 0)
+            g_itrf   = GravityModels.gravitational_acceleration(egm96, r_itrf)
+            g_itrf_e = GravityModels.gravitational_acceleration(egm96, big.(r_itrf))
+            U        = GravityModels.gravitational_potential(egm96, r_itrf)
+            U_e      = GravityModels.gravitational_potential(egm96, big.(r_itrf))
+
+            @test g_itrf ≈ g_itrf_e atol = 1e-12
+            @test U ≈ U_e rtol = 1e-14
+        end
+
+        # On the polar axis, the east component is obtained from a limit. Hence, we compare
+        # the result with the acceleration computed 1 mm away from the axis.
+        for z in (-6356.7523e3, +6356.7523e3)
+            g_axis = GravityModels.gravitational_acceleration(egm96, [0, 0, z])
+
+            for r_itrf in ([1e-3, 0, z], [0, 1e-3, z], [-1e-3, 1e-3, z])
+                g_itrf_e = GravityModels.gravitational_acceleration(egm96, big.(r_itrf))
+                @test g_axis ≈ g_itrf_e atol = 1e-8
+            end
+        end
+    end
 end
 
 @testset "Gravity Acceleration" verbose = true begin
