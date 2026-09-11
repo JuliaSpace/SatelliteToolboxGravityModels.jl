@@ -14,6 +14,7 @@ import SatelliteToolboxBase: LowerTriangularStorage, RowMajor
 
 include("./GravityModels/GravityModels.jl")
 using .GravityModels
+import .GravityModels: _from_j2000_seconds, _to_j2000_seconds
 export GravityModels
 export AbstractGravityModel
 
@@ -29,8 +30,6 @@ include("./types.jl")
 
 const _D = string(Crayon(; reset = true))
 const _B = string(crayon"bold")
-
-const _DT_J2000 = DateTime(2000, 1, 1, 12, 0, 0)
 
 ############################################################################################
 #                                         Includes                                         #

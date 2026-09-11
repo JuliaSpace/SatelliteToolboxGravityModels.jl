@@ -20,12 +20,6 @@ import SatelliteToolboxBase: LowerTriangularStorage, RowMajor
 include("./types.jl")
 
 ############################################################################################
-#                                        Constants                                         #
-############################################################################################
-
-const _DT_J2000 = DateTime(2000, 1, 1, 12, 0, 0)
-
-############################################################################################
 #                                         Includes                                         #
 ############################################################################################
 
@@ -33,5 +27,6 @@ include("./api.jl")
 include("./accelerations.jl")
 include("./gravitational_field_derivative.jl")
 include("./potential.jl")
+include("./time.jl")
 
 end # module GravityModels

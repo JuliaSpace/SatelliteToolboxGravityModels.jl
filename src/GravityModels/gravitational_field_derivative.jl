@@ -66,19 +66,8 @@ coefficients, the element type of `r`, and the type of `time`.
 """
 function gravitational_field_derivative(
     model::AbstractGravityModel{T},
-    r::AbstractVector{V};
-    max_degree::Int = -1,
-    max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number}
-    return gravitational_field_derivative(model, r, 0; max_degree, max_order, P, dP)
-end
-
-function gravitational_field_derivative(
-    model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::W;
+    time::W = 0;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
@@ -108,10 +97,14 @@ function gravitational_field_derivative(
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
 ) where {T <: Number, V <: Number}
-    t = Dates.value(time - _DT_J2000) / 1000
-
     return gravitational_field_derivative(
-        model, r, t; max_degree = max_degree, max_order = max_order, P = P, dP = dP
+        model,
+        r,
+        _to_j2000_seconds(time);
+        max_degree = max_degree,
+        max_order = max_order,
+        P = P,
+        dP = dP,
     )
 end
 

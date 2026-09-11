@@ -79,19 +79,8 @@ See also: [`gravity_acceleration`](@ref)
 """
 function gravitational_acceleration(
     model::AbstractGravityModel{T},
-    r::AbstractVector{V};
-    max_degree::Int = -1,
-    max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number}
-    return gravitational_acceleration(model, r, 0; max_degree, max_order, P, dP)
-end
-
-function gravitational_acceleration(
-    model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::Number;
+    time::Number = 0;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
@@ -154,10 +143,14 @@ function gravitational_acceleration(
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
 ) where {T <: Number, V <: Number}
-    t = Dates.value(time - _DT_J2000) / 1000
-
     return gravitational_acceleration(
-        model, r, t; max_degree = max_degree, max_order = max_order, P = P, dP = dP
+        model,
+        r,
+        _to_j2000_seconds(time);
+        max_degree = max_degree,
+        max_order = max_order,
+        P = P,
+        dP = dP,
     )
 end
 
@@ -235,20 +228,8 @@ See also: [`gravitational_acceleration`](@ref)
 """
 function gravity_acceleration(
     model::AbstractGravityModel{T},
-    r::AbstractVector{V};
-    max_degree::Int = -1,
-    max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
-    ω::Number = EARTH_ANGULAR_SPEED,
-) where {T <: Number, V <: Number}
-    return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP, ω)
-end
-
-function gravity_acceleration(
-    model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::Number;
+    time::Number = 0;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
@@ -307,9 +288,14 @@ function gravity_acceleration(
     dP::Union{Nothing, AbstractMatrix} = nothing,
     ω::Number = EARTH_ANGULAR_SPEED,
 ) where {T <: Number, V <: Number}
-    t = Dates.value(time - _DT_J2000) / 1000
-
     return gravity_acceleration(
-        model, r, t; max_degree = max_degree, max_order = max_order, P = P, dP = dP, ω = ω
+        model,
+        r,
+        _to_j2000_seconds(time);
+        max_degree = max_degree,
+        max_order = max_order,
+        P = P,
+        dP = dP,
+        ω = ω,
     )
 end

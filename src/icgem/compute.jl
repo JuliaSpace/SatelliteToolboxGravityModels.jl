@@ -48,9 +48,7 @@ end
 function icgem_coefficients(
     model::IcgemFile{T}, degree::Int, order::Int, time::DateTime
 ) where {T <: Number}
-    t = Dates.value(time - _DT_J2000) / 1000
-
-    return icgem_coefficients(model, degree, order, t)
+    return icgem_coefficients(model, degree, order, _to_j2000_seconds(time))
 end
 
 ############################################################################################

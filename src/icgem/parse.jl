@@ -533,7 +533,7 @@ function _parse_gfct_data_line(Tf, tokens, current_line)
     deg, ord, clm, slm = ret
 
     # Parse the time.
-    time = Dates.value(DateTime(tokens[end], dateformat"yyyymmdd") - _DT_J2000) / 1000
+    time = _to_j2000_seconds(DateTime(tokens[end], dateformat"yyyymmdd"))
 
     return deg, ord, clm, slm, time
 end

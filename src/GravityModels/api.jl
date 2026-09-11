@@ -32,8 +32,7 @@ function coefficients(model::AbstractGravityModel, degree::Int, order::Int)
 end
 
 function coefficients(model::AbstractGravityModel, degree::Int, order::Int, time::DateTime)
-    t = Dates.value(time - _DT_J2000) / 1000
-    return coefficients(model, degree, order, t)
+    return coefficients(model, degree, order, _to_j2000_seconds(time))
 end
 
 """
