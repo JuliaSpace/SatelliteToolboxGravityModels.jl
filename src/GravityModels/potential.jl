@@ -34,7 +34,7 @@ element type of `r`, and the type of `time`.
 
 # Arguments
 
-- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `model::AbstractGravityModel{T}`: Gravity model.
 - `r::AbstractVector`: Position [m] in the body-fixed frame (ITRF for Earth) at which the
     potential is computed.
 - `time::Union{Number, DateTime}`: Time at which the potential is computed, expressed as a
@@ -65,23 +65,23 @@ element type of `r`, and the type of `time`.
     GeoForschungsZentrum (GFZ), p. 19.
 """
 function gravitational_potential(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V};
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
     return gravitational_potential(model, r, 0; max_degree, max_order, P)
 end
 
 function gravitational_potential(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::W;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, W <: Number, NT <: Val}
+) where {T <: Number, V <: Number, W <: Number}
     RT = promote_type(T, V, W)
 
     n_max, m_max = _process_degree_and_order(model, max_degree, max_order)
@@ -99,13 +99,13 @@ function gravitational_potential(
 end
 
 function gravitational_potential(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
     t = Dates.value(time - _DT_J2000) / 1000
 
     return gravitational_potential(
@@ -139,20 +139,20 @@ have at least `n_max + 1 × m_max + 1` elements, which are overwritten with the 
 Legendre function values.
 """
 function _gravitational_potential_kernel(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::W,
     n_max::Int,
     m_max::Int,
     P::AbstractMatrix,
-) where {T <: Number, V <: Number, W <: Number, NT <: Val}
+) where {T <: Number, V <: Number, W <: Number}
     RT = promote_type(T, V, W)
 
     # == Unpack Gravity Model Data =========================================================
 
     μ = gravity_constant(model)
     R₀ = radius(model)
-    norm_type = coefficient_norm(model)
+    norm = coefficient_norm(model)
 
     # == Geocentric Spherical Coordinates ==================================================
 
@@ -189,7 +189,7 @@ function _gravitational_potential_kernel(
     # Compute the associated Legendre functions `P_n,m[cos(θ)]` with the required
     # normalization. Since θ ∈ [0, π / 2], the functions are well-defined and no sign
     # adjustments are needed.
-    legendre!(Val(norm_type), P, θ, n_max, m_max; ph_term = false)
+    legendre!(norm, P, θ, n_max, m_max; ph_term = false)
 
     # Compute the potential.
     @inbounds for n in 2:n_max

@@ -174,7 +174,16 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
     # == Parse Optional Keywords ===========================================================
 
     tide_system = haskey(keywords, :tide_system) ? Symbol(keywords[:tide_system]) : :unknown
-    norm        = haskey(keywords, :norm) ? Symbol(keywords[:norm]) : :fully_normalized
+    norm_str    = haskey(keywords, :norm) ? keywords[:norm] : "fully_normalized"
+
+    # Convert the normalization to the value expected by the Legendre functions.
+    norm = if norm_str == "fully_normalized"
+        Val(:full)
+    elseif norm_str == "unnormalized"
+        Val(:unnormalized)
+    else
+        throw(IcgemParseError("An invalid value was found for the keyword `norm`."))
+    end
 
     # == Data ==============================================================================
 
@@ -384,7 +393,7 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
         max_degree,
         errors,
         tide_system,
-        Val(norm),
+        norm,
         isnothing(data_dynamic) ? data_static : data_dynamic,
     )
     return icgem_file

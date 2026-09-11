@@ -154,7 +154,7 @@ function Base.zero(::Type{IcgemGfctCoefficient{T}}) where {T}
 end
 
 """
-    struct IcgemFile{T<:Number, NT<:Val, Coeff<:AbstractIcgemCoefficient{T}} <: GravityModels.AbstractGravityModel{T, NT}
+    struct IcgemFile{T <: Number, N <: Val, Coeff <: AbstractIcgemCoefficient{T}} <: GravityModels.AbstractGravityModel{T}
 
 Store the information of a parsed ICGEM file.
 
@@ -169,13 +169,15 @@ Store the information of a parsed ICGEM file.
     `:calibrated_and_formal`, or `:formal`).
 - `tide_system::Symbol`: Tide system of the model, or `:unknown` if the file does not
     specify it.
-- `norm::NT`: Normalization of the model coefficients wrapped in a `Val`.
+- `norm::N`: Normalization of the model coefficients wrapped in a `Val`, as returned by
+    [`GravityModels.coefficient_norm`](@ref): `Val(:full)` for fully normalized
+    coefficients or `Val(:unnormalized)` for unnormalized ones.
 - `data::LowerTriangularStorage{RowMajor, Coeff}`: Spherical harmonics coefficients of the
     model, in which the element `[n + 1, m + 1]` is the coefficient of degree `n` and
     order `m`.
 """
-struct IcgemFile{T <: Number, NT <: Val, Coeff <: AbstractIcgemCoefficient{T}} <:
-       GravityModels.AbstractGravityModel{T, NT}
+struct IcgemFile{T <: Number, N <: Val, Coeff <: AbstractIcgemCoefficient{T}} <:
+       GravityModels.AbstractGravityModel{T}
     # Fields related to the header.
     product_type::Symbol
     model_name::String
@@ -184,7 +186,7 @@ struct IcgemFile{T <: Number, NT <: Val, Coeff <: AbstractIcgemCoefficient{T}} <
     max_degree::Int
     errors::Symbol
     tide_system::Symbol
-    norm::NT
+    norm::N
 
     # Fields related to the data section.
     data::LowerTriangularStorage{RowMajor, Coeff}

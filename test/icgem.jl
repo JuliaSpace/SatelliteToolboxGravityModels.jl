@@ -11,7 +11,7 @@
         model = GravityModels.load(
             IcgemFile, "./icgem_test_files/unnormalized_coefficients.gfc"
         )
-        @test GravityModels.coefficient_norm(model) == :unnormalized
+        @test GravityModels.coefficient_norm(model) == Val(:unnormalized)
     end
 end
 
@@ -239,7 +239,7 @@ end
     @test result == expected
 
     expected = """
-IcgemFile{Float64, :fully_normalized}:
+IcgemFile{Float64, :full}:
       Product type : gravity_field
        Model name  : EGM96
   Gravity constant : 3.986004415e14
@@ -247,7 +247,7 @@ IcgemFile{Float64, :fully_normalized}:
     Maximum degree : 360
             Errors : formal
        Tide system : tide_free
-              Norm : fully_normalized
+              Norm : full
          Data type : Float64"""
 
     result = sprint(show, MIME("text/plain"), egm96)

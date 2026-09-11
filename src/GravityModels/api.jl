@@ -13,7 +13,7 @@ Return the `Clm` and `Slm` coefficients [-] of the gravity `model` for the speci
 
 # Arguments
 
-- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `model::AbstractGravityModel{T}`: Gravity model.
 - `degree::Int`: Degree of the coefficients.
 - `order::Int`: Order of the coefficients.
 - `time::Union{Number, DateTime}`: Time at which the coefficients are computed, expressed
@@ -37,19 +37,20 @@ function coefficients(model::AbstractGravityModel, degree::Int, order::Int, time
 end
 
 """
-    coefficient_norm(model::AbstractGravityModel) -> Symbol
+    coefficient_norm(model::AbstractGravityModel) -> Val
 
 Return the normalization we must use in the spherical harmonics when computing the
-Legendre associated functions for the gravity `model`. The accepted values are:
+Legendre associated functions for the gravity `model`, wrapped in a `Val` so that the
+Legendre functions can be dispatched on it. The accepted values are:
 
-- `:full`: Use full normalization.
-- `:schmidt`: Use Schmidt quasi-normalization.
-- `:unnormalized`: Do not perform normalization.
+- `Val(:full)`: Use full normalization.
+- `Val(:schmidt)`: Use Schmidt quasi-normalization.
+- `Val(:unnormalized)`: Do not perform normalization.
 """
 function coefficient_norm end
 
 """
-    gravity_constant(model::AbstractGravityModel{T, NT}) -> T
+    gravity_constant(model::AbstractGravityModel{T}) -> T
 
 Return the gravity constant [m³/s²] of the gravity `model`.
 """
@@ -70,7 +71,7 @@ Return the maximum degree of the gravity `model`.
 function maximum_degree end
 
 """
-    radius(model::AbstractGravityModel{T, NT}) -> T
+    radius(model::AbstractGravityModel{T}) -> T
 
 Return the reference radius [m] of the gravity `model`.
 """

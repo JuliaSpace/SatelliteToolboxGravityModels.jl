@@ -37,7 +37,7 @@ See also: [`gravity_acceleration`](@ref)
 
 # Arguments
 
-- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `model::AbstractGravityModel{T}`: Gravity model.
 - `r::AbstractVector`: Position [m] in the body-fixed frame (ITRF for Earth) at which the
     acceleration is computed.
 - `time::Union{Number, DateTime}`: Time at which the acceleration is computed, expressed
@@ -78,25 +78,25 @@ See also: [`gravity_acceleration`](@ref)
     GeoForschungsZentrum (GFZ), p. 22.
 """
 function gravitational_acceleration(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V};
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
     return gravitational_acceleration(model, r, 0; max_degree, max_order, P, dP)
 end
 
 function gravitational_acceleration(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
     RT = promote_type(T, V, typeof(time))
 
     # == Partial Derivatives of the Gravitational Field ====================================
@@ -146,14 +146,14 @@ function gravitational_acceleration(
 end
 
 function gravitational_acceleration(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
     t = Dates.value(time - _DT_J2000) / 1000
 
     return gravitational_acceleration(
@@ -190,7 +190,7 @@ See also: [`gravitational_acceleration`](@ref)
 
 # Arguments
 
-- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `model::AbstractGravityModel{T}`: Gravity model.
 - `r::AbstractVector`: Position [m] in the body-fixed frame (ITRF for Earth) at which the
     acceleration is computed.
 - `time::Union{Number, DateTime}`: Time at which the acceleration is computed, expressed
@@ -234,19 +234,19 @@ See also: [`gravitational_acceleration`](@ref)
     GeoForschungsZentrum (GFZ), pp. 22-23.
 """
 function gravity_acceleration(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V};
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
     ω::Number = EARTH_ANGULAR_SPEED,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
     return gravity_acceleration(model, r, 0; max_degree, max_order, P, dP, ω)
 end
 
 function gravity_acceleration(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::Number;
     max_degree::Int = -1,
@@ -254,7 +254,7 @@ function gravity_acceleration(
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
     ω::Number = EARTH_ANGULAR_SPEED,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
 
     # == Gravitational Acceleration ========================================================
 
@@ -298,7 +298,7 @@ function gravity_acceleration(
 end
 
 function gravity_acceleration(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::DateTime;
     max_degree::Int = -1,
@@ -306,7 +306,7 @@ function gravity_acceleration(
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
     ω::Number = EARTH_ANGULAR_SPEED,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
     t = Dates.value(time - _DT_J2000) / 1000
 
     return gravity_acceleration(

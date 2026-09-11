@@ -8,15 +8,7 @@ function GravityModels.coefficients(model::IcgemFile, degree::Int, order::Int, t
     return icgem_coefficients(model, degree, order, time)
 end
 
-function GravityModels.coefficient_norm(
-    model::IcgemFile{T, Val{NT}}
-) where {T <: Number, NT}
-    if NT === :unnormalized
-        return :unnormalized
-    else
-        return :full
-    end
-end
+GravityModels.coefficient_norm(model::IcgemFile) = model.norm
 
 GravityModels.gravity_constant(model::IcgemFile) = model.gravity_constant
 

@@ -28,7 +28,7 @@ coefficients, the element type of `r`, and the type of `time`.
 
 # Arguments
 
-- `model::AbstractGravityModel{T, NT}`: Gravity model.
+- `model::AbstractGravityModel{T}`: Gravity model.
 - `r::AbstractVector`: Position [m] in the body-fixed frame (ITRF for Earth) at which the
     derivative is computed.
 - `time::Union{Number, DateTime}`: Time at which the derivative is computed, expressed as
@@ -65,25 +65,25 @@ coefficients, the element type of `r`, and the type of `time`.
 - `RT`: Derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`) [m²/s²].
 """
 function gravitational_field_derivative(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V};
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
     return gravitational_field_derivative(model, r, 0; max_degree, max_order, P, dP)
 end
 
 function gravitational_field_derivative(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::W;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, W <: Number, NT <: Val}
+) where {T <: Number, V <: Number, W <: Number}
     RT = promote_type(T, V, W)
 
     n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP = _prepare_field_derivative_inputs(
@@ -100,14 +100,14 @@ function gravitational_field_derivative(
 end
 
 function gravitational_field_derivative(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT <: Val}
+) where {T <: Number, V <: Number}
     t = Dates.value(time - _DT_J2000) / 1000
 
     return gravitational_field_derivative(
@@ -314,7 +314,7 @@ associated Legendre function values and their derivatives.
     are 0. This value is meaningful only if `r` lies on the polar axis.
 """
 function _gravitational_field_derivative_kernel(
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::W,
     n_max::Int,
@@ -325,14 +325,14 @@ function _gravitational_field_derivative_kernel(
     m_max_dP::Int,
     P::AbstractMatrix,
     dP::AbstractMatrix,
-) where {T <: Number, V <: Number, W <: Number, NT <: Val}
+) where {T <: Number, V <: Number, W <: Number}
     RT = promote_type(T, V, W)
 
     # == Unpack Gravity Model Data =========================================================
 
     μ = gravity_constant(model)
     R₀ = radius(model)
-    norm_type = coefficient_norm(model)
+    norm = coefficient_norm(model)
 
     # == Geocentric Spherical Coordinates ==================================================
 
@@ -376,8 +376,8 @@ function _gravitational_field_derivative_kernel(
     # Compute the associated Legendre functions `P_n,m[cos(θ)]` with the required
     # normalization and their first-order derivatives w.r.t. θ. Since θ ∈ [0, π / 2], the
     # functions are well-defined and no sign adjustments are needed.
-    legendre!(Val(norm_type), P, θ, n_max_P, m_max_P; ph_term = false)
-    dlegendre!(Val(norm_type), dP, θ, P, n_max_dP, m_max_dP; ph_term = false)
+    legendre!(norm, P, θ, n_max_P, m_max_P; ph_term = false)
+    dlegendre!(norm, dP, θ, P, n_max_dP, m_max_dP; ph_term = false)
 
     # Compute the derivatives.
     @inbounds for n in 2:n_max

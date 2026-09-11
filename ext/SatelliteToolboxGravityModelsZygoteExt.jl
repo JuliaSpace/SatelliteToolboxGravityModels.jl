@@ -16,14 +16,14 @@ using ForwardDiff
 
 function ChainRulesCore.rrule(
     ::typeof(GravityModels.gravitational_acceleration),
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT}
+) where {T <: Number, V <: Number}
     y = GravityModels.gravitational_acceleration(
         model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
     )
@@ -60,13 +60,13 @@ end
 
 function ChainRulesCore.rrule(
     ::typeof(GravityModels.gravitational_potential),
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT}
+) where {T <: Number, V <: Number}
     y = GravityModels.gravitational_potential(
         model, r, time; max_degree = max_degree, max_order = max_order, P = P
     )
@@ -100,14 +100,14 @@ end
 
 function ChainRulesCore.rrule(
     ::typeof(GravityModels.gravitational_field_derivative),
-    model::AbstractGravityModel{T, NT},
+    model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
     P::Union{Nothing, AbstractMatrix} = nothing,
     dP::Union{Nothing, AbstractMatrix} = nothing,
-) where {T <: Number, V <: Number, NT}
+) where {T <: Number, V <: Number}
     y = GravityModels.gravitational_field_derivative(
         model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
     )
