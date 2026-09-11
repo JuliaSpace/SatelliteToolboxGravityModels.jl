@@ -21,10 +21,9 @@ coefficients, the element type of `r`, and the type of `time`.
 
 !!! note
 
-    The matrices `P` and `dP` are lower triangular. Hence, the algorithm performance for
-    large models can be improved if they are created using the `LowerTriangularStorage`
-    (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
-    not provided by the user, they will be created using that type of storage.
+    The performance can be largely improved by creating a [`Workspace`](@ref) once and
+    passing it using the keyword `workspace` when the function is called many times for
+    the same model, e.g. in a numerical orbit propagator.
 
 # Arguments
 
@@ -46,15 +45,12 @@ coefficients, the element type of `r`, and the type of `time`.
     gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
     If it is lower than 0, it will be set to the same value as `max_degree`.
     (**Default**: -1)
-- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
-    when calling the function.
-    (**Default**: `nothing`)
-- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
-    be created when calling the function.
+- `workspace::Union{Nothing, Workspace}`: Workspace created with [`Workspace`](@ref) for
+    the `model`, holding the buffers and the precomputed coefficients used in the
+    computation, which avoids allocations and improves the performance. Its element type
+    must be `RT` and it must support the selected degree and order. Otherwise, the
+    function throws an `ArgumentError`. If it is `nothing`, the buffers are allocated at
+    every call.
     (**Default**: `nothing`)
 
 # Returns
@@ -70,19 +66,18 @@ function gravitational_field_derivative(
     time::W = 0;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, Workspace} = nothing,
 ) where {T <: Number, V <: Number, W <: Number}
     RT = promote_type(T, V, W)
 
-    n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP = _prepare_field_derivative_inputs(
-        model, RT, max_degree, max_order, P, dP
+    n_max, m_max, n_max_P, m_max_P, legendre, P, dP = _prepare_field_derivative_inputs(
+        model, RT, max_degree, max_order, workspace
     )
 
     # Call the kernel through a function barrier. Hence, the hot loop is always compiled
     # with concrete types for `P` and `dP`, even when they are allocated here.
     ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ, _ = _gravitational_field_derivative_kernel(
-        model, r, time, n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP
+        model, r, time, legendre, n_max, m_max, n_max_P, m_max_P, P, dP
     )
 
     return ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ
@@ -94,8 +89,7 @@ function gravitational_field_derivative(
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, Workspace} = nothing,
 ) where {T <: Number, V <: Number}
     return gravitational_field_derivative(
         model,
@@ -103,120 +97,13 @@ function gravitational_field_derivative(
         _to_j2000_seconds(time);
         max_degree = max_degree,
         max_order = max_order,
-        P = P,
-        dP = dP,
+        workspace = workspace,
     )
 end
 
 ############################################################################################
 #                                    Private Functions                                     #
 ############################################################################################
-
-"""
-    _process_degree_and_order(model::AbstractGravityModel, max_degree::Int, max_order::Int) -> Int, Int
-
-Return the maximum degree and order used in the spherical harmonics computation of `model`
-given the requested `max_degree` and `max_order`. If `max_degree` is negative or higher
-than the maximum degree of `model`, it is clamped to the latter. If `max_order` is negative
-or higher than the selected degree, it is set to the selected degree.
-
-# Returns
-
-- `Int`: Maximum degree used in the computation.
-- `Int`: Maximum order used in the computation.
-"""
-function _process_degree_and_order(
-    model::AbstractGravityModel, max_degree::Int, max_order::Int
-)
-    model_max_degree = maximum_degree(model)
-
-    n_max =
-        ((max_degree < 0) || (max_degree > model_max_degree)) ? model_max_degree :
-        max_degree
-    m_max = ((max_order < 0) || (max_order > n_max)) ? n_max : max_order
-
-    return n_max, m_max
-end
-
-"""
-    _check_legendre_matrix(M::AbstractMatrix, name::String, n_max::Int, m_max::Int) -> Nothing
-
-Check if the matrix `M`, called `name` in the error messages, has at least `n_max + 1` rows
-and `m_max + 1` columns, throwing an `ArgumentError` otherwise.
-"""
-function _check_legendre_matrix(M::AbstractMatrix, name::String, n_max::Int, m_max::Int)
-    rows, cols = size(M)
-
-    if (rows < n_max + 1) || (cols < m_max + 1)
-        throw(
-            ArgumentError(
-                "Matrix `$name` must have at least $(n_max + 1) rows and $(m_max + 1) columns.",
-            ),
-        )
-    end
-
-    return nothing
-end
-
-"""
-    _prepare_field_derivative_inputs(model::AbstractGravityModel, RT::Type, max_degree::Int, max_order::Int, P::Union{Nothing, AbstractMatrix}, dP::Union{Nothing, AbstractMatrix}) -> Int, Int, Int, Int, Int, Int, AbstractMatrix, AbstractMatrix
-
-Process the inputs of the gravitational field derivative computation of `model` with
-element type `RT`, returning the degrees and orders used in the computation and the
-matrices `P` and `dP` to store the associated Legendre functions and their derivatives.
-
-The requested `max_degree` and `max_order` are clamped as described in
-[`_process_degree_and_order`](@ref). If `P` or `dP` is `nothing`, the corresponding matrix
-is allocated using a `LowerTriangularStorage` with row-major ordering and element type
-`RT`. Otherwise, the function throws an `ArgumentError` if the matrix is too small.
-
-# Returns
-
-- `Int`: Maximum degree `n_max` used in the computation.
-- `Int`: Maximum order `m_max` used in the computation.
-- `Int`: Maximum degree computed in `P`.
-- `Int`: Maximum order computed in `P`, which is `m_max + 1` if `m_max < n_max` because
-    the derivative computation requires one additional order.
-- `Int`: Maximum degree computed in `dP`.
-- `Int`: Maximum order computed in `dP`.
-- `AbstractMatrix`: Matrix `P`.
-- `AbstractMatrix`: Matrix `dP`.
-"""
-function _prepare_field_derivative_inputs(
-    model::AbstractGravityModel,
-    ::Type{RT},
-    max_degree::Int,
-    max_order::Int,
-    P::Union{Nothing, AbstractMatrix},
-    dP::Union{Nothing, AbstractMatrix},
-) where {RT}
-    n_max, m_max = _process_degree_and_order(model, max_degree, max_order)
-
-    # Obtain the required sizes for the matrices P and dP.
-    #
-    # Notice that, to compute the derivative if `m_max < n_max`, we need that `P` has an
-    # order at least one time higher than `dP`. Otherwise, we will access regions with
-    # undefined numbers.
-    n_max_P  = n_max
-    m_max_P  = (n_max == m_max) ? m_max : m_max + 1
-    n_max_dP = n_max
-    m_max_dP = m_max
-
-    # Check if the matrices related to Legendre must be allocated.
-    if isnothing(P)
-        P = LowerTriangularStorage{RowMajor, RT}(n_max_P + 1)
-    else
-        _check_legendre_matrix(P, "P", n_max_P, m_max_P)
-    end
-
-    if isnothing(dP)
-        dP = LowerTriangularStorage{RowMajor, RT}(n_max_dP + 1)
-    else
-        _check_legendre_matrix(dP, "dP", n_max_dP, m_max_dP)
-    end
-
-    return n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP
-end
 
 """
     _spherical_coordinates(r::AbstractVector, ::Type{RT}) -> RT, RT, RT, RT, RT, Bool
@@ -273,12 +160,11 @@ end
         model::AbstractGravityModel,
         r::AbstractVector,
         time::Number,
+        legendre::Union{Val, LegendreCoefficients},
         n_max::Int,
         m_max::Int,
         n_max_P::Int,
         m_max_P::Int,
-        n_max_dP::Int,
-        m_max_dP::Int,
         P::AbstractMatrix,
         dP::AbstractMatrix
     ) -> NTuple{4, RT}
@@ -290,11 +176,13 @@ and instant `time`, expressed as the number of elapsed seconds [s] from the J200
 `m_max`.
 
 This function is the kernel of [`gravitational_field_derivative`](@ref), called through a
-function barrier so the hot loop is compiled with concrete types for `P` and `dP`. It
-assumes all inputs were already processed: `n_max` and `m_max` must be valid for `model`,
-and `P` and `dP` must have at least `n_max_P + 1 × m_max_P + 1` and
-`n_max_dP + 1 × m_max_dP + 1` elements, respectively, which are overwritten with the
-associated Legendre function values and their derivatives.
+function barrier so the hot loop is compiled with concrete types for `legendre`, `P`, and
+`dP`. It assumes all inputs were already processed: `n_max` and `m_max` must be valid for
+`model`, `legendre` must be either the normalization of the model coefficients wrapped in
+a `Val` or a `LegendreCoefficients` object supporting `n_max` and `m_max`, and `P` and
+`dP` must have at least `n_max_P + 1 × m_max_P + 1` and `n_max + 1 × m_max + 1` elements,
+respectively, which are overwritten with the associated Legendre function values and their
+derivatives.
 
 # Returns
 
@@ -310,12 +198,11 @@ function _gravitational_field_derivative_kernel(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::W,
+    legendre::Union{Val, LegendreCoefficients},
     n_max::Int,
     m_max::Int,
     n_max_P::Int,
     m_max_P::Int,
-    n_max_dP::Int,
-    m_max_dP::Int,
     P::AbstractMatrix,
     dP::AbstractMatrix,
 ) where {T <: Number, V <: Number, W <: Number}
@@ -325,7 +212,6 @@ function _gravitational_field_derivative_kernel(
 
     μ = gravity_constant(model)
     R₀ = radius(model)
-    norm = coefficient_norm(model)
 
     # == Geocentric Spherical Coordinates ==================================================
 
@@ -369,8 +255,8 @@ function _gravitational_field_derivative_kernel(
     # Compute the associated Legendre functions `P_n,m[cos(θ)]` with the required
     # normalization and their first-order derivatives w.r.t. θ. Since θ ∈ [0, π / 2], the
     # functions are well-defined and no sign adjustments are needed.
-    legendre!(norm, P, θ, n_max_P, m_max_P; ph_term = false)
-    dlegendre!(norm, dP, θ, P, n_max_dP, m_max_dP; ph_term = false)
+    _legendre!(legendre, P, θ, n_max_P, m_max_P)
+    _dlegendre!(legendre, dP, θ, P, n_max, m_max)
 
     # Compute the derivatives.
     @inbounds for n in 2:n_max

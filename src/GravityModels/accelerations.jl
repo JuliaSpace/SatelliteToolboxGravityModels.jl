@@ -28,10 +28,9 @@ coefficients, the element type of `r`, and the type of `time`.
 
 !!! note
 
-    The matrices `P` and `dP` are lower triangular. Hence, the algorithm performance for
-    large models can be improved if they are created using the `LowerTriangularStorage`
-    (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
-    not provided by the user, they will be created using that type of storage.
+    The performance can be largely improved by creating a [`Workspace`](@ref) once and
+    passing it using the keyword `workspace` when the function is called many times for
+    the same model, e.g. in a numerical orbit propagator.
 
 See also: [`gravity_acceleration`](@ref)
 
@@ -55,15 +54,12 @@ See also: [`gravity_acceleration`](@ref)
     gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
     If it is lower than 0, it will be set to the same value as `max_degree`.
     (**Default**: -1)
-- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
-    when calling the function.
-    (**Default**: `nothing`)
-- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
-    be created when calling the function.
+- `workspace::Union{Nothing, Workspace}`: Workspace created with [`Workspace`](@ref) for
+    the `model`, holding the buffers and the precomputed coefficients used in the
+    computation, which avoids allocations and improves the performance. Its element type
+    must be `RT` and it must support the selected degree and order. Otherwise, the
+    function throws an `ArgumentError`. If it is `nothing`, the buffers are allocated at
+    every call.
     (**Default**: `nothing`)
 
 # Returns
@@ -83,19 +79,18 @@ function gravitational_acceleration(
     time::Number = 0;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, Workspace} = nothing,
 ) where {T <: Number, V <: Number}
     RT = promote_type(T, V, typeof(time))
 
     # == Partial Derivatives of the Gravitational Field ====================================
 
-    n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP = _prepare_field_derivative_inputs(
-        model, RT, max_degree, max_order, P, dP
+    n_max, m_max, n_max_P, m_max_P, legendre, P, dP = _prepare_field_derivative_inputs(
+        model, RT, max_degree, max_order, workspace
     )
 
     ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ, ∂U_∂λ_over_cosϕ_pole = _gravitational_field_derivative_kernel(
-        model, r, time, n_max, m_max, n_max_P, m_max_P, n_max_dP, m_max_dP, P, dP
+        model, r, time, legendre, n_max, m_max, n_max_P, m_max_P, P, dP
     )
 
     # == Acceleration Represented in the UEN Frame =========================================
@@ -140,8 +135,7 @@ function gravitational_acceleration(
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, Workspace} = nothing,
 ) where {T <: Number, V <: Number}
     return gravitational_acceleration(
         model,
@@ -149,8 +143,7 @@ function gravitational_acceleration(
         _to_j2000_seconds(time);
         max_degree = max_degree,
         max_order = max_order,
-        P = P,
-        dP = dP,
+        workspace = workspace,
     )
 end
 
@@ -174,10 +167,9 @@ coefficients, the element type of `r`, and the type of `time`.
 
 !!! note
 
-    The matrices `P` and `dP` are lower triangular. Hence, the algorithm performance for
-    large models can be improved if they are created using the `LowerTriangularStorage`
-    (defined in SatelliteToolboxBase.jl) with a row-major ordering. If those matrices are
-    not provided by the user, they will be created using that type of storage.
+    The performance can be largely improved by creating a [`Workspace`](@ref) once and
+    passing it using the keyword `workspace` when the function is called many times for
+    the same model, e.g. in a numerical orbit propagator.
 
 See also: [`gravitational_acceleration`](@ref)
 
@@ -201,15 +193,12 @@ See also: [`gravitational_acceleration`](@ref)
     gravitational field derivative. If it is higher than `max_degree`, it will be clamped.
     If it is lower than 0, it will be set to the same value as `max_degree`.
     (**Default**: -1)
-- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
-    when calling the function.
-    (**Default**: `nothing`)
-- `dP::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    derivative coefficients, reducing the allocations. If it is `nothing`, the matrix will
-    be created when calling the function.
+- `workspace::Union{Nothing, Workspace}`: Workspace created with [`Workspace`](@ref) for
+    the `model`, holding the buffers and the precomputed coefficients used in the
+    computation, which avoids allocations and improves the performance. Its element type
+    must be `RT` and it must support the selected degree and order. Otherwise, the
+    function throws an `ArgumentError`. If it is `nothing`, the buffers are allocated at
+    every call.
     (**Default**: `nothing`)
 - `ω::Number`: Rotation rate of the body [rad/s]. For non-Earth bodies, provide the
     appropriate rotation rate for the celestial body.
@@ -232,15 +221,19 @@ function gravity_acceleration(
     time::Number = 0;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, Workspace} = nothing,
     ω::Number = EARTH_ANGULAR_SPEED,
 ) where {T <: Number, V <: Number}
 
     # == Gravitational Acceleration ========================================================
 
     grav_itrf = gravitational_acceleration(
-        model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
+        model,
+        r,
+        time;
+        max_degree = max_degree,
+        max_order = max_order,
+        workspace = workspace,
     )
 
     # == Centripetal acceleration ==========================================================
@@ -284,8 +277,7 @@ function gravity_acceleration(
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, Workspace} = nothing,
     ω::Number = EARTH_ANGULAR_SPEED,
 ) where {T <: Number, V <: Number}
     return gravity_acceleration(
@@ -294,8 +286,7 @@ function gravity_acceleration(
         _to_j2000_seconds(time);
         max_degree = max_degree,
         max_order = max_order,
-        P = P,
-        dP = dP,
+        workspace = workspace,
         ω = ω,
     )
 end

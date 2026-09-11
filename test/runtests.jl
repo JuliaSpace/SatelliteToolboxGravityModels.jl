@@ -37,7 +37,7 @@ if isempty(VERSION.prerelease)
     using Aqua
 
     import SatelliteToolboxGravityModels: IcgemGfcCoefficient, IcgemGfctCoefficient
-    import SatelliteToolboxBase: LowerTriangularStorage, RowMajor
+    import SatelliteToolboxGravityModels.GravityModels: Workspace
 
     if Sys.isapple() && (VERSION.major == 1 && VERSION.minor >= 12)
         @warn "Allocation tests skipped on macOS with Julia 1.12+ due to AllocCheck platform limitations"

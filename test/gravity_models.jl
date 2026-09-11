@@ -254,14 +254,22 @@ end
     egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
     r_itrf = [7000.0e3, 0, 0]
 
-    P = zeros(10, 10)
-    @test_throws ArgumentError GravityModels.gravity_acceleration(egm96, r_itrf; P = P)
-
-    P  = zeros(361, 361)
-    dP = zeros(10, 10)
-    @test_throws ArgumentError GravityModels.gravity_acceleration(egm96, r_itrf; dP = dP)
+    # Workspace with insufficient degree.
+    workspace = GravityModels.Workspace(egm96; max_degree = 10)
     @test_throws ArgumentError GravityModels.gravity_acceleration(
-        egm96, r_itrf; P = P, dP = dP
+        egm96, r_itrf; workspace = workspace
+    )
+
+    # Workspace with insufficient order.
+    workspace = GravityModels.Workspace(egm96; max_degree = 20, max_order = 5)
+    @test_throws ArgumentError GravityModels.gravity_acceleration(
+        egm96, r_itrf; max_degree = 20, max_order = 10, workspace = workspace
+    )
+
+    # Workspace with the wrong element type.
+    workspace = GravityModels.Workspace(egm96; T = Float32)
+    @test_throws ArgumentError GravityModels.gravity_acceleration(
+        egm96, r_itrf; workspace = workspace
     )
 end
 
@@ -354,7 +362,73 @@ end
     egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
     r_itrf = [7000.0e3, 0, 0]
 
-    # Test that P matrix is too small
-    P = zeros(10, 10)
-    @test_throws ArgumentError GravityModels.gravitational_potential(egm96, r_itrf; P = P)
+    # Workspace with insufficient degree.
+    workspace = GravityModels.Workspace(egm96; max_degree = 10)
+    @test_throws ArgumentError GravityModels.gravitational_potential(
+        egm96, r_itrf; workspace = workspace
+    )
+end
+
+# == File: ./src/GravityModels/workspace.jl ================================================
+
+@testset "Workspace" verbose = true begin
+    eigen6c_file = fetch_icgem_file(
+        "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
+    )
+
+    eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
+    r_itrf  = [6000.0e3, 2000.0e3, 3000.0e3]
+    epoch   = DateTime("2023-06-19")
+
+    # The results obtained with the workspace must match those obtained without it up to
+    # the rounding errors of the different recursion coefficients.
+    workspace = GravityModels.Workspace(eigen6c; max_degree = 100)
+
+    @test workspace.max_degree == 100
+    @test workspace.max_order == 100
+    @test eltype(workspace.P) == Float64
+    @test sprint(show, workspace) == "Workspace{:full, Float64}(100, 100)"
+
+    for (max_degree, max_order) in ((100, 100), (100, 50), (80, 80), (80, 20)),
+        time in (0, epoch)
+
+        U = GravityModels.gravitational_potential(
+            eigen6c, r_itrf, time; max_degree, max_order
+        )
+        U_w = GravityModels.gravitational_potential(
+            eigen6c, r_itrf, time; max_degree, max_order, workspace
+        )
+        @test U_w ≈ U rtol = 1e-14
+
+        ∂U   = GravityModels.gravitational_field_derivative(eigen6c, r_itrf, time; max_degree, max_order)
+        ∂U_w = GravityModels.gravitational_field_derivative(eigen6c, r_itrf, time; max_degree, max_order, workspace)
+        @test all(∂U_w .≈ ∂U)
+
+        g = GravityModels.gravitational_acceleration(
+            eigen6c, r_itrf, time; max_degree, max_order
+        )
+        g_w = GravityModels.gravitational_acceleration(
+            eigen6c, r_itrf, time; max_degree, max_order, workspace
+        )
+        @test g_w ≈ g rtol = 1e-14
+
+        g = GravityModels.gravity_acceleration(eigen6c, r_itrf, time; max_degree, max_order)
+        g_w = GravityModels.gravity_acceleration(
+            eigen6c, r_itrf, time; max_degree, max_order, workspace
+        )
+        @test g_w ≈ g rtol = 1e-14
+    end
+
+    # The default workspace supports the maximum degree of the model.
+    workspace = GravityModels.Workspace(eigen6c)
+    @test workspace.max_degree == GravityModels.maximum_degree(eigen6c)
+    @test workspace.max_order == GravityModels.maximum_degree(eigen6c)
+
+    # The order can be limited.
+    workspace = GravityModels.Workspace(eigen6c; max_degree = 50, max_order = 10)
+    @test workspace.max_degree == 50
+    @test workspace.max_order == 10
+    @test_throws ArgumentError GravityModels.gravitational_acceleration(
+        eigen6c, r_itrf; max_degree = 50, max_order = 20, workspace = workspace
+    )
 end

@@ -21,15 +21,19 @@ function ChainRulesCore.rrule(
     time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, GravityModels.Workspace} = nothing,
 ) where {T <: Number, V <: Number}
     y = GravityModels.gravitational_acceleration(
-        model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
+        model,
+        r,
+        time;
+        max_degree = max_degree,
+        max_order = max_order,
+        workspace = workspace,
     )
 
-    # The matrices `P` and `dP` provided by the user cannot be used in the pullback because
-    # the Jacobian is computed with dual numbers, which cannot be stored in them.
+    # The workspace provided by the user cannot be used in the pullback because the
+    # Jacobian is computed with dual numbers, which cannot be stored in its buffers.
     function _gravitational_acceleration_pullback(Δ)
         jac = ForwardDiff.jacobian(
             (x) -> GravityModels.gravitational_acceleration(
@@ -38,8 +42,7 @@ function ChainRulesCore.rrule(
                 x[4];
                 max_degree = max_degree,
                 max_order = max_order,
-                P = nothing,
-                dP = nothing,
+                workspace = nothing,
             ),
             [r; time],
         )
@@ -51,7 +54,7 @@ function ChainRulesCore.rrule(
             NoTangent(),
             vjp[1:3],
             vjp[4],
-            (NoTangent(), NoTangent(), NoTangent(), NoTangent()),
+            (NoTangent(), NoTangent(), NoTangent()),
         )
     end
 
@@ -65,10 +68,15 @@ function ChainRulesCore.rrule(
     time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, GravityModels.Workspace} = nothing,
 ) where {T <: Number, V <: Number}
     y = GravityModels.gravitational_potential(
-        model, r, time; max_degree = max_degree, max_order = max_order, P = P
+        model,
+        r,
+        time;
+        max_degree = max_degree,
+        max_order = max_order,
+        workspace = workspace,
     )
 
     function _gravitational_potential_pullback(Δ)
@@ -79,20 +87,14 @@ function ChainRulesCore.rrule(
                 x[4];
                 max_degree = max_degree,
                 max_order = max_order,
-                P = nothing,
+                workspace = nothing,
             ),
             [r; time],
         )
 
         vjp = Δ' * grad
 
-        return (
-            NoTangent(),
-            NoTangent(),
-            vjp[1:3],
-            vjp[4],
-            (NoTangent(), NoTangent(), NoTangent()),
-        )
+        return (NoTangent(), NoTangent(), vjp[1:3], vjp[4], (NoTangent(), NoTangent()))
     end
 
     return y, _gravitational_potential_pullback
@@ -105,11 +107,15 @@ function ChainRulesCore.rrule(
     time::Number;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
-    dP::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, GravityModels.Workspace} = nothing,
 ) where {T <: Number, V <: Number}
     y = GravityModels.gravitational_field_derivative(
-        model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
+        model,
+        r,
+        time;
+        max_degree = max_degree,
+        max_order = max_order,
+        workspace = workspace,
     )
 
     function _gravitational_field_derivative_pullback(Δ)
@@ -121,8 +127,7 @@ function ChainRulesCore.rrule(
                     x[4];
                     max_degree = max_degree,
                     max_order = max_order,
-                    P = nothing,
-                    dP = nothing,
+                    workspace = nothing,
                 )
                 # Convert result to a vector for jacobian computation
                 return collect(result)
@@ -157,7 +162,7 @@ function ChainRulesCore.rrule(
             NoTangent(),
             vjp[1:3],
             vjp[4],
-            (NoTangent(), NoTangent(), NoTangent(), NoTangent()),
+            (NoTangent(), NoTangent(), NoTangent()),
         )
     end
 

@@ -24,6 +24,7 @@ include("./types.jl")
 ############################################################################################
 
 include("./api.jl")
+include("./workspace.jl")
 include("./accelerations.jl")
 include("./gravitational_field_derivative.jl")
 include("./potential.jl")

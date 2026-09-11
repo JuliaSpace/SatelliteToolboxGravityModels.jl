@@ -27,10 +27,9 @@ element type of `r`, and the type of `time`.
 
 !!! note
 
-    The matrix `P` is lower triangular. Hence, the algorithm performance for large models
-    can be improved if it is created using the `LowerTriangularStorage` (defined in
-    SatelliteToolboxBase.jl) with a row-major ordering. If this matrix is not provided by
-    the user, it will be created using that type of storage.
+    The performance can be largely improved by creating a [`Workspace`](@ref) once and
+    passing it using the keyword `workspace` when the function is called many times for
+    the same model, e.g. in a numerical orbit propagator.
 
 # Arguments
 
@@ -52,10 +51,12 @@ element type of `r`, and the type of `time`.
     gravitational potential. If it is higher than `max_degree`, it will be clamped. If it
     is lower than 0, it will be set to the same value as `max_degree`.
     (**Default**: -1)
-- `P::Union{Nothing, AbstractMatrix}`: An optional matrix that must contain at least
-    `max_degree + 1 × max_degree + 1` real numbers that will be used to store the Legendre
-    coefficients, reducing the allocations. If it is `nothing`, the matrix will be created
-    when calling the function.
+- `workspace::Union{Nothing, Workspace}`: Workspace created with [`Workspace`](@ref) for
+    the `model`, holding the buffers and the precomputed coefficients used in the
+    computation, which avoids allocations and improves the performance. Its element type
+    must be `RT` and it must support the selected degree and order. Otherwise, the
+    function throws an `ArgumentError`. If it is `nothing`, the buffers are allocated at
+    every call.
     (**Default**: `nothing`)
 
 # References
@@ -70,22 +71,17 @@ function gravitational_potential(
     time::W = 0;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, Workspace} = nothing,
 ) where {T <: Number, V <: Number, W <: Number}
     RT = promote_type(T, V, W)
 
-    n_max, m_max = _process_degree_and_order(model, max_degree, max_order)
-
-    # Check if the matrix related to Legendre must be allocated.
-    if isnothing(P)
-        P = LowerTriangularStorage{RowMajor, RT}(n_max + 1)
-    else
-        _check_legendre_matrix(P, "P", n_max, m_max)
-    end
+    n_max, m_max, legendre, P = _prepare_potential_inputs(
+        model, RT, max_degree, max_order, workspace
+    )
 
     # Call the kernel through a function barrier. Hence, the hot loop is always compiled
     # with a concrete type for `P`, even when it is allocated here.
-    return _gravitational_potential_kernel(model, r, time, n_max, m_max, P)
+    return _gravitational_potential_kernel(model, r, time, legendre, n_max, m_max, P)
 end
 
 function gravitational_potential(
@@ -94,7 +90,7 @@ function gravitational_potential(
     time::DateTime;
     max_degree::Int = -1,
     max_order::Int = -1,
-    P::Union{Nothing, AbstractMatrix} = nothing,
+    workspace::Union{Nothing, Workspace} = nothing,
 ) where {T <: Number, V <: Number}
     return gravitational_potential(
         model,
@@ -102,7 +98,7 @@ function gravitational_potential(
         _to_j2000_seconds(time);
         max_degree = max_degree,
         max_order = max_order,
-        P = P,
+        workspace = workspace,
     )
 end
 
@@ -115,6 +111,7 @@ end
         model::AbstractGravityModel,
         r::AbstractVector,
         time::Number,
+        legendre::Union{Val, LegendreCoefficients},
         n_max::Int,
         m_max::Int,
         P::AbstractMatrix
@@ -126,8 +123,10 @@ number of elapsed seconds [s] from the J2000.0 epoch (2000-01-01T12:00:00), usin
 spherical harmonics up to degree `n_max` and order `m_max`.
 
 This function is the kernel of [`gravitational_potential`](@ref), called through a
-function barrier so the hot loop is compiled with a concrete type for `P`. It assumes all
-inputs were already processed: `n_max` and `m_max` must be valid for `model`, and `P` must
+function barrier so the hot loop is compiled with concrete types for `legendre` and `P`.
+It assumes all inputs were already processed: `n_max` and `m_max` must be valid for
+`model`, `legendre` must be either the normalization of the model coefficients wrapped in
+a `Val` or a `LegendreCoefficients` object supporting `n_max` and `m_max`, and `P` must
 have at least `n_max + 1 × m_max + 1` elements, which are overwritten with the associated
 Legendre function values.
 """
@@ -135,6 +134,7 @@ function _gravitational_potential_kernel(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
     time::W,
+    legendre::Union{Val, LegendreCoefficients},
     n_max::Int,
     m_max::Int,
     P::AbstractMatrix,
@@ -145,7 +145,6 @@ function _gravitational_potential_kernel(
 
     μ = gravity_constant(model)
     R₀ = radius(model)
-    norm = coefficient_norm(model)
 
     # == Geocentric Spherical Coordinates ==================================================
 
@@ -182,7 +181,7 @@ function _gravitational_potential_kernel(
     # Compute the associated Legendre functions `P_n,m[cos(θ)]` with the required
     # normalization. Since θ ∈ [0, π / 2], the functions are well-defined and no sign
     # adjustments are needed.
-    legendre!(norm, P, θ, n_max, m_max; ph_term = false)
+    _legendre!(legendre, P, θ, n_max, m_max)
 
     # Compute the potential.
     @inbounds for n in 2:n_max
