@@ -46,3 +46,24 @@ end
 
     @test jac_fd ≈ jac_zy rtol = 1e-12
 end
+
+@testset "gravitational_acceleration(model, r, t) with user matrices" begin
+    # The matrices provided by the user must not be forwarded to the pullback, which
+    # computes the Jacobian using dual numbers.
+    P  = zeros(361, 361)
+    dP = zeros(361, 361)
+
+    fn = (x) -> Array(GravityModels.gravitational_acceleration(_GRAV_MODEL, x[1:3], x[4]))
+    fn_matrices =
+        (x) -> Array(
+            GravityModels.gravitational_acceleration(
+                _GRAV_MODEL, x[1:3], x[4]; P = P, dP = dP
+            ),
+        )
+    input = [r_itrf; time]
+
+    _, jac_fd = value_and_jacobian(fn, AutoForwardDiff(), input)
+    _, jac_zy = value_and_jacobian(fn_matrices, AutoZygote(), input)
+
+    @test jac_fd ≈ jac_zy rtol = 1e-12
+end

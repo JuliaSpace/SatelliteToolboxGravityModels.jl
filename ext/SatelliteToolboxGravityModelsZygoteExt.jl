@@ -28,6 +28,8 @@ function ChainRulesCore.rrule(
         model, r, time; max_degree = max_degree, max_order = max_order, P = P, dP = dP
     )
 
+    # The matrices `P` and `dP` provided by the user cannot be used in the pullback because
+    # the Jacobian is computed with dual numbers, which cannot be stored in them.
     function _gravitational_acceleration_pullback(Δ)
         jac = ForwardDiff.jacobian(
             (x) -> GravityModels.gravitational_acceleration(
@@ -36,8 +38,8 @@ function ChainRulesCore.rrule(
                 x[4];
                 max_degree = max_degree,
                 max_order = max_order,
-                P = P,
-                dP = dP,
+                P = nothing,
+                dP = nothing,
             ),
             [r; time],
         )
@@ -77,7 +79,7 @@ function ChainRulesCore.rrule(
                 x[4];
                 max_degree = max_degree,
                 max_order = max_order,
-                P = P,
+                P = nothing,
             ),
             [r; time],
         )
@@ -119,8 +121,8 @@ function ChainRulesCore.rrule(
                     x[4];
                     max_degree = max_degree,
                     max_order = max_order,
-                    P = P,
-                    dP = dP,
+                    P = nothing,
+                    dP = nothing,
                 )
                 # Convert result to a vector for jacobian computation
                 return collect(result)
