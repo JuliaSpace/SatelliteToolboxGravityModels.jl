@@ -186,7 +186,7 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
     ord  = 0
     clm  = Tf(0)
     slm  = Tf(0)
-    time = Dates.value(now() - _DT_J2000) / 1000
+    time = 0.0
 
     has_trend = false
     trend_clm = Tf(0)
