@@ -19,11 +19,13 @@
 
 Parse the ICGEM file `filename`, or the ICGEM data read from the stream `io`, using the
 data type `T` and return an [`IcgemFile`](@ref) object with the parsed data. The file is
-closed after parsing. The stream `io` must be seekable.
+closed after parsing.
 
 This function supports ICGEM gravity model files for Earth and other celestial bodies
 (Moon, planets, etc.). The parser automatically detects whether the file uses
 `earth_gravity_constant` (for Earth models) or `gravity_constant` (for non-Earth models).
+Both the ICGEM formats 1.0 and 2.0 are supported, including the time-variable
+coefficients with validity intervals of the latter.
 
 The function throws an [`IcgemParseError`](@ref) if the file does not conform to the ICGEM
 format, and logs a warning for each invalid data line, which is skipped.
@@ -48,40 +50,39 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
 
     # == Header ============================================================================
 
-    header_start_line   = 1
-    header_end_line     = 0
+    keywords            = Dict{Symbol, String}()
     current_line        = 0
     begin_of_head_found = false
     end_of_head_found   = false
 
-    # We need to first check the position of the header due to the `begin_of_head` keyword
-    # that can define where the header starts.
+    # The header ends at the mandatory keyword `end_of_head`. The optional keyword
+    # `begin_of_head` makes all previous lines to be ignored.
     while !eof(file)
         current_line += 1
         tokens = split(readline(file))
 
         length(tokens) < 1 && continue
 
-        # Search for the `begin_of_head`, which is optional and makes all previous lines to
-        # be ignored.
         if tokens[1] == "begin_of_head"
             # We should not have two `begin_of_head`.
-            if begin_of_head_found
-                throw(
-                    IcgemParseError(
-                        "Two `begin_of_head` keywords were found.", current_line
-                    ),
-                )
-            end
+            begin_of_head_found && throw(
+                IcgemParseError("Two `begin_of_head` keywords were found.", current_line),
+            )
 
-            header_start_line = current_line
             begin_of_head_found = true
-            continue
+            empty!(keywords)
 
         elseif tokens[1] == "end_of_head"
             end_of_head_found = true
-            header_end_line = current_line
             break
+
+        elseif length(tokens) >= 2
+            # A keyword line has the keyword followed by its value. Lines with a single
+            # token are skipped because old versions of ICGEM files do not define well
+            # where the header starts and comments are allowed. The value is the first
+            # token after the keyword, since some files append comments to it, e.g.
+            # `errors formal (sigma calibration factor = 1.00)`.
+            keywords[Symbol(tokens[1])] = tokens[2]
         end
     end
 
@@ -89,34 +90,6 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
     if !end_of_head_found
         throw(IcgemParseError("The mandatory keyword `end_of_head` was not found."))
     end
-
-    # Rewind file to read again.
-    seek(file, 0)
-    current_line = 0
-
-    # == Get Keywords ======================================================================
-
-    keywords = Dict{Symbol, String}()
-
-    while current_line < header_end_line - 1
-        line = readline(file)
-        current_line += 1
-
-        # Skip all lines until the beginning of the header.
-        current_line < header_start_line && continue
-        tokens = split(line)
-
-        # We must have two keywords, otherwise we do not have a keyword. Here, we will just
-        # skip the line because old versions of ICGEM files do not define well where the
-        # header starts and comments are allowed.
-        length(tokens) != 2 && continue
-
-        keywords[Symbol(tokens[1])] = tokens[2]
-    end
-
-    # Read one more line to take into account the "end_of_head" line.
-    readline(file)
-    current_line += 1
 
     # == Parse Mandatory Header Fields =====================================================
 
@@ -175,6 +148,18 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
 
     tide_system = haskey(keywords, :tide_system) ? Symbol(keywords[:tide_system]) : :unknown
     norm_str    = haskey(keywords, :norm) ? keywords[:norm] : "fully_normalized"
+
+    # The format version defines how the epochs of the time-variable coefficients are
+    # written. Only the versions 1.0 and 2.0 are supported.
+    format_str = haskey(keywords, :format) ? keywords[:format] : "icgem1.0"
+
+    is_format_2 = if format_str == "icgem1.0"
+        false
+    elseif format_str == "icgem2.0"
+        true
+    else
+        throw(IcgemParseError("The format `$format_str` is not supported."))
+    end
 
     # Convert the normalization to the value expected by the Legendre functions.
     norm = if norm_str == "fully_normalized"
@@ -264,16 +249,15 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
                 # == `gfct` Data Line ==========================================================
 
             elseif tokens[1] == "gfct"
-                ret = _parse_gfct_data_line(Tf, tokens, current_line)
+                ret = _parse_gfct_data_line(Tf, tokens, current_line, is_format_2)
                 isnothing(ret) && continue
 
-                deg, ord, clm, slm, t₀ = ret
+                deg, ord, clm, slm, t₀, t₁ = ret
                 _is_degree_and_order_valid(deg, ord, max_degree, current_line) || continue
 
                 # Now, we need to change the state to wait for the next terms.
                 state = :gfct
 
-                t₁        = Tf(Inf)
                 trend_clm = Tf(0)
                 trend_slm = Tf(0)
                 empty!(periodic_terms)
@@ -400,6 +384,34 @@ numbers in FORTRAN format can be converted. If `input` cannot be parsed to `T`, 
 function _parse_icgem_float(::Type{T}, input::AbstractString) where {T}
     data_str = replace(input, r"[Dd]" => "e")
     return tryparse(T, data_str)
+end
+
+"""
+    _parse_icgem_epoch(input::AbstractString) -> Union{Nothing, Float64}
+
+Parse the epoch `input`, written as `yyyymmdd` or `yyyymmdd.hhmm`, and return it as the
+number of elapsed seconds [s] since the J2000.0 epoch (2000-01-01T12:00:00). If `input`
+cannot be parsed, return `nothing`.
+"""
+function _parse_icgem_epoch(input::AbstractString)
+    parts = split(input, '.')
+    (length(parts) > 2) && return nothing
+
+    date = tryparse(DateTime, parts[1], dateformat"yyyymmdd")
+    isnothing(date) && return nothing
+
+    if length(parts) == 2
+        (length(parts[2]) != 4) && return nothing
+
+        hour   = tryparse(Int, parts[2][1:2])
+        minute = tryparse(Int, parts[2][3:4])
+        (isnothing(hour) || isnothing(minute)) && return nothing
+        ((hour > 23) || (minute > 59)) && return nothing
+
+        date += Dates.Hour(hour) + Dates.Minute(minute)
+    end
+
+    return _to_j2000_seconds(date)
 end
 
 """
@@ -549,18 +561,22 @@ function _parse_gfc_data_line(Tf, tokens, current_line)
 end
 
 """
-    _parse_gfct_data_line(Tf, tokens, current_line) -> Union{Nothing, Tuple}
+    _parse_gfct_data_line(Tf, tokens, current_line, is_format_2) -> Union{Nothing, Tuple}
 
 Parse the `gfct` data line in `tokens` using the type `Tf` for the floating point fields.
 If any field cannot be parsed, log a warning with the `current_line` number and return
-`nothing`. The function throws an `ArgumentError` if the epoch in the last token is not a
-valid date in the `yyyymmdd` format.
+`nothing`.
+
+In the ICGEM format 1.0 (`is_format_2 = false`), the last token is the epoch `t₀` of the
+coefficients. In the ICGEM format 2.0 (`is_format_2 = true`), the last two tokens are the
+epoch `t₀` and the end `t₁` of the validity interval.
 
 # Arguments
 
 - `Tf::Type`: Type used to parse the floating point fields.
 - `tokens::AbstractVector{<:AbstractString}`: Tokens of the data line.
 - `current_line::Int`: Number of the line being parsed, used in the warning messages.
+- `is_format_2::Bool`: `true` if the file uses the ICGEM format 2.0, `false` otherwise.
 
 # Returns
 
@@ -568,11 +584,13 @@ valid date in the `yyyymmdd` format.
 - `Int`: Order.
 - `Tf`: Coefficient `Clm` [-] at the epoch.
 - `Tf`: Coefficient `Slm` [-] at the epoch.
-- `Float64`: Epoch (`t₀`) of the coefficients, expressed as the number of elapsed seconds
-    [s] since the J2000.0 epoch (2000-01-01T12:00:00).
+- `Tf`: Epoch (`t₀`) of the coefficients, expressed as the number of elapsed seconds [s]
+    since the J2000.0 epoch (2000-01-01T12:00:00).
+- `Tf`: End (`t₁`) of the validity interval, expressed as the number of elapsed seconds [s]
+    since the J2000.0 epoch (2000-01-01T12:00:00), or `Inf` in the ICGEM format 1.0.
 """
-function _parse_gfct_data_line(Tf, tokens, current_line)
-    if length(tokens) < 6
+function _parse_gfct_data_line(Tf, tokens, current_line, is_format_2)
+    if length(tokens) < (is_format_2 ? 7 : 6)
         @warn "[Line $current_line] Invalid `gfct` data line."
         return nothing
     end
@@ -582,10 +600,26 @@ function _parse_gfct_data_line(Tf, tokens, current_line)
     isnothing(ret) && return nothing
     deg, ord, clm, slm = ret
 
-    # Parse the time.
-    time = _to_j2000_seconds(DateTime(tokens[end], dateformat"yyyymmdd"))
+    # Parse the epoch and, in the format 2.0, the end of the validity interval.
+    t₀ = _parse_icgem_epoch(tokens[is_format_2 ? end - 1 : end])
 
-    return deg, ord, clm, slm, time
+    if isnothing(t₀)
+        @warn "[Line $current_line] Invalid epoch: $(tokens[is_format_2 ? end - 1 : end])."
+        return nothing
+    end
+
+    if is_format_2
+        t₁ = _parse_icgem_epoch(tokens[end])
+
+        if isnothing(t₁)
+            @warn "[Line $current_line] Invalid end of the validity interval: $(tokens[end])."
+            return nothing
+        end
+    else
+        t₁ = Inf
+    end
+
+    return deg, ord, clm, slm, Tf(t₀), Tf(t₁)
 end
 
 """

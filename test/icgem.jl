@@ -199,6 +199,101 @@ end
 
 # == File: ./src/icgem/parse.jl ============================================================
 
+@testset "Parsing IcgemFile in the Format 2.0" verbose = true begin
+    dt_J2000 = DateTime("2000-01-01T12:00:00.000")
+    model    = GravityModels.load(IcgemFile, "./icgem_test_files/icgem2_time_variable.gfc")
+
+    # The header value of `errors` is followed by a comment.
+    @test model.errors == :formal
+    @test model.max_degree == 2
+    @test model.max_time_variable_degree == 2
+    @test length(model.time_variable_coefficients) == 3
+
+    # The validity intervals must be sorted by epoch.
+    c₁ = model.time_variable_coefficients[model.time_variable_index[3, 1]]
+    c₂ = model.time_variable_coefficients[model.time_variable_index[3, 1] + 1]
+    c₃ = model.time_variable_coefficients[model.time_variable_index[3, 2]]
+
+    @test (c₁.degree, c₁.order) == (2, 0)
+    @test c₁.t₀ == Dates.value(DateTime("2000-01-01T12:00:00") - dt_J2000) / 1000
+    @test c₁.t₁ == Dates.value(DateTime("2010-01-01T00:00:00") - dt_J2000) / 1000
+    @test (c₂.degree, c₂.order) == (2, 0)
+    @test c₂.t₀ == Dates.value(DateTime("2010-01-01T00:00:00") - dt_J2000) / 1000
+    @test c₂.t₁ == Dates.value(DateTime("2020-01-01T00:00:00") - dt_J2000) / 1000
+    @test (c₃.degree, c₃.order) == (2, 1)
+    @test c₃.t₀ == Dates.value(DateTime("2020-01-01T00:00:00") - dt_J2000) / 1000
+    @test c₃.t₁ == Dates.value(DateTime("2030-01-01T00:00:00") - dt_J2000) / 1000
+
+    # The static storage must contain the values of the first interval.
+    @test model.data[3, 1].clm == -1.0e-3
+    @test model.data[3, 2].clm == +7.0e-4
+
+    # == Coefficients Inside the Validity Intervals ========================================
+
+    expected(c, t) = begin
+        Δt  = (t - c.t₀) / (86400 * 365.25)
+        clm = c.clm + c.trend_clm * Δt
+        slm = c.slm + c.trend_slm * Δt
+
+        for p in c.periodic_terms
+            clm +=
+                p.amplitude_sin_clm * sin(2π * Δt / p.period) +
+                p.amplitude_cos_clm * cos(2π * Δt / p.period)
+            slm +=
+                p.amplitude_sin_slm * sin(2π * Δt / p.period) +
+                p.amplitude_cos_slm * cos(2π * Δt / p.period)
+        end
+
+        return clm, slm
+    end
+
+    for (c, date) in (
+        (c₁, DateTime("2005-06-19T03:00:00")),
+        (c₂, DateTime("2015-06-19T03:00:00")),
+        # Before the first interval, the first coefficient is used.
+        (c₁, DateTime("1990-06-19T03:00:00")),
+        # After the last interval, the last coefficient is used.
+        (c₂, DateTime("2035-06-19T03:00:00")),
+    )
+        t = Dates.value(date - dt_J2000) / 1000
+        Clm, Slm = GravityModels.coefficients(model, 2, 0, date)
+        Clm_e, Slm_e = expected(c, t)
+        @test Clm ≈ Clm_e atol = 1e-20
+        @test Slm ≈ Slm_e atol = 1e-20
+    end
+
+    # The boundary of an interval belongs to the next one.
+    t = c₂.t₀
+    Clm, Slm = GravityModels.coefficients(model, 2, 0, t)
+    Clm_e, Slm_e = expected(c₂, t)
+    @test Clm ≈ Clm_e atol = 1e-20
+    @test Slm ≈ Slm_e atol = 1e-20
+
+    t = Dates.value(DateTime("2025-01-01") - dt_J2000) / 1000
+    Clm, Slm = GravityModels.coefficients(model, 2, 1, t)
+    Clm_e, Slm_e = expected(c₃, t)
+    @test Clm ≈ Clm_e atol = 1e-20
+    @test Slm ≈ Slm_e atol = 1e-20
+
+    # The constant coefficients are not affected.
+    @test GravityModels.coefficients(model, 2, 2, t) == (1.0e-6, 2.0e-6)
+
+    # == Printing ==========================================================================
+
+    expected_str = """
+SatelliteToolboxGravityModels.IcgemTimeVariableCoefficient{Float64}:
+    Degree : 2
+     Order : 1
+      Clm₀ : 0.0007
+      Slm₀ : 0.0008
+     Epoch : 2020-01-01T00:00:00
+  Valid to : 2030-01-01T00:00:00
+     Trend : Clm = 0.0, Slm = 0.0
+  Periodic : Period 0.5 y => Sine: Clm = 0.0, Slm = 0.0; Cosine: Clm = 1.0e-6, Slm = 2.0e-6"""
+
+    @test sprint(show, MIME("text/plain"), c₃) == expected_str
+end
+
 @testset "Parsing IcgemFile [ERRORS]" verbose = true begin
     @test sprint(showerror, IcgemParseError("Message.")) == "IcgemParseError: Message."
     @test sprint(showerror, IcgemParseError("Message.", 8)) ==
