@@ -9,11 +9,6 @@ function show(io::IO, c::IcgemGfcCoefficient{T}) where {T}
     return nothing
 end
 
-function show(io::IO, c::IcgemGfctCoefficient{T}) where {T}
-    print(io, typeof(c), "(Clm₀ = ", c.clm, ", Slm₀ = ", c.slm, ")")
-    return nothing
-end
-
 function show(io::IO, mime::MIME"text/plain", c::IcgemGfcCoefficient{T}) where {T}
     # Check for color support in the `io`.
     color = get(io, :color, false)
@@ -27,22 +22,39 @@ function show(io::IO, mime::MIME"text/plain", c::IcgemGfcCoefficient{T}) where {
     return nothing
 end
 
-function show(io::IO, mime::MIME"text/plain", c::IcgemGfctCoefficient{T}) where {T}
+function show(io::IO, c::IcgemTimeVariableCoefficient{T}) where {T}
+    print(
+        io,
+        typeof(c),
+        "(",
+        c.degree,
+        ", ",
+        c.order,
+        ", Clm₀ = ",
+        c.clm,
+        ", Slm₀ = ",
+        c.slm,
+        ")",
+    )
+    return nothing
+end
+
+function show(io::IO, mime::MIME"text/plain", c::IcgemTimeVariableCoefficient{T}) where {T}
     # Check for color support in the `io`.
     color = get(io, :color, false)
     b = color ? _B : ""
     d = color ? _D : ""
 
     println(io, typeof(c), ":")
-    println(io, "$(b)    Clm₀ :$(d) ", c.clm)
-    println(io, "$(b)    Slm₀ :$(d) ", c.slm)
-    println(io, "$(b)   Epoch :$(d) ", _from_j2000_seconds(c.time))
-    println(io, "$(b)   Trend :$(d) Clm = ", c.trend_clm, ", Slm = ", c.trend_slm)
-    print(io, "$(b)    Sine :$(d) ")
-    _print_asin_acos_vectors(io, c.asin_coefficients)
-    println(io)
-    print(io, "$(b)  Cosine : $(d)")
-    _print_asin_acos_vectors(io, c.acos_coefficients)
+    println(io, "$(b)    Degree :$(d) ", c.degree)
+    println(io, "$(b)     Order :$(d) ", c.order)
+    println(io, "$(b)      Clm₀ :$(d) ", c.clm)
+    println(io, "$(b)      Slm₀ :$(d) ", c.slm)
+    println(io, "$(b)     Epoch :$(d) ", _from_j2000_seconds(c.t₀))
+    isfinite(c.t₁) && println(io, "$(b)  Valid to :$(d) ", _from_j2000_seconds(c.t₁))
+    println(io, "$(b)     Trend :$(d) Clm = ", c.trend_clm, ", Slm = ", c.trend_slm)
+    print(io, "$(b)  Periodic :$(d) ")
+    _print_periodic_terms(io, c.periodic_terms)
 
     return nothing
 end
@@ -91,21 +103,29 @@ end
 ############################################################################################
 
 """
-    _print_asin_acos_vectors(io::IO, v::Vector{NTuple{3, T}}) -> Nothing
+    _print_periodic_terms(io::IO, v::Vector{IcgemPeriodicTerm{T}}) -> Nothing
 
-Print to `io` the periodic terms in `v`, in which each element contains the amplitude for
-`Clm` [-], the amplitude for `Slm` [-], and the period [year].
+Print to `io` the periodic terms in `v`, one per line, with the continuation lines
+indented to align with the first one.
 """
-function _print_asin_acos_vectors(io::IO, v::Vector{NTuple{3, T}}) where {T}
-    num_coefficients = length(v)
-    for k in 1:num_coefficients
-        c = v[k]
-        print(io, "Period ", c[3], " y => ", "Amp. Clm = ", c[1], ", Amp. Slm = ", c[2])
+function _print_periodic_terms(io::IO, v::Vector{IcgemPeriodicTerm{T}}) where {T}
+    isempty(v) && (print(io, "none"); return nothing)
 
-        if k != num_coefficients
-            println(io)
-            print(io, "           ")
-        end
+    for (k, p) in enumerate(v)
+        (k != 1) && print(io, "\n             ")
+        print(
+            io,
+            "Period ",
+            p.period,
+            " y => Sine: Clm = ",
+            p.amplitude_sin_clm,
+            ", Slm = ",
+            p.amplitude_sin_slm,
+            "; Cosine: Clm = ",
+            p.amplitude_cos_clm,
+            ", Slm = ",
+            p.amplitude_cos_slm,
+        )
     end
 
     return nothing

@@ -187,60 +187,41 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
 
     # == Data ==============================================================================
 
-    # TODO: Should we really need to allocate both static and dynamic data storage?
-
     # Since we now have the maximum degree, we can pre-allocate and initialize the data
     # matrix. The storage must be filled with zeros because the file can omit coefficients,
     # such as those of degree 1, which are zero by definition.
-    data_static  = zeros(LowerTriangularStorage{RowMajor, IcgemGfcCoefficient{Tf}}, max_degree + 1)
-    data_dynamic = nothing
+    data = zeros(LowerTriangularStorage{RowMajor, IcgemGfcCoefficient{Tf}}, max_degree + 1)
+
+    # Time-variable coefficients found in the file.
+    time_variable_coefficients = IcgemTimeVariableCoefficient{Tf}[]
 
     # State of the parsing algorithm.
     state = :new
 
-    # Auxiliary variables to build the coefficients.
-    deg  = 0
-    ord  = 0
-    clm  = Tf(0)
-    slm  = Tf(0)
-    time = 0.0
+    # Auxiliary variables to build the time-variable coefficients.
+    deg = 0
+    ord = 0
+    clm = Tf(0)
+    slm = Tf(0)
+    t₀  = Tf(0)
+    t₁  = Tf(Inf)
 
-    has_trend = false
-    trend_clm = Tf(0)
-    trend_slm = Tf(0)
-    asin_coefficients = NTuple{3, Tf}[]
-    acos_coefficients = NTuple{3, Tf}[]
+    trend_clm      = Tf(0)
+    trend_slm      = Tf(0)
+    periodic_terms = IcgemPeriodicTerm{Tf}[]
 
     line          = nothing
     read_new_line = true
     tokens        = nothing
 
     # Flush the coefficient built from a `gfct` section and its subsequent lines to the
-    # dynamic data storage, creating the latter if needed.
+    # vector of time-variable coefficients.
     function flush_gfct_coefficient!()
-        if isnothing(data_dynamic)
-            data_dynamic = zeros(
-                LowerTriangularStorage{RowMajor, IcgemGfctCoefficient{Tf}}, max_degree + 1
-            )
-
-            for i in 1:(max_degree + 1), j in 1:i
-                data_dynamic[i, j] = IcgemGfctCoefficient(data_static[i, j])
-            end
-        end
-
-        is_time_varying =
-            has_trend || (length(asin_coefficients) > 0) || (length(acos_coefficients) > 0)
-
-        data_dynamic[deg + 1, ord + 1] = IcgemGfctCoefficient(
-            clm,
-            slm,
-            Tf(time),
-            is_time_varying,
-            has_trend,
-            trend_clm,
-            trend_slm,
-            copy(asin_coefficients),
-            copy(acos_coefficients),
+        push!(
+            time_variable_coefficients,
+            IcgemTimeVariableCoefficient(
+                deg, ord, clm, slm, t₀, t₁, trend_clm, trend_slm, copy(periodic_terms)
+            ),
         )
 
         return nothing
@@ -276,29 +257,26 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
                 isnothing(ret) && continue
 
                 deg, ord, clm, slm = ret
-                if !isnothing(data_dynamic)
-                    data_dynamic[deg + 1, ord + 1] = IcgemGfctCoefficient(
-                        IcgemGfcCoefficient(clm, slm)
-                    )
-                else
-                    data_static[deg + 1, ord + 1] = IcgemGfcCoefficient(clm, slm)
-                end
+                _is_degree_and_order_valid(deg, ord, max_degree, current_line) || continue
+
+                data[deg + 1, ord + 1] = IcgemGfcCoefficient(clm, slm)
 
                 # == `gfct` Data Line ==========================================================
 
             elseif tokens[1] == "gfct"
                 ret = _parse_gfct_data_line(Tf, tokens, current_line)
                 isnothing(ret) && continue
-                deg, ord, clm, slm, time = ret
+
+                deg, ord, clm, slm, t₀ = ret
+                _is_degree_and_order_valid(deg, ord, max_degree, current_line) || continue
 
                 # Now, we need to change the state to wait for the next terms.
                 state = :gfct
 
-                has_trend = false
+                t₁        = Tf(Inf)
                 trend_clm = Tf(0)
                 trend_slm = Tf(0)
-                empty!(asin_coefficients)
-                empty!(acos_coefficients)
+                empty!(periodic_terms)
             end
 
         elseif state === :gfct
@@ -321,52 +299,34 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
                     ),
                 )
 
-                has_trend = true
                 read_new_line = true
 
-                # == `asin` Data Line of a `gfct` Section ======================================
+                # == `asin` and `acos` Data Lines of a `gfct` Section ==========================
 
-            elseif tokens[1] == "asin"
+            elseif (tokens[1] == "asin") || (tokens[1] == "acos")
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
                 if isnothing(ret)
                     read_new_line = true
                     continue
                 end
 
-                adeg, aord, asin_amplitude_clm, asin_amplitude_slm, asin_period = ret
+                adeg, aord, amplitude_clm, amplitude_slm, period = ret
 
                 ((adeg != deg) || (aord != ord)) && throw(
                     IcgemParseError(
-                        "The degree or order of a `asin` line is different from the corresponding `gfct` line.",
+                        "The degree or order of a `$(tokens[1])` line is different from the corresponding `gfct` line.",
                         current_line,
                     ),
                 )
 
-                push!(
-                    asin_coefficients, (asin_amplitude_clm, asin_amplitude_slm, asin_period)
-                )
-                read_new_line = true
-
-                # == `acos` Data Line of a `gfct` Section ======================================
-
-            elseif tokens[1] == "acos"
-                ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
-                if isnothing(ret)
-                    read_new_line = true
-                    continue
-                end
-                adeg, aord, acos_amplitude_clm, acos_amplitude_slm, acos_period = ret
-
-                ((adeg != deg) || (aord != ord)) && throw(
-                    IcgemParseError(
-                        "The degree or order of a `acos` line is different from the corresponding `gfct` line.",
-                        current_line,
-                    ),
+                _add_periodic_term!(
+                    periodic_terms,
+                    tokens[1] == "asin",
+                    amplitude_clm,
+                    amplitude_slm,
+                    period,
                 )
 
-                push!(
-                    acos_coefficients, (acos_amplitude_clm, acos_amplitude_slm, acos_period)
-                )
                 read_new_line = true
 
             else
@@ -384,6 +344,29 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
     # pending coefficient. Otherwise, the last time-variable coefficient would be lost.
     state === :gfct && flush_gfct_coefficient!()
 
+    # == Time-Variable Coefficients Index ==================================================
+
+    # The time-variable coefficients are sorted by degree, order, and epoch so that the
+    # validity intervals of the same coefficient are consecutive. The index maps the degree
+    # and order to the first interval, and the static storage receives the values at the
+    # epoch of the first interval.
+    sort!(time_variable_coefficients; by = c -> (c.degree, c.order, c.t₀))
+
+    max_time_variable_degree =
+        isempty(time_variable_coefficients) ? -1 :
+        maximum(c -> c.degree, time_variable_coefficients)
+
+    time_variable_index = zeros(
+        LowerTriangularStorage{RowMajor, Int32}, max(max_time_variable_degree + 1, 1)
+    )
+
+    for (k, c) in enumerate(time_variable_coefficients)
+        (time_variable_index[c.degree + 1, c.order + 1] != 0) && continue
+
+        time_variable_index[c.degree + 1, c.order + 1] = k
+        data[c.degree + 1, c.order + 1] = IcgemGfcCoefficient(c.clm, c.slm)
+    end
+
     # Create the ICGEM object.
     icgem_file = IcgemFile(
         product_type,
@@ -394,8 +377,12 @@ function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
         errors,
         tide_system,
         norm,
-        isnothing(data_dynamic) ? data_static : data_dynamic,
+        data,
+        max_time_variable_degree,
+        time_variable_index,
+        time_variable_coefficients,
     )
+
     return icgem_file
 end
 
@@ -413,6 +400,69 @@ numbers in FORTRAN format can be converted. If `input` cannot be parsed to `T`, 
 function _parse_icgem_float(::Type{T}, input::AbstractString) where {T}
     data_str = replace(input, r"[Dd]" => "e")
     return tryparse(T, data_str)
+end
+
+"""
+    _is_degree_and_order_valid(degree::Int, order::Int, max_degree::Int, current_line::Int) -> Bool
+
+Check if `degree` and `order` of a data line are valid, i.e. if `degree` is not higher than
+`max_degree` and `order` is not higher than `degree`. If they are invalid, log a warning
+with the `current_line` number and return `false`.
+"""
+function _is_degree_and_order_valid(
+    degree::Int, order::Int, max_degree::Int, current_line::Int
+)
+    if (degree > max_degree) || (order > degree) || (order < 0)
+        @warn "[Line $current_line] Invalid degree or order: $degree, $order."
+        return false
+    end
+
+    return true
+end
+
+"""
+    _add_periodic_term!(periodic_terms::Vector{IcgemPeriodicTerm{T}}, is_sine::Bool, amplitude_clm::T, amplitude_slm::T, period::T) -> Nothing
+
+Add to `periodic_terms` the sine (`is_sine = true`) or cosine (`is_sine = false`) term with
+the amplitudes `amplitude_clm` [-] and `amplitude_slm` [-] and the `period` [year]. If
+`periodic_terms` already has a term with the same period, its amplitudes are updated.
+Otherwise, a new term is pushed to the vector, which is modified in place.
+"""
+function _add_periodic_term!(
+    periodic_terms::Vector{IcgemPeriodicTerm{T}},
+    is_sine::Bool,
+    amplitude_clm::T,
+    amplitude_slm::T,
+    period::T,
+) where {T <: Number}
+    k = findfirst(p -> p.period == period, periodic_terms)
+
+    if isnothing(k)
+        push!(periodic_terms, IcgemPeriodicTerm(zero(T), zero(T), zero(T), zero(T), period))
+        k = lastindex(periodic_terms)
+    end
+
+    p = periodic_terms[k]
+
+    periodic_terms[k] = if is_sine
+        IcgemPeriodicTerm(
+            amplitude_clm,
+            amplitude_slm,
+            p.amplitude_cos_clm,
+            p.amplitude_cos_slm,
+            period,
+        )
+    else
+        IcgemPeriodicTerm(
+            p.amplitude_sin_clm,
+            p.amplitude_sin_slm,
+            amplitude_clm,
+            amplitude_slm,
+            period,
+        )
+    end
+
+    return nothing
 end
 
 # == Functions to Parse Data Lines =========================================================

@@ -26,7 +26,7 @@ end
 
 @testset "Gravity Model Allocations" begin
     for norm in (:full, :unnormalized)
-        model_type = IcgemFile{Float64, Val{norm}, IcgemGfcCoefficient{Float64}}
+        model_type = IcgemFile{Float64, Val{norm}}
 
         @test length(
             check_allocs(
@@ -69,7 +69,7 @@ end
 
 @testset "Gravitational Potential Allocations" begin
     for norm in (:full, :unnormalized)
-        model_type = IcgemFile{Float64, Val{norm}, IcgemGfcCoefficient{Float64}}
+        model_type = IcgemFile{Float64, Val{norm}}
 
         @test length(
             check_allocs(

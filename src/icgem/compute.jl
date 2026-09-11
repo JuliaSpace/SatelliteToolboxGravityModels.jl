@@ -2,6 +2,11 @@
 #
 # Functions to compute the gravity model coefficients of a ICGEM file.
 #
+## References ##############################################################################
+#
+# [1] Barthelmes, F., Förste, C (2011). The ICGEM-format. GFZ Potsdam, Department 1
+#     "Geodesy and Remote Sensing".
+#
 ############################################################################################
 
 """
@@ -13,6 +18,9 @@ of elapsed seconds [s] from the J2000.0 epoch (2000-01-01T12:00:00).
 
 The function throws an `ArgumentError` if `order` is higher than `degree` or if `degree`
 is higher than the maximum degree available in `model`.
+
+The return type `RT` is `float(promote_type(T, typeof(time)))`, where `T` is the type of
+the `model` coefficients.
 
 # Arguments
 
@@ -26,9 +34,6 @@ is higher than the maximum degree available in `model`.
 
 - `RT`: Coefficient `Clm` [-].
 - `RT`: Coefficient `Slm` [-].
-
-The return type `RT` is `T` for models with only constant coefficients, or
-`float(promote_type(T, typeof(time)))` for models with time-variable coefficients.
 """
 function icgem_coefficients(
     model::IcgemFile{T}, degree::Int, order::Int, time::Number
@@ -40,9 +45,22 @@ function icgem_coefficients(
         ArgumentError("The maximum degree available in the model is $(model.max_degree)."),
     )
 
-    # Get the data element related to the degree and order.
+    # Promote the coefficients beforehand so both return paths have the same type.
+    RT = float(promote_type(T, typeof(time)))
+
+    # Check if the coefficient is time-variable.
+    if degree <= model.max_time_variable_degree
+        k = @inbounds model.time_variable_index[degree + 1, order + 1]
+
+        (k != 0) && return _compute_icgem_time_variable_coefficient(
+            model.time_variable_coefficients, Int(k), time, RT
+        )
+    end
+
+    # Otherwise, return the constant coefficient.
     coefficient = @inbounds model.data[degree + 1, order + 1]
-    return _compute_icgem_coefficient(coefficient, time)
+
+    return RT(coefficient.clm), RT(coefficient.slm)
 end
 
 function icgem_coefficients(
@@ -56,74 +74,61 @@ end
 ############################################################################################
 
 """
-    _compute_icgem_coefficient(coefficient::IcgemGfcCoefficient{T}, t::Number) -> T, T
+    _compute_icgem_time_variable_coefficient(coefficients::Vector{IcgemTimeVariableCoefficient{T}}, k::Int, t::Number, ::Type{RT}) -> RT, RT
 
-Return the constant coefficients `Clm` [-] and `Slm` [-] stored in `coefficient`. The time
-`t` [s] is unused since the coefficient is constant.
-"""
-function _compute_icgem_coefficient(coefficient::IcgemGfcCoefficient, t::Number)
-    return coefficient.clm, coefficient.slm
-end
-
-"""
-    _compute_icgem_coefficient(coefficient::IcgemGfctCoefficient{T}, t::Number) -> RT, RT
-
-Compute the coefficients `Clm` [-] and `Slm` [-] of the time-variable `coefficient` at the
+Compute the coefficients `Clm` [-] and `Slm` [-] of the time-variable coefficient at the
 instant `t`, expressed as the number of elapsed seconds [s] from the J2000.0 epoch
-(2000-01-01T12:00:00).
+(2000-01-01T12:00:00), using the element type `RT`.
 
-The coefficients are obtained by adding the linear trend and the sine and cosine periodic
-terms to the values at the coefficient epoch, as described in the ICGEM format
-documentation [1]. The elapsed time from the epoch is converted to Julian years (365.25
-days).
+`k` must be the index in `coefficients` of the first object related to the desired degree
+and order. The function selects the object whose validity interval contains `t`, assuming
+that the objects related to the same degree and order are stored consecutively and sorted
+by epoch. If `t` is before the first epoch, the first object is used, and if `t` is after
+the last epoch, the last object is used.
 
-The return type `RT` is `float(promote_type(T, typeof(t)))`.
+The coefficients are obtained by adding the linear trend and the periodic terms to the
+values at the coefficient epoch, as described in the ICGEM format documentation [1]. The
+elapsed time from the epoch is converted to Julian years (365.25 days).
 
 # References
 
 - **[1]** Barthelmes, F., Förste, C (2011). *The ICGEM-format*. GFZ Potsdam, Department 1
     "Geodesy and Remote Sensing".
 """
-function _compute_icgem_coefficient(
-    coefficient::IcgemGfctCoefficient{T}, t::Number
-) where {T <: Number}
-    # Promote the coefficients beforehand so both return paths have the same type.
-    RT = float(promote_type(T, typeof(t)))
+function _compute_icgem_time_variable_coefficient(
+    coefficients::Vector{IcgemTimeVariableCoefficient{T}}, k::Int, t::Number, ::Type{RT}
+) where {T <: Number, RT}
+    @inbounds begin
+        c = coefficients[k]
 
-    clm = RT(coefficient.clm)
-    slm = RT(coefficient.slm)
+        # Select the last validity interval that starts before or at `t`.
+        while (k < length(coefficients))
+            c_next = coefficients[k + 1]
 
-    coefficient.is_time_varying || return clm, slm
+            ((c_next.degree != c.degree) || (c_next.order != c.order)) && break
+            (t < c_next.t₀) && break
+
+            k += 1
+            c = c_next
+        end
+    end
 
     # Elapsed time from coefficients epoch [year], considering a Julian year with 365.25
     # days.
-    Δt = RT((t - coefficient.time) / 86400 / 365.25)
+    Δt = RT((t - c.t₀) / (86400 * 365.25))
 
     # == Trend =============================================================================
 
-    if coefficient.has_trend
-        clm += coefficient.trend_clm * Δt
-        slm += coefficient.trend_slm * Δt
-    end
+    clm = RT(c.clm) + c.trend_clm * Δt
+    slm = RT(c.slm) + c.trend_slm * Δt
 
-    # == asin ==============================================================================
+    # == Periodic Terms ====================================================================
 
-    for c in coefficient.asin_coefficients
-        A_clm, A_slm, p = c
+    for p in c.periodic_terms
+        sin_ωt, cos_ωt = sincos(RT(2π) * Δt / p.period)
 
-        aux = sin(RT(2π) / p * Δt)
-        clm += A_clm * aux
-        slm += A_slm * aux
-    end
-
-    # == acos ==============================================================================
-
-    for c in coefficient.acos_coefficients
-        A_clm, A_slm, p = c
-
-        aux = cos(RT(2π) / p * Δt)
-        clm += A_clm * aux
-        slm += A_slm * aux
+        clm += p.amplitude_sin_clm * sin_ωt + p.amplitude_cos_clm * cos_ωt
+        slm += p.amplitude_sin_slm * sin_ωt + p.amplitude_cos_slm * cos_ωt
     end
 
     return clm, slm

@@ -154,6 +154,39 @@ end
     @test Clm == Clm_j2000
     @test Slm == Slm_j2000
 
+    # The time-variable coefficients must be stored sparsely, merging the sine and cosine
+    # terms with the same period.
+    @test eigen6c.max_time_variable_degree == 50
+    @test size(eigen6c.time_variable_index) == (51, 51)
+    @test length(eigen6c.time_variable_coefficients) == 1323
+    @test eigen6c.time_variable_index[3, 3] != 0
+    @test eigen6c.time_variable_index[2, 1] == 0
+
+    c = eigen6c.time_variable_coefficients[eigen6c.time_variable_index[3, 3]]
+    @test c.degree == 2
+    @test c.order == 2
+    @test c.clm == +2.43935818007e-06
+    @test c.slm == -1.40028528390e-06
+    @test c.t₀ == Dates.value(DateTime("2005-01-01") - dt_J2000) / 1000
+    @test c.t₁ == Inf
+    @test c.trend_clm == +2.64270248646e-13
+    @test c.trend_slm == -3.70169986147e-12
+    @test length(c.periodic_terms) == 2
+    @test c.periodic_terms[1].period == 1.0
+    @test c.periodic_terms[1].amplitude_sin_clm == +1.02121464558e-11
+    @test c.periodic_terms[1].amplitude_sin_slm == -3.01068425667e-11
+    @test c.periodic_terms[1].amplitude_cos_clm == +1.77729432622e-11
+    @test c.periodic_terms[1].amplitude_cos_slm == +4.65203150438e-11
+    @test c.periodic_terms[2].period == 0.5
+    @test c.periodic_terms[2].amplitude_sin_clm == -4.59036913656e-12
+    @test c.periodic_terms[2].amplitude_sin_slm == +3.73609063085e-12
+    @test c.periodic_terms[2].amplitude_cos_clm == -1.14657993582e-11
+    @test c.periodic_terms[2].amplitude_cos_slm == -1.83016952664e-12
+
+    # The static storage must contain the value at the epoch.
+    @test eigen6c.data[3, 3].clm == c.clm
+    @test eigen6c.data[3, 3].slm == c.slm
+
     # The coefficients omitted in the file must be zero.
     egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
 
@@ -271,28 +304,29 @@ SatelliteToolboxGravityModels.IcgemGfcCoefficient{Float64}:
     @test result == expected
 end
 
-@testset "Showing IcgemGfctCoefficients" verbose = true begin
+@testset "Showing IcgemTimeVariableCoefficient" verbose = true begin
     eigen6c_file = fetch_icgem_file(
         "https://icgem.gfz-potsdam.de/getmodel/gfc/0776caed6c65af24051697a65147b59e436cb464cb0930c1863fee6ecfbc31b0/EIGEN-6C.gfc",
     )
 
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
+    c = eigen6c.time_variable_coefficients[eigen6c.time_variable_index[3, 1]]
 
-    expected = "SatelliteToolboxGravityModels.IcgemGfctCoefficient{Float64}(Clm₀ = -0.000484165299806, Slm₀ = 0.0)"
-    result = sprint(show, eigen6c.data[3, 1])
+    expected = "SatelliteToolboxGravityModels.IcgemTimeVariableCoefficient{Float64}(2, 0, Clm₀ = -0.000484165299806, Slm₀ = 0.0)"
+    result = sprint(show, c)
     @test result == expected
 
     expected = """
-SatelliteToolboxGravityModels.IcgemGfctCoefficient{Float64}:
-    Clm₀ : -0.000484165299806
-    Slm₀ : 0.0
-   Epoch : 2005-01-01T00:00:00
-   Trend : Clm = -1.26060242677e-11, Slm = 0.0
-    Sine : Period 1.0 y => Amp. Clm = 5.32328946063e-11, Amp. Slm = 0.0
-           Period 0.5 y => Amp. Clm = -2.44339926664e-11, Amp. Slm = 0.0
-  Cosine : Period 1.0 y => Amp. Clm = 4.10012162817e-11, Amp. Slm = 0.0
-           Period 0.5 y => Amp. Clm = 3.33917546745e-11, Amp. Slm = 0.0"""
+SatelliteToolboxGravityModels.IcgemTimeVariableCoefficient{Float64}:
+    Degree : 2
+     Order : 0
+      Clm₀ : -0.000484165299806
+      Slm₀ : 0.0
+     Epoch : 2005-01-01T00:00:00
+     Trend : Clm = -1.26060242677e-11, Slm = 0.0
+  Periodic : Period 1.0 y => Sine: Clm = 5.32328946063e-11, Slm = 0.0; Cosine: Clm = 4.10012162817e-11, Slm = 0.0
+             Period 0.5 y => Sine: Clm = -2.44339926664e-11, Slm = 0.0; Cosine: Clm = 3.33917546745e-11, Slm = 0.0"""
 
-    result = sprint(show, MIME("text/plain"), eigen6c.data[3, 1])
+    result = sprint(show, MIME("text/plain"), c)
     @test result == expected
 end

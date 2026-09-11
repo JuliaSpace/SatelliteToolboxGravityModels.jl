@@ -36,7 +36,6 @@ if isempty(VERSION.prerelease)
     using AllocCheck
     using Aqua
 
-    import SatelliteToolboxGravityModels: IcgemGfcCoefficient, IcgemGfctCoefficient
     import SatelliteToolboxGravityModels.GravityModels: Workspace
 
     if Sys.isapple() && (VERSION.major == 1 && VERSION.minor >= 12)
