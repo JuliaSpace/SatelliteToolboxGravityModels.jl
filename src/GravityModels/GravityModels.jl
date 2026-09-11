@@ -7,7 +7,6 @@
 module GravityModels
 
 using Dates
-using ReferenceFrameRotations
 using SatelliteToolboxBase
 using SatelliteToolboxLegendre
 using StaticArrays
