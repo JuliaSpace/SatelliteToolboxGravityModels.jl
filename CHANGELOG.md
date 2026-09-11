@@ -1,6 +1,72 @@
 SatelliteToolboxGravityModels.jl Changelog
 ==========================================
 
+Version 2.0.0
+-------------
+
+- ![BREAKING][badge-breaking] The keywords `P` and `dP` of `gravitational_potential`,
+  `gravitational_field_derivative`, `gravitational_acceleration`, and
+  `gravity_acceleration` were replaced by `workspace`, which receives a
+  `GravityModels.Workspace`. The workspace, created with `GravityModels.Workspace(model)`,
+  holds the buffers of the associated Legendre functions and the precomputed recursion
+  coefficients introduced in SatelliteToolboxLegendre.jl v1.2. The functions throw an
+  `ArgumentError` if the workspace element type or its maximum degree and order do not
+  match the computation.
+- ![BREAKING][badge-breaking] `AbstractGravityModel` lost the norm type parameter and is
+  now `AbstractGravityModel{T}`. The API function `GravityModels.coefficient_norm` must
+  return the normalization wrapped in a `Val` (`Val(:full)`, `Val(:schmidt)`, or
+  `Val(:unnormalized)`), which must be inferable from the model type.
+- ![BREAKING][badge-breaking] The API function `GravityModels.angular_speed(model)` was
+  added and must be implemented by the models. It returns the angular speed [rad/s] of
+  the central body and is the default of the keyword `ω` of `gravity_acceleration`, which
+  previously defaulted to Earth's value for any model.
+- ![BREAKING][badge-breaking] `IcgemFile` is now `IcgemFile{T, N}`, where `N` is the `Val`
+  with the normalization of the coefficients. The time-variable coefficients are stored
+  sparsely in the new types `IcgemTimeVariableCoefficient` and `IcgemPeriodicTerm`, while
+  the constant coefficients are stored for every degree and order. The types
+  `AbstractIcgemCoefficient` and `IcgemGfctCoefficient` were removed.
+- ![BREAKING][badge-breaking] The parser throws the new exception `IcgemParseError`, which
+  carries the line number when applicable, instead of an `ErrorException`.
+- ![BREAKING][badge-breaking] The rich representations of the ICGEM types follow the tree
+  layout of SatelliteToolboxBase.jl v2.1, whose printing helpers are now used. Crayons.jl
+  and ReferenceFrameRotations.jl are no longer dependencies.
+- ![Feature][badge-feature] The ICGEM format 2.0 is supported. The parser reads the
+  validity interval of the time-variable coefficients, whose epochs can be written as
+  `yyyymmdd.hhmm`, stores one object per interval, and the evaluation selects the interval
+  that contains the requested time, clamping to the first or last one outside the covered
+  period. Header values followed by comments, such as
+  `errors formal (sigma calibration factor = 1.00)`, are accepted.
+- ![Feature][badge-feature] `IcgemFile` stores the angular speed of the central body,
+  which can be set with the keyword `angular_speed` of `GravityModels.load` and
+  `parse_icgem`, defaulting to Earth's value.
+- ![Feature][badge-feature] `parse_icgem` accepts an `IO` stream.
+- ![Enhancement][badge-enhancement] The gravitational acceleration of EGM96 is computed
+  1.35 times faster with a workspace and, in this case, the evaluation functions do not
+  allocate.
+- ![Enhancement][badge-enhancement] The evaluation of models with time-variable
+  coefficients, such as GOCO06s, is 3 times faster and uses 35% less memory, and the sine
+  and cosine periodic terms with the same period share the trigonometric evaluations.
+- ![Enhancement][badge-enhancement] The conversion of the time argument is centralized,
+  and the methods without the time argument were merged into the methods with a default
+  value.
+- ![Enhancement][badge-enhancement] The parser skips data lines whose degree or order are
+  out of range, or whose epoch is invalid, logging a warning instead of throwing.
+- ![Bugfix][badge-bugfix] The acceleration at positions whose latitude rounds to ±π / 2,
+  such as those obtained from `geodetic_to_ecef(±π / 2, λ, h)`, had the north component
+  with the wrong sign, an error of 1.2e-4 m/s², and the east component on the polar axis
+  was missing. The Legendre functions are now evaluated at the angle from the polar axis
+  computed directly from the coordinates and folded to the northern hemisphere, and the
+  east component on the axis is obtained from its limit.
+- ![Bugfix][badge-bugfix] The coefficients omitted in an ICGEM file, such as those of
+  degree 1, were uninitialized memory instead of 0.
+- ![Bugfix][badge-bugfix] The ICGEM file handle was never closed after parsing.
+- ![Bugfix][badge-bugfix] Differentiating with Zygote.jl a call that received the user
+  buffers failed because they were forwarded to the ForwardDiff.jl pullbacks.
+- ![Bugfix][badge-bugfix] The value π / 2 used in the kernels is now evaluated in the
+  result type, improving the precision for types wider than `Float64`.
+- ![Info][badge-info] Julia 1.13 was added to the supported versions.
+- ![Info][badge-info] The documentation and the docstrings were reviewed for the new API.
+
 Version 1.4.0
 -------------
 
