@@ -294,15 +294,20 @@ end
     # == Printing ==========================================================================
 
     expected_str = """
-SatelliteToolboxGravityModels.IcgemTimeVariableCoefficient{Float64}:
-    Degree : 2
-     Order : 1
-      Clm₀ : 0.0007
-      Slm₀ : 0.0008
-     Epoch : 2020-01-01T00:00:00
-  Valid to : 2030-01-01T00:00:00
-     Trend : Clm = 0.0, Slm = 0.0
-  Periodic : Period 0.5 y => Sine: Clm = 0.0, Slm = 0.0; Cosine: Clm = 1.0e-6, Slm = 2.0e-6"""
+IcgemTimeVariableCoefficient{Float64}:
+  Degree    : 2
+  Order     : 1
+  Clm₀      : 0.0007
+  Slm₀      : 0.0008
+  Epoch     : 2020-01-01T00:00:00
+  Valid To  : 2030-01-01T00:00:00
+  Trend Clm : 0.0 1/year
+  Trend Slm : 0.0 1/year
+  └─ Periodic Term (Period = 0.5 year)
+       Sine Clm   : 0.0
+       Sine Slm   : 0.0
+       Cosine Clm : 1.0e-6
+       Cosine Slm : 2.0e-6"""
 
     @test sprint(show, MIME("text/plain"), c₃) == expected_str
 end
@@ -375,22 +380,22 @@ end
 @testset "Showing IcgemFile" verbose = true begin
     egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
 
-    expected = "ICGEM EGM96 (Degree = 360) {Float64}"
+    expected = "IcgemFile{Float64, Val{:full}}: EGM96 (Degree = 360)"
     result = sprint(show, egm96)
     @test result == expected
 
     expected = """
-IcgemFile{Float64, :full}:
-      Product type : gravity_field
-       Model name  : EGM96
-  Gravity constant : 3.986004415e14
-            Radius : 6.3781363e6
-     Angular speed : 7.292115146706979e-5
-    Maximum degree : 360
-            Errors : formal
-       Tide system : tide_free
-              Norm : full
-         Data type : Float64"""
+IcgemFile{Float64, Val{:full}}:
+  Product Type               : gravity_field
+  Model Name                 : EGM96
+  Gravity Constant           : 3.986004415e14 m³/s²
+  Radius                     : 6.3781363e6 m
+  Angular Speed              : 7.292115147e-5 rad/s
+  Maximum Degree             : 360
+  Errors                     : formal
+  Tide System                : tide_free
+  Normalization              : full
+  Time-Variable Coefficients : none"""
 
     result = sprint(show, MIME("text/plain"), egm96)
 
@@ -400,12 +405,12 @@ end
 @testset "Showing IcgemGfcCoefficient" verbose = true begin
     egm96 = GravityModels.load(IcgemFile, fetch_icgem_file(:EGM96))
 
-    expected = "SatelliteToolboxGravityModels.IcgemGfcCoefficient{Float64}(Clm = -0.000484165371736, Slm = 0.0)"
+    expected = "IcgemGfcCoefficient{Float64}(Clm = -0.000484165371736, Slm = 0.0)"
     result = sprint(show, egm96.data[3, 1])
     @test result == expected
 
     expected = """
-SatelliteToolboxGravityModels.IcgemGfcCoefficient{Float64}:
+IcgemGfcCoefficient{Float64}:
   Clm : -0.000484165371736
   Slm : 0.0"""
 
@@ -421,20 +426,29 @@ end
     eigen6c = GravityModels.load(IcgemFile, eigen6c_file)
     c = eigen6c.time_variable_coefficients[eigen6c.time_variable_index[3, 1]]
 
-    expected = "SatelliteToolboxGravityModels.IcgemTimeVariableCoefficient{Float64}(2, 0, Clm₀ = -0.000484165299806, Slm₀ = 0.0)"
+    expected = "IcgemTimeVariableCoefficient{Float64}(2, 0, Clm₀ = -0.000484165299806, Slm₀ = 0.0)"
     result = sprint(show, c)
     @test result == expected
 
     expected = """
-SatelliteToolboxGravityModels.IcgemTimeVariableCoefficient{Float64}:
-    Degree : 2
-     Order : 0
-      Clm₀ : -0.000484165299806
-      Slm₀ : 0.0
-     Epoch : 2005-01-01T00:00:00
-     Trend : Clm = -1.26060242677e-11, Slm = 0.0
-  Periodic : Period 1.0 y => Sine: Clm = 5.32328946063e-11, Slm = 0.0; Cosine: Clm = 4.10012162817e-11, Slm = 0.0
-             Period 0.5 y => Sine: Clm = -2.44339926664e-11, Slm = 0.0; Cosine: Clm = 3.33917546745e-11, Slm = 0.0"""
+IcgemTimeVariableCoefficient{Float64}:
+  Degree    : 2
+  Order     : 0
+  Clm₀      : -0.000484165299806
+  Slm₀      : 0.0
+  Epoch     : 2005-01-01T00:00:00
+  Trend Clm : -1.26060242677e-11 1/year
+  Trend Slm : 0.0 1/year
+  ├─ Periodic Term (Period = 1.0 year)
+  │    Sine Clm   : 5.32328946063e-11
+  │    Sine Slm   : 0.0
+  │    Cosine Clm : 4.10012162817e-11
+  │    Cosine Slm : 0.0
+  └─ Periodic Term (Period = 0.5 year)
+       Sine Clm   : -2.44339926664e-11
+       Sine Slm   : 0.0
+       Cosine Clm : 3.33917546745e-11
+       Cosine Slm : 0.0"""
 
     result = sprint(show, MIME("text/plain"), c)
     @test result == expected

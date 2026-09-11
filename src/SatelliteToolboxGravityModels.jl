@@ -1,12 +1,13 @@
 module SatelliteToolboxGravityModels
 
-using Crayons
 using Dates
 using Downloads
 using Scratch
 
 import Base: show
 import SatelliteToolboxBase: EARTH_ANGULAR_SPEED, LowerTriangularStorage, RowMajor
+import SatelliteToolboxBase:
+    PrintedField, PrintedSection, format_value, print_tree, type_name
 
 ############################################################################################
 #                                        Submodules                                        #
@@ -23,13 +24,6 @@ export AbstractGravityModel
 ############################################################################################
 
 include("./types.jl")
-
-############################################################################################
-#                                        Constants                                         #
-############################################################################################
-
-const _D = string(Crayon(; reset = true))
-const _B = string(crayon"bold")
 
 ############################################################################################
 #                                         Includes                                         #
