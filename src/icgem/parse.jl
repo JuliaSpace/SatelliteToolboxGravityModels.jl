@@ -15,9 +15,11 @@
 
 """
     parse_icgem(filename::AbstractString, T::Type = Float64) -> IcgemFile
+    parse_icgem(io::IO, T::Type = Float64) -> IcgemFile
 
-Parse the ICGEM file `filename` using the data type `T` and return an [`IcgemFile`](@ref)
-object with the parsed data.
+Parse the ICGEM file `filename`, or the ICGEM data read from the stream `io`, using the
+data type `T` and return an [`IcgemFile`](@ref) object with the parsed data. The file is
+closed after parsing. The stream `io` must be seekable.
 
 This function supports ICGEM gravity model files for Earth and other celestial bodies
 (Moon, planets, etc.). The parser automatically detects whether the file uses
@@ -36,10 +38,13 @@ and logs a warning for each invalid data line, which is skipped.
     "Geodesy and Remote Sensing".
 """
 function parse_icgem(filename::AbstractString, ::Type{T} = Float64) where {T}
-    Tf = float(T)
+    return open(filename, "r") do file
+        return parse_icgem(file, T)
+    end
+end
 
-    # Open the file and find the header.
-    file = open(filename, "r")
+function parse_icgem(file::IO, ::Type{T} = Float64) where {T}
+    Tf = float(T)
 
     # == Header ============================================================================
 

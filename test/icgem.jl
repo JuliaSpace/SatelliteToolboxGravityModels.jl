@@ -15,6 +15,23 @@
     end
 end
 
+# == File: ./src/icgem/parse.jl ============================================================
+
+@testset "Parsing IcgemFile from a Stream" verbose = true begin
+    filename = "./icgem_test_files/unnormalized_coefficients.gfc"
+
+    model_from_file   = GravityModels.load(IcgemFile, filename)
+    model_from_stream = open(io -> SatelliteToolboxGravityModels.parse_icgem(io), filename)
+
+    @test model_from_stream.model_name == model_from_file.model_name
+    @test model_from_stream.max_degree == model_from_file.max_degree
+
+    for n in 0:model_from_file.max_degree, m in 0:n
+        @test GravityModels.coefficients(model_from_stream, n, m) ==
+            GravityModels.coefficients(model_from_file, n, m)
+    end
+end
+
 # == File: ./src/icgem/fetch.jl ============================================================
 
 @testset "Fetching ICGEM files" verbose = true begin
