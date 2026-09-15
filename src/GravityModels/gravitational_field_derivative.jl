@@ -75,10 +75,12 @@ function gravitational_field_derivative(
         model, RT, max_degree, max_order, workspace
     )
 
+    sc = _spherical_coordinates(r, RT)
+
     # Call the kernel through a function barrier. Hence, the hot loop is always compiled
     # with concrete types for `P` and `dP`, even when they are allocated here.
     ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ, _ = _gravitational_field_derivative_kernel(
-        model, r, time, legendre, n_max, m_max, n_max_P, m_max_P, P, dP
+        model, sc, time, legendre, n_max, m_max, n_max_P, m_max_P, P, dP
     )
 
     return ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ
@@ -107,9 +109,11 @@ end
 ############################################################################################
 
 """
-    _spherical_coordinates(r::AbstractVector, ::Type{RT}) -> RT, RT, RT, RT, RT, Bool
+    _spherical_coordinates(r::AbstractVector, ::Type{RT}) -> NamedTuple
 
 Compute the geocentric spherical coordinates of the position `r` [m] using the element type
+`RT`. The components of `r` are converted to `RT` before any operation. Hence, the
+precision of the result is not limited by the element type of `r` when it is narrower than
 `RT`.
 
 The sine and cosine of the longitude are obtained directly from the coordinates, avoiding
@@ -128,38 +132,45 @@ pole.
 
 # Returns
 
-- `RT`: Distance from the origin [m].
-- `RT`: Distance from the polar axis [m].
-- `RT`: Geocentric colatitude folded to the northern hemisphere [rad] in the interval
-    `[0, π / 2]`.
-- `RT`: Sine of the longitude [-].
-- `RT`: Cosine of the longitude [-].
-- `Bool`: `true` if the position lies in the southern hemisphere, `false` otherwise.
+- `NamedTuple`: Spherical coordinates with the fields:
+    - `r_gc::RT`: Distance from the origin [m].
+    - `ρ_gc::RT`: Distance from the polar axis [m].
+    - `z::RT`: Component of the position along the polar axis [m].
+    - `θ::RT`: Geocentric colatitude folded to the northern hemisphere [rad] in the
+        interval `[0, π / 2]`.
+    - `sin_λ::RT`: Sine of the longitude [-].
+    - `cos_λ::RT`: Cosine of the longitude [-].
+    - `south::Bool`: `true` if the position lies in the southern hemisphere, `false`
+        otherwise.
 """
 function _spherical_coordinates(r::AbstractVector, ::Type{RT}) where {RT}
-    ρ²_gc = r[1]^2 + r[2]^2
-    r²_gc = ρ²_gc + r[3]^2
+    x = RT(r[1])
+    y = RT(r[2])
+    z = RT(r[3])
+
+    ρ²_gc = x^2 + y^2
+    r²_gc = ρ²_gc + z^2
     r_gc  = √r²_gc
     ρ_gc  = √ρ²_gc
 
-    south = r[3] < 0
-    θ = atan(ρ_gc, abs(r[3]))
+    south = z < 0
+    θ = atan(ρ_gc, abs(z))
 
     if ρ_gc > 0
-        sin_λ = RT(r[2] / ρ_gc)
-        cos_λ = RT(r[1] / ρ_gc)
+        sin_λ = y / ρ_gc
+        cos_λ = x / ρ_gc
     else
         sin_λ = zero(RT)
         cos_λ = one(RT)
     end
 
-    return RT(r_gc), RT(ρ_gc), RT(θ), sin_λ, cos_λ, south
+    return (; r_gc, ρ_gc, z, θ, sin_λ, cos_λ, south)
 end
 
 """
     _gravitational_field_derivative_kernel(
         model::AbstractGravityModel,
-        r::AbstractVector,
+        sc::NamedTuple,
         time::Number,
         legendre::Union{Val, LegendreCoefficients},
         n_max::Int,
@@ -171,8 +182,9 @@ end
     ) -> NTuple{4, RT}
 
 Compute the derivative of the gravitational field of `model` with respect to the spherical
-coordinates at the position `r` [m], represented in the body-fixed frame (ITRF for Earth),
-and instant `time`, expressed as the number of elapsed seconds [s] from the J2000.0 epoch
+coordinates at the position whose geocentric spherical coordinates `sc` were computed with
+[`_spherical_coordinates`](@ref) using the element type `RT`, and instant `time`,
+expressed as the number of elapsed seconds [s] from the J2000.0 epoch
 (2000-01-01T12:00:00), using the spherical harmonics up to degree `n_max` and order
 `m_max`.
 
@@ -196,9 +208,9 @@ derivatives.
     are 0. This value is meaningful only if `r` lies on the polar axis.
 """
 function _gravitational_field_derivative_kernel(
-    model::AbstractGravityModel{T},
-    r::AbstractVector{V},
-    time::W,
+    model::AbstractGravityModel,
+    sc::NamedTuple,
+    time::Number,
     legendre::Union{Val, LegendreCoefficients},
     n_max::Int,
     m_max::Int,
@@ -206,9 +218,7 @@ function _gravitational_field_derivative_kernel(
     m_max_P::Int,
     P::AbstractMatrix,
     dP::AbstractMatrix,
-) where {T <: Number, V <: Number, W <: Number}
-    RT = promote_type(T, V, W)
-
+)
     # == Unpack Gravity Model Data =========================================================
 
     μ = gravity_constant(model)
@@ -216,7 +226,13 @@ function _gravitational_field_derivative_kernel(
 
     # == Geocentric Spherical Coordinates ==================================================
 
-    r_gc, _, θ, sin_λ, cos_λ, south = _spherical_coordinates(r, RT)
+    r_gc  = sc.r_gc
+    θ     = sc.θ
+    sin_λ = sc.sin_λ
+    cos_λ = sc.cos_λ
+    south = sc.south
+
+    RT = typeof(r_gc)
 
     # == Auxiliary Variables ===============================================================
 

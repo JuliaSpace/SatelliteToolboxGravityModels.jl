@@ -90,15 +90,20 @@ function gravitational_acceleration(
         model, RT, max_degree, max_order, workspace
     )
 
+    sc = _spherical_coordinates(r, RT)
+
     ∂U_∂r, ∂U_∂ϕ, ∂U_∂λ, ∂U_∂λ_over_cosϕ_pole = _gravitational_field_derivative_kernel(
-        model, r, time, legendre, n_max, m_max, n_max_P, m_max_P, P, dP
+        model, sc, time, legendre, n_max, m_max, n_max_P, m_max_P, P, dP
     )
 
     # == Acceleration Represented in the UEN Frame =========================================
 
-    r_gc, ρ_gc, _, sin_λ, cos_λ, _ = _spherical_coordinates(r, RT)
+    r_gc  = sc.r_gc
+    ρ_gc  = sc.ρ_gc
+    sin_λ = sc.sin_λ
+    cos_λ = sc.cos_λ
 
-    sin_ϕ = r[3] / r_gc
+    sin_ϕ = sc.z / r_gc
     cos_ϕ = ρ_gc / r_gc
 
     # Compute the partial derivatives in spherical coordinate systems [1, p. 22] (eq. 120):

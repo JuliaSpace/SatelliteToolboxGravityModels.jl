@@ -80,9 +80,11 @@ function gravitational_potential(
         model, RT, max_degree, max_order, workspace
     )
 
+    sc = _spherical_coordinates(r, RT)
+
     # Call the kernel through a function barrier. Hence, the hot loop is always compiled
     # with a concrete type for `P`, even when it is allocated here.
-    return _gravitational_potential_kernel(model, r, time, legendre, n_max, m_max, P)
+    return _gravitational_potential_kernel(model, sc, time, legendre, n_max, m_max, P)
 end
 
 function gravitational_potential(
@@ -110,7 +112,7 @@ end
 """
     _gravitational_potential_kernel(
         model::AbstractGravityModel,
-        r::AbstractVector,
+        sc::NamedTuple,
         time::Number,
         legendre::Union{Val, LegendreCoefficients},
         n_max::Int,
@@ -118,10 +120,11 @@ end
         P::AbstractMatrix
     ) -> RT
 
-Compute the gravitational potential [m²/s²] of `model` at the position `r` [m],
-represented in the body-fixed frame (ITRF for Earth), and instant `time`, expressed as the
-number of elapsed seconds [s] from the J2000.0 epoch (2000-01-01T12:00:00), using the
-spherical harmonics up to degree `n_max` and order `m_max`.
+Compute the gravitational potential [m²/s²] of `model` at the position whose geocentric
+spherical coordinates `sc` were computed with [`_spherical_coordinates`](@ref) using the
+element type `RT`, and instant `time`, expressed as the number of elapsed seconds [s] from
+the J2000.0 epoch (2000-01-01T12:00:00), using the spherical harmonics up to degree `n_max`
+and order `m_max`.
 
 This function is the kernel of [`gravitational_potential`](@ref), called through a
 function barrier so the hot loop is compiled with concrete types for `legendre` and `P`.
@@ -132,16 +135,14 @@ have at least `n_max + 1 × m_max + 1` elements, which are overwritten with the 
 Legendre function values.
 """
 function _gravitational_potential_kernel(
-    model::AbstractGravityModel{T},
-    r::AbstractVector{V},
-    time::W,
+    model::AbstractGravityModel,
+    sc::NamedTuple,
+    time::Number,
     legendre::Union{Val, LegendreCoefficients},
     n_max::Int,
     m_max::Int,
     P::AbstractMatrix,
-) where {T <: Number, V <: Number, W <: Number}
-    RT = promote_type(T, V, W)
-
+)
     # == Unpack Gravity Model Data =========================================================
 
     μ = gravity_constant(model)
@@ -149,7 +150,13 @@ function _gravitational_potential_kernel(
 
     # == Geocentric Spherical Coordinates ==================================================
 
-    r_gc, _, θ, sin_λ, cos_λ, south = _spherical_coordinates(r, RT)
+    r_gc  = sc.r_gc
+    θ     = sc.θ
+    sin_λ = sc.sin_λ
+    cos_λ = sc.cos_λ
+    south = sc.south
+
+    RT = typeof(r_gc)
 
     # == Auxiliary Variables ===============================================================
 
