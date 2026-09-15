@@ -163,7 +163,8 @@ frame, at instant `time`. If the latter argument is omitted, the J2000.0 epoch
 (2000-01-01T12:00:00) is used.
 
 The return element type `RT` is obtained by promoting the type of the `model`
-coefficients, the element type of `r`, and the type of `time`.
+coefficients, the element type of `r`, the type of `time`, and the type of the angular
+speed `ω`.
 
 !!! note
 

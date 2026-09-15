@@ -23,8 +23,8 @@ coefficients(model, 10, 8, 0.0)
 ```
 
 must return a tuple with the `Clm` and `Slm`, respectively, for the degree 10, order 8, and
-computed at the J2000.0 epoch. The return type `RT` is `T` or its promotion with the type of
-`time` if the model has time-variable coefficients.
+computed at the J2000.0 epoch. The return type `RT` is the promotion of `T` with the type of
+`time`. Models with constant coefficients may return `T` instead.
 
 > **Note**
 > If the model has constant coefficients, the function must still accept the positional

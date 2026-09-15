@@ -10,7 +10,8 @@
 ############################################################################################
 
 """
-    icgem_coefficients(model::IcgemFile, degree::Int, order::Int, time) -> RT, RT
+    icgem_coefficients(model::IcgemFile, degree::Int, order::Int, time::Number) -> RT, RT
+    icgem_coefficients(model::IcgemFile, degree::Int, order::Int, time::DateTime) -> RT, RT
 
 Compute the coefficients `Clm` and `Slm` [-] of the ICGEM `model` for the specified
 `degree` and `order` at the instant `time`, expressed as a `DateTime` object or the number
@@ -81,10 +82,11 @@ instant `t`, expressed as the number of elapsed seconds [s] from the J2000.0 epo
 (2000-01-01T12:00:00), using the element type `RT`.
 
 `k` must be the index in `coefficients` of the first object related to the desired degree
-and order. The function selects the object whose validity interval contains `t`, assuming
-that the objects related to the same degree and order are stored consecutively and sorted
-by epoch. If `t` is before the first epoch, the first object is used, and if `t` is after
-the last epoch, the last object is used.
+and order. The function selects the last object whose epoch `t₀` is not after `t`,
+assuming that the objects related to the same degree and order are stored consecutively
+and sorted by epoch. Hence, the end `t₁` of the validity intervals is not used: if `t` is
+before the first epoch, the first object is used, and if `t` is after the last epoch or
+inside a gap between two intervals, the previous object is extrapolated.
 
 The coefficients are obtained by adding the linear trend and the periodic terms to the
 values at the coefficient epoch, as described in the ICGEM format documentation [1]. The

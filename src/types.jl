@@ -99,7 +99,10 @@ with its linear trend (`trnd`) and periodic terms (`asin` and `acos`).
 The coefficient is valid in the interval `[t₀, t₁)`. Files in the ICGEM format 1.0 do not
 define the end of the validity interval, in which case `t₁` is `Inf`. Files in the ICGEM
 format 2.0 can define several validity intervals for the same degree and order, each one
-stored in a different object.
+stored in a different object. The evaluation selects the last object whose epoch `t₀` is
+not after the requested time, so `t₁` is informational: times before the first epoch use
+the first object, and times after the last epoch or inside a gap between two intervals
+extrapolate the previous object.
 
 # Fields
 

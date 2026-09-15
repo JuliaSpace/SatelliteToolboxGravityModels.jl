@@ -30,8 +30,8 @@ methods convert the time and call it.
 - `RT`: Coefficient `Clm` [-] for the specified `degree`, `order`, and `time`.
 - `RT`: Coefficient `Slm` [-] for the specified `degree`, `order`, and `time`.
 
-The return type `RT` is the type `T` of the model coefficients, or its promotion with the
-type of `time` if the model has time-variable coefficients.
+The return type `RT` is the promotion of the type `T` of the model coefficients with the
+type of `time`. Models with constant coefficients may return `T` instead.
 """
 function coefficients end
 

@@ -60,6 +60,10 @@ element type of `r`, and the type of `time`.
     every call.
     (**Default**: `nothing`)
 
+# Returns
+
+- `RT`: Gravitational potential `U` [m²/s²] at the position `r`.
+
 # References
 
 - **[1]** Barthelmes, F (2013). *Definition of Functions of the Geopotential and Their
