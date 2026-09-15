@@ -77,12 +77,12 @@ See also: [`gravity_acceleration`](@ref)
 function gravitational_acceleration(
     model::AbstractGravityModel{T},
     r::AbstractVector{V},
-    time::Number = 0;
+    time::W = 0;
     max_degree::Int = -1,
     max_order::Int = -1,
     workspace::Union{Nothing, Workspace} = nothing,
-) where {T <: Number, V <: Number}
-    RT = promote_type(T, V, typeof(time))
+) where {T <: Number, V <: Number, W <: Number}
+    RT = promote_type(T, V, W)
 
     # == Partial Derivatives of the Gravitational Field ====================================
 
@@ -271,7 +271,7 @@ function gravity_acceleration(
     # approximation provides a sufficient accuracy for most applications.
     ω² = ω^2
 
-    centrifugal_accel_itrf = @SVector [ω² * r[1], ω² * r[2], zero(T)]
+    centrifugal_accel_itrf = @SVector [ω² * r[1], ω² * r[2], zero(eltype(grav_itrf))]
 
     # Finally, compute the gravity acceleration.
     g_itrf = grav_itrf + centrifugal_accel_itrf
