@@ -336,6 +336,33 @@ end
     end
 end
 
+@testset "Parsing Epochs with Overflowing Hours and Minutes" verbose = true begin
+    filename = "./icgem_test_files/icgem2_time_variable.gfc"
+    expected = GravityModels.load(IcgemFile, filename)
+
+    # Some published files round the minutes without carrying them into the hours. Hence,
+    # `11:60` must be read as `12:00` and `24:00` as the midnight of the next day.
+    contents = replace(
+        read(filename, String),
+        "20000101.1200" => "20000101.1160",
+        "20100101.0000" => "20091231.2400",
+    )
+
+    model = @test_logs SatelliteToolboxGravityModels.parse_icgem(IOBuffer(contents))
+
+    @test length(model.time_variable_coefficients) == 3
+
+    for (c, c_e) in
+        zip(model.time_variable_coefficients, expected.time_variable_coefficients)
+        @test c.t₀ == c_e.t₀
+        @test c.t₁ == c_e.t₁
+    end
+
+    # Values beyond the accepted overflow are still invalid.
+    @test isnothing(SatelliteToolboxGravityModels._parse_icgem_epoch("20000101.2500"))
+    @test isnothing(SatelliteToolboxGravityModels._parse_icgem_epoch("20000101.0061"))
+end
+
 @testset "Parsing IcgemFile [ERRORS]" verbose = true begin
     @test sprint(showerror, IcgemParseError("Message.")) == "IcgemParseError: Message."
     @test sprint(showerror, IcgemParseError("Message.", 8)) ==

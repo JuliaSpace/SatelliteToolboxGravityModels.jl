@@ -40,6 +40,10 @@ Version 2.0.0
   which can be set with the keyword `angular_speed` of `GravityModels.load` and
   `parse_icgem`, defaulting to Earth's value.
 - ![Feature][badge-feature] `parse_icgem` accepts an `IO` stream.
+- ![Enhancement][badge-enhancement] The epochs of the ICGEM format 2.0 whose minutes or
+  hours overflow, such as `20041226.0060` in EIGEN-GRGS.RL04.MEAN-FIELD, are accepted and
+  carried to the next hour or day. Previously, the coefficient was skipped with a warning,
+  losing its validity interval.
 - ![Enhancement][badge-enhancement] The gravitational acceleration of EGM96 is computed
   1.35 times faster with a workspace and, in this case, the evaluation functions do not
   allocate.

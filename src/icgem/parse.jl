@@ -420,6 +420,10 @@ end
 Parse the epoch `input`, written as `yyyymmdd` or `yyyymmdd.hhmm`, and return it as the
 number of elapsed seconds [s] since the J2000.0 epoch (2000-01-01T12:00:00). If `input`
 cannot be parsed, return `nothing`.
+
+Some published files round the minutes without carrying them into the hours, e.g.
+`20041226.0060` for 01:00 in EIGEN-GRGS.RL04.MEAN-FIELD. Hence, the hours are accepted up
+to 24 and the minutes up to 60, and the overflow is carried to the next hour or day.
 """
 function _parse_icgem_epoch(input::AbstractString)
     parts = split(input, '.')
@@ -434,8 +438,9 @@ function _parse_icgem_epoch(input::AbstractString)
         hour   = tryparse(Int, parts[2][1:2])
         minute = tryparse(Int, parts[2][3:4])
         (isnothing(hour) || isnothing(minute)) && return nothing
-        ((hour > 23) || (minute > 59)) && return nothing
+        ((hour < 0) || (hour > 24) || (minute < 0) || (minute > 60)) && return nothing
 
+        # The addition carries the overflowing minutes and hours (see the docstring).
         date += Dates.Hour(hour) + Dates.Minute(minute)
     end
 
