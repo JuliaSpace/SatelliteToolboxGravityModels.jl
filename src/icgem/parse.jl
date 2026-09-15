@@ -311,11 +311,7 @@ function parse_icgem(
                 )
 
                 _add_periodic_term!(
-                    periodic_terms,
-                    key == "asin",
-                    amplitude_clm,
-                    amplitude_slm,
-                    period,
+                    periodic_terms, key == "asin", amplitude_clm, amplitude_slm, period
                 )
 
                 read_new_line = true
@@ -326,7 +322,15 @@ function parse_icgem(
                 push!(
                     time_variable_coefficients,
                     IcgemTimeVariableCoefficient(
-                        deg, ord, clm, slm, t₀, t₁, trend_clm, trend_slm, copy(periodic_terms)
+                        deg,
+                        ord,
+                        clm,
+                        slm,
+                        t₀,
+                        t₁,
+                        trend_clm,
+                        trend_slm,
+                        copy(periodic_terms),
                     ),
                 )
 

@@ -156,9 +156,9 @@ end
     # coefficients `C11`, `S11`, and `C10`. Hence, the results can be compared with the
     # analytic expressions.
     model = GravityModels.load(IcgemFile, "./icgem_test_files/degree_one_coefficients.gfc")
-    μ  = GravityModels.gravity_constant(model)
+    μ = GravityModels.gravity_constant(model)
     R₀ = GravityModels.radius(model)
-    d  = [2.0e-3, 3.0e-3, 1.0e-3]
+    d = [2.0e-3, 3.0e-3, 1.0e-3]
 
     for r in (
         [7000.0e3, 0, 0],

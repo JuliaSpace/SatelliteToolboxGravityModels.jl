@@ -134,7 +134,8 @@ function _check_workspace(
 
         throw(
             ArgumentError(
-                "The workspace has element type $T but the computation requires $RT. " * hint,
+                "The workspace has element type $T but the computation requires $RT. " *
+                hint,
             ),
         )
     end
