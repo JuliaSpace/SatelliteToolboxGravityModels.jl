@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/src/assets/logo.png" width="150" title="SatelliteToolboxTransformations.jl"><br>
+  <img src="./docs/src/assets/logo.png" width="150" title="SatelliteToolboxGravityModels.jl"><br>
   <small><i>This package is part of the <a href="https://github.com/JuliaSpace/SatelliteToolbox.jl">SatelliteToolbox.jl</a> ecosystem.</i></small>
 </p>
 
@@ -20,7 +20,8 @@ implement highly accurate numerical orbit propagators.
 
 Currently, we have the following functionalities:
 
-- Compute the gravity field derivative in spherical coordinates;
+- Compute the gravitational potential;
+- Compute the gravitational field derivative in spherical coordinates;
 - Compute the gravitational acceleration; and
 - Compute the gravity acceleration, taking into account the body's rotation rate.
 
