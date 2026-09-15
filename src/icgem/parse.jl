@@ -278,10 +278,13 @@ function parse_icgem(
             end
 
         elseif state === :gfct
+            # A blank line has no tokens and ends the `gfct` section like any other line
+            # that does not belong to it. Hence, we must not access the first token here.
+            key = isempty(tokens) ? "" : tokens[1]
 
             # == `trnd` Data Line of a `gfct` Section ======================================
 
-            if tokens[1] == "trnd"
+            if key == "trnd"
                 ret = _parse_trnd_data_line(Tf, tokens, current_line)
                 if isnothing(ret)
                     read_new_line = true
@@ -301,7 +304,7 @@ function parse_icgem(
 
                 # == `asin` and `acos` Data Lines of a `gfct` Section ======================
 
-            elseif (tokens[1] == "asin") || (tokens[1] == "acos")
+            elseif (key == "asin") || (key == "acos")
                 ret = _parse_asin_acos_data_line(Tf, tokens, current_line)
                 if isnothing(ret)
                     read_new_line = true
@@ -312,14 +315,14 @@ function parse_icgem(
 
                 ((adeg != deg) || (aord != ord)) && throw(
                     IcgemParseError(
-                        "The degree or order of a `$(tokens[1])` line is different from the corresponding `gfct` line.",
+                        "The degree or order of a `$key` line is different from the corresponding `gfct` line.",
                         current_line,
                     ),
                 )
 
                 _add_periodic_term!(
                     periodic_terms,
-                    tokens[1] == "asin",
+                    key == "asin",
                     amplitude_clm,
                     amplitude_slm,
                     period,

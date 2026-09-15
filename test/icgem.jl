@@ -312,6 +312,30 @@ IcgemTimeVariableCoefficient{Float64}:
     @test sprint(show, MIME("text/plain"), c₃) == expected_str
 end
 
+@testset "Parsing IcgemFile with a Blank Line in a gfct Section" verbose = true begin
+    filename = "./icgem_test_files/icgem2_time_variable.gfc"
+    expected = GravityModels.load(IcgemFile, filename)
+
+    # A blank line inside a `gfct` section must end the section and be reported as an
+    # invalid data line instead of crashing the parser.
+    contents = replace(
+        read(filename, String), "\ngfct    2   0 -2.0" => "\n\ngfct    2   0 -2.0"
+    )
+
+    model = @test_logs (:warn, "[Line 22] Invalid data line.") parse_icgem(
+        IOBuffer(contents)
+    )
+
+    @test length(model.time_variable_coefficients) == 3
+
+    for (n, m) in ((2, 0), (2, 1), (2, 2)),
+        date in (DateTime("2005-06-19"), DateTime("2015-06-19"), DateTime("2025-01-01"))
+
+        @test GravityModels.coefficients(model, n, m, date) ==
+            GravityModels.coefficients(expected, n, m, date)
+    end
+end
+
 @testset "Parsing IcgemFile [ERRORS]" verbose = true begin
     @test sprint(showerror, IcgemParseError("Message.")) == "IcgemParseError: Message."
     @test sprint(showerror, IcgemParseError("Message.", 8)) ==
