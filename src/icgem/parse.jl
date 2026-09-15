@@ -397,13 +397,17 @@ end
 """
     _parse_icgem_float(::Type{T}, input::AbstractString) -> Union{Nothing, T}
 
-Parse the `input` to the float type `T`, substituting all `D`s and `d`s by `e` so that
-numbers in FORTRAN format can be converted. If `input` cannot be parsed to `T`, return
-`nothing`.
+Parse the `input` to the float type `T`. If it fails, substitute all `D`s and `d`s by `e`
+so that numbers in FORTRAN format can be converted and try again. If `input` still cannot
+be parsed to `T`, return `nothing`.
 """
 function _parse_icgem_float(::Type{T}, input::AbstractString) where {T}
-    data_str = replace(input, r"[Dd]" => "e")
-    return tryparse(T, data_str)
+    # Most files use the `e` exponent. Hence, we try to parse the input directly first,
+    # avoiding the allocation of a new string for every number.
+    value = tryparse(T, input)
+    isnothing(value) || return value
+
+    return tryparse(T, replace(input, 'D' => 'e', 'd' => 'e'))
 end
 
 """
