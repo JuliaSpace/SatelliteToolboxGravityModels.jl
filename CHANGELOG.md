@@ -51,6 +51,16 @@ Version 2.0.0
   value.
 - ![Enhancement][badge-enhancement] The parser skips data lines whose degree or order are
   out of range, or whose epoch is invalid, logging a warning instead of throwing.
+- ![Enhancement][badge-enhancement] The ICGEM parser no longer boxes the variables of its
+  data loop and parses the numbers without a regular expression substitution, so EIGEN-6C
+  is parsed 35% faster with 24% less memory.
+- ![Enhancement][badge-enhancement] The limit required by the east component of the
+  acceleration on the polar axis is evaluated outside the loop over the degrees and orders,
+  only when the position lies on the axis, making the gravitational acceleration of EGM96
+  27% faster.
+- ![Enhancement][badge-enhancement] The spherical coordinates of the position are computed
+  once per evaluation and in the result type, so a position with an element type narrower
+  than the model coefficients no longer degrades the precision of the result.
 - ![Bugfix][badge-bugfix] The acceleration at positions whose latitude rounds to ±π / 2,
   such as those obtained from `geodetic_to_ecef(±π / 2, λ, h)`, had the north component
   with the wrong sign, an error of 1.2e-4 m/s², and the east component on the polar axis
@@ -59,6 +69,13 @@ Version 2.0.0
   east component on the axis is obtained from its limit.
 - ![Bugfix][badge-bugfix] The coefficients omitted in an ICGEM file, such as those of
   degree 1, were uninitialized memory instead of 0.
+- ![Bugfix][badge-bugfix] The degree-1 terms were always skipped by the evaluation
+  functions, which is correct only when the origin of the model is the center of mass of
+  the body. They are now included in the sums.
+- ![Bugfix][badge-bugfix] A blank line inside a section of time-variable coefficients
+  crashed the parser instead of ending the section with a warning.
+- ![Bugfix][badge-bugfix] The warnings logged for an invalid `Slm` amplitude or period of
+  a periodic term printed the `Clm` amplitude instead of the invalid token.
 - ![Bugfix][badge-bugfix] The ICGEM file handle was never closed after parsing.
 - ![Bugfix][badge-bugfix] Differentiating with Zygote.jl a call that received the user
   buffers failed because they were forwarded to the ForwardDiff.jl pullbacks.
