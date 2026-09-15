@@ -151,6 +151,33 @@ end
     end
 end
 
+@testset "Degree-1 Coefficients" verbose = true begin
+    # The degree-1 terms of the potential are `μ R₀ (d ⋅ r) / r³`, where `d` has the
+    # coefficients `C11`, `S11`, and `C10`. Hence, the results can be compared with the
+    # analytic expressions.
+    model = GravityModels.load(IcgemFile, "./icgem_test_files/degree_one_coefficients.gfc")
+    μ  = GravityModels.gravity_constant(model)
+    R₀ = GravityModels.radius(model)
+    d  = [2.0e-3, 3.0e-3, 1.0e-3]
+
+    for r in (
+        [7000.0e3, 0, 0],
+        [0, 7000.0e3, 0],
+        [0, 0, 7000.0e3],
+        [0, 0, -7000.0e3],
+        [4000.0e3, -3000.0e3, -5000.0e3],
+    )
+        r_norm = norm(r)
+
+        U_expected = μ / r_norm * (1 + R₀ * dot(d, r) / r_norm^2)
+        g_expected =
+            -μ * r / r_norm^3 + μ * R₀ * (d / r_norm^3 - 3 * dot(d, r) * r / r_norm^5)
+
+        @test GravityModels.gravitational_potential(model, r) ≈ U_expected rtol = 1e-14
+        @test GravityModels.gravitational_acceleration(model, r) ≈ g_expected rtol = 1e-13
+    end
+end
+
 @testset "Gravity Acceleration" verbose = true begin
     tests = (
         (:EGM96, "./test_results/gravity/EGM96.gdf"),

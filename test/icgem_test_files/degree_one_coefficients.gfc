@@ -1,0 +1,17 @@
+Test file with nonzero degree-1 coefficients, which are not zero when the origin of the
+model is not the center of mass of the body. The values are synthetic.
+
+product_type                gravity_field
+modelname                   DegreeOne
+earth_gravity_constant      0.3986004415E+15
+radius                      0.6378136300E+07
+max_degree                     1
+errors                      no
+norm                        unnormalized
+tide_system                 tide_free
+
+key    L    M         C                   S
+end_of_head =========================================================================
+gfc     0   0  1.000000000000e+00  0.000000000000e+00
+gfc     1   0  1.000000000000e-03  0.000000000000e+00
+gfc     1   1  2.000000000000e-03  3.000000000000e-03

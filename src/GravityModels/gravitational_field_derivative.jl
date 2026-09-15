@@ -255,7 +255,8 @@ function _gravitational_field_derivative_kernel(
         ratio = +R₀ / r_gc
     end
 
-    fact = ratio
+    # Factor (R₀ / r)^n, which is updated at every degree.
+    fact = RT(1)
 
     # Sine and cosine of twice the geocentric longitude, which are used to initialize the
     # recursion that computes `sin(m * λ_gc)` and `cos(m * λ_gc)`.
@@ -276,7 +277,7 @@ function _gravitational_field_derivative_kernel(
     _dlegendre!(legendre, dP, θ, P, n_max, m_max)
 
     # Compute the derivatives.
-    @inbounds for n in 2:n_max
+    @inbounds for n in 1:n_max
         aux_∂U_∂r = RT(0)
         aux_∂U_∂ϕ = RT(0)
         aux_∂U_∂λ = RT(0)
