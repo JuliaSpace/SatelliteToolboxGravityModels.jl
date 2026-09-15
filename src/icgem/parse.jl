@@ -745,14 +745,14 @@ function _parse_asin_acos_data_line(
     amplitude_slm = _parse_icgem_float(Tf, tokens[5])
 
     if isnothing(amplitude_slm)
-        @warn "[Line $current_line] Could not parse `Slm` amplitude to $Tf: $(tokens[4])."
+        @warn "[Line $current_line] Could not parse `Slm` amplitude to $Tf: $(tokens[5])."
         return nothing
     end
 
     period = _parse_icgem_float(Tf, tokens[end])
 
     if isnothing(period)
-        @warn "[Line $current_line] Could not parse period to $Tf: $(tokens[4])."
+        @warn "[Line $current_line] Could not parse period to $Tf: $(tokens[end])."
         return nothing
     end
 

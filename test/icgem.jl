@@ -368,9 +368,9 @@ end
         (:warn, "[Line 59] Could not parse `trend_S` to Float64: 0.0b0000000000e+00."),
         (
             :warn,
-            "[Line 86] Could not parse `Slm` amplitude to Float64: -1.07328392828e-12.",
+            "[Line 86] Could not parse `Slm` amplitude to Float64: 0.a00000000000e+00.",
         ),
-        (:warn, "[Line 90] Could not parse period to Float64: -3.72637514028e-12."),
+        (:warn, "[Line 90] Could not parse period to Float64: a.0."),
         GravityModels.load(IcgemFile, "./icgem_test_files/invalid_gfct_data_lines.gfc")
     )
 end
