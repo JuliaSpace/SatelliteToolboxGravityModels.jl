@@ -281,7 +281,6 @@ function _gravitational_field_derivative_kernel(
         aux_∂U_∂r = RT(0)
         aux_∂U_∂ϕ = RT(0)
         aux_∂U_∂λ = RT(0)
-        aux_∂U_∂λ_over_cosϕ_pole = RT(0)
 
         # == Sine and Cosine with m = 1 ====================================================
         #
@@ -322,10 +321,6 @@ function _gravitational_field_derivative_kernel(
             aux_∂U_∂ϕ += dP_nm * CcSs_nm
             aux_∂U_∂λ += m * P_nm * ScCs_nm
 
-            # At the poles, `P_n,m / cos(ϕ_gc)` vanishes for `m > 1` and tends to the
-            # derivative of `P_n,1` for `m = 1`.
-            (m == 1) && (aux_∂U_∂λ_over_cosϕ_pole += dP_nm * ScCs_nm)
-
             # == Update the Values for the Next Step =======================================
 
             sin_m_2λ = sin_m_1λ
@@ -341,12 +336,30 @@ function _gravitational_field_derivative_kernel(
         aux_∂U_∂r *= fact
         aux_∂U_∂ϕ *= fact
         aux_∂U_∂λ *= fact
-        aux_∂U_∂λ_over_cosϕ_pole *= fact
 
         ∂U_∂r += (n + 1) * aux_∂U_∂r
         ∂U_∂ϕ += aux_∂U_∂ϕ
         ∂U_∂λ += aux_∂U_∂λ
-        ∂U_∂λ_over_cosϕ_pole += aux_∂U_∂λ_over_cosϕ_pole
+    end
+
+    # == Limit of (∂U/∂λ) / cos(ϕ_gc) on the Polar Axis ===================================
+    #
+    # On the polar axis, both `∂U/∂λ` and `cos(ϕ_gc)` vanish, and the east component of the
+    # acceleration must be obtained from the limit of their ratio. Since
+    # `P_n,m / cos(ϕ_gc)` vanishes for `m > 1` and tends to the derivative of `P_n,1` w.r.t.
+    # θ for `m = 1`, only the terms with `m = 1` contribute to the limit. On the axis,
+    # `sin(λ_gc) = 0` and `cos(λ_gc) = ±1` (see `_spherical_coordinates` and the shift
+    # applied in the southern hemisphere). Hence, the factor `S_n1 cos(λ_gc) - C_n1 sin(λ_gc)`
+    # reduces to `S_n1 cos(λ_gc)`. This O(n_max) loop is executed only on the axis, keeping
+    # the branch out of the hot loop above.
+    if (sc.ρ_gc == 0) && (m_max >= 1)
+        fact = RT(1)
+
+        @inbounds for n in 1:n_max
+            fact *= ratio
+            _, slm = coefficients(model, n, 1, time)
+            ∂U_∂λ_over_cosϕ_pole += fact * dP[n + 1, 2] * slm * cos_λ
+        end
     end
 
     # The term `∂U_∂ϕ` was computed with the derivatives w.r.t. θ, which is θ_gc in the
