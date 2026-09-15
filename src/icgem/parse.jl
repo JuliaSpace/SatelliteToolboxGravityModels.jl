@@ -110,7 +110,7 @@ function parse_icgem(
 
     has_mandatory_fields = map(f -> haskey(keywords, f), mandatory_fields)
 
-    if !prod(has_mandatory_fields)
+    if !all(has_mandatory_fields)
         missing_fields = mandatory_fields[findall(!, has_mandatory_fields)]
         throw(
             IcgemParseError("The following mandatory fields are missing: $missing_fields.")
@@ -209,31 +209,21 @@ function parse_icgem(
     trend_slm      = Tf(0)
     periodic_terms = IcgemPeriodicTerm{Tf}[]
 
-    line          = nothing
     read_new_line = true
-    tokens        = nothing
+    tokens        = split("")
 
-    # Flush the coefficient built from a `gfct` section and its subsequent lines to the
-    # vector of time-variable coefficients.
-    function flush_gfct_coefficient!()
-        push!(
-            time_variable_coefficients,
-            IcgemTimeVariableCoefficient(
-                deg, ord, clm, slm, t₀, t₁, trend_clm, trend_slm, copy(periodic_terms)
-            ),
-        )
-
-        return nothing
-    end
+    # NOTE: The coefficient built from a `gfct` section is flushed to the vector of
+    # time-variable coefficients by pushing the auxiliary variables directly. A closure
+    # would capture those variables, which are reassigned in the loop, making them boxed
+    # and every operation with them dynamically typed.
 
     # Read the entire file and build the coefficients.
     while !eof(file)
         # Check if we need to read a new line from the file.
         if read_new_line
             # Read and tokenize each line.
-            line = readline(file)
             current_line += 1
-            tokens = split(line)
+            tokens = split(readline(file))
         end
 
         # Process the line according to the state.
@@ -333,7 +323,12 @@ function parse_icgem(
             else
                 # If we reach this part, the `gfct` section is over. Thus, we should create
                 # the element related to `gfct` and proceed with the new information.
-                flush_gfct_coefficient!()
+                push!(
+                    time_variable_coefficients,
+                    IcgemTimeVariableCoefficient(
+                        deg, ord, clm, slm, t₀, t₁, trend_clm, trend_slm, copy(periodic_terms)
+                    ),
+                )
 
                 state = :new
                 read_new_line = false
@@ -343,7 +338,14 @@ function parse_icgem(
 
     # If the file ended while we were processing a `gfct` section, we must flush the
     # pending coefficient. Otherwise, the last time-variable coefficient would be lost.
-    state === :gfct && flush_gfct_coefficient!()
+    if state === :gfct
+        push!(
+            time_variable_coefficients,
+            IcgemTimeVariableCoefficient(
+                deg, ord, clm, slm, t₀, t₁, trend_clm, trend_slm, copy(periodic_terms)
+            ),
+        )
+    end
 
     # == Time-Variable Coefficients Index ==================================================
 
