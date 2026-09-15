@@ -18,8 +18,8 @@
     parse_icgem(io::IO, T::Type = Float64; kwargs...) -> IcgemFile
 
 Parse the ICGEM file `filename`, or the ICGEM data read from the stream `io`, using the
-data type `T` and return an [`IcgemFile`](@ref) object with the parsed data. The file is
-closed after parsing.
+data type `T` and return an [`IcgemFile`](@ref) object with the parsed data. The file
+`filename` is closed after parsing, whereas the stream `io` is left open.
 
 This function supports ICGEM gravity model files for Earth and other celestial bodies
 (Moon, planets, etc.). The parser automatically detects whether the file uses
