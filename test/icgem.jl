@@ -322,7 +322,7 @@ end
         read(filename, String), "\ngfct    2   0 -2.0" => "\n\ngfct    2   0 -2.0"
     )
 
-    model = @test_logs (:warn, "[Line 22] Invalid data line.") parse_icgem(
+    model = @test_logs (:warn, "[Line 22] Invalid data line.") SatelliteToolboxGravityModels.parse_icgem(
         IOBuffer(contents)
     )
 
