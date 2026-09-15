@@ -12,8 +12,8 @@
     )
 end
 
-if VERSION >= v"1.12"
-    @warn "JET.jl test skipped on Julia 1.12+ due to MethodTableView incompatibility"
+if VERSION.major == 1 && VERSION.minor == 12
+    @warn "JET.jl test skipped on Julia 1.12 due to MethodTableView incompatibility"
 else
     @testset "JET Testing" begin
         rep = JET.test_package(
