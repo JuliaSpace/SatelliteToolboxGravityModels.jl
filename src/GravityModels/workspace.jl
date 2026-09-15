@@ -124,11 +124,20 @@ order `m_max`, throwing an `ArgumentError` otherwise.
 function _check_workspace(
     workspace::Workspace{N, T}, ::Type{RT}, n_max::Int, m_max::Int
 ) where {N, T, RT}
-    (T !== RT) && throw(
-        ArgumentError(
-            "The workspace has element type $T but the computation requires $RT. Create the workspace with `T = $RT`.",
-        ),
-    )
+    if T !== RT
+        # A type that is not a float, such as the dual numbers used in automatic
+        # differentiation, cannot be stored in a workspace. Hence, we must not suggest
+        # creating one in this case.
+        hint =
+            (RT <: AbstractFloat) ? "Create the workspace with `T = $RT`." :
+            "This type cannot be stored in a workspace. Call the function without one."
+
+        throw(
+            ArgumentError(
+                "The workspace has element type $T but the computation requires $RT. " * hint,
+            ),
+        )
+    end
 
     ((n_max > workspace.max_degree) || (m_max > workspace.max_order)) && throw(
         ArgumentError(
