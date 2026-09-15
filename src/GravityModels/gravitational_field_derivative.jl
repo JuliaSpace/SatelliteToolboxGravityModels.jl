@@ -205,7 +205,7 @@ derivatives.
 - `RT`: Derivative of the gravitational field w.r.t. the longitude (`∂U/∂λ`) [m²/s²].
 - `RT`: Limit of `(∂U/∂λ) / cos(ϕ)` [m²/s²] at the poles, which is required to compute the
     east component of the acceleration on the polar axis, where both `∂U/∂λ` and `cos(ϕ)`
-    are 0. This value is meaningful only if `r` lies on the polar axis.
+    are 0. This value is meaningful only if the position lies on the polar axis.
 """
 function _gravitational_field_derivative_kernel(
     model::AbstractGravityModel,
